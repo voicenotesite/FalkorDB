@@ -124,16 +124,14 @@ static inline bool _should_divide_expression
 			_referred_entity(e->dest->alias));              // destination node is referenced
 }
 
-// variable length expression must contain only a single operand: the edge being
-// traversed, in cases such as (:labelA)-[e*]->(:labelB) both label A and B
-// are applied via a label matrix operand, this function migrates A and B from a
 /**
  * @brief Isolates variable-length edges into individual algebraic expressions.
  *
- * Processes a set of algebraic expressions and ensures that each variable-length
- * edge expression contains only a single operand. In cases where a variable-length
- * edge has labeled source or destination nodes, these labels are migrated to
- * separate expressions or removed when appropriate.
+ * Variable length expression must contain only a single operand: the edge being
+ * traversed. In cases such as (:labelA)-[e*]->(:labelB) both label A and B
+ * are applied via a label matrix operand, this function migrates A and B from a
+ * variable length expression to new expressions or completely discards them when
+ * possible.
  *
  * @param qg          Pointer to the query graph containing node and edge metadata.
  * @param expressions Array of algebraic expression pointers to be processed.

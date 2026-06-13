@@ -149,6 +149,10 @@ AlgebraicExpression *_AlgebraicExpression_MultiplyToTheRight
 	AlgebraicExpression *exp,
 	AlgebraicExpression *rhs
 ) {
+(
+	AlgebraicExpression *exp,
+	AlgebraicExpression *rhs
+) {
 	ASSERT(exp && rhs);
 	AlgebraicExpression *mul = AlgebraicExpression_NewOperation(AL_EXP_MUL);
 	AlgebraicExpression_AddChild(mul, exp);
@@ -382,8 +386,10 @@ void _AlgebraicExpression_PopulateOperands
  * given expressions "A * ADJ * B" and "B * ADJ * C", the source operand 'B'
  * in the second expression is redundant and will be removed.
  *
- * @param exps Array of algebraic expression pointers to process.
+ * @param exps Array of algebraic expression pointers to process (modified in-place).
  * @param qg   Pointer to the query graph containing node and edge metadata.
+ *
+ * @return void
  */
 void _AlgebraicExpression_RemoveRedundentOperands
 (
