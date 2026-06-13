@@ -133,11 +133,17 @@ AlgebraicExpression *_AlgebraicExpression_MultiplyToTheLeft
 	return mul;
 }
 
-// multiplies `exp` to the right by `rhs`
-// returns new expression root
-// `exp` = Transpose(C)
-// `rhs` = (A + B)
-// returns Transpose(C) * (A + B) where `*` is the new root
+/**
+ * @brief Multiplies an expression to the right by another expression.
+ *
+ * Creates a new multiplication operation node with the given expression as the
+ * left operand and the right-hand-side expression as the right operand.
+ *
+ * @param exp The left expression to be multiplied.
+ * @param rhs The right-hand-side expression to multiply by.
+ *
+ * @return A new algebraic expression representing the multiplication, owned by the caller.
+ */
 AlgebraicExpression *_AlgebraicExpression_MultiplyToTheRight
 (
 	AlgebraicExpression *exp,
@@ -368,6 +374,17 @@ void _AlgebraicExpression_PopulateOperands
 	}
 }
 
+/**
+ * @brief Removes redundant label matrices from shared nodes across expressions.
+ *
+ * Eliminates redundant label operand matrices from expressions where a source
+ * node is already resolved by a previous expression's destination. For example,
+ * given expressions "A * ADJ * B" and "B * ADJ * C", the source operand 'B'
+ * in the second expression is redundant and will be removed.
+ *
+ * @param exps Array of algebraic expression pointers to process.
+ * @param qg   Pointer to the query graph containing node and edge metadata.
+ */
 void _AlgebraicExpression_RemoveRedundentOperands
 (
 	AlgebraicExpression **exps,

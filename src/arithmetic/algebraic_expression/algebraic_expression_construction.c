@@ -127,8 +127,21 @@ static inline bool _should_divide_expression
 // variable length expression must contain only a single operand: the edge being
 // traversed, in cases such as (:labelA)-[e*]->(:labelB) both label A and B
 // are applied via a label matrix operand, this function migrates A and B from a
-// variable length expression to new expressions
-// or completely discards them when possible
+/**
+ * @brief Isolates variable-length edges into individual algebraic expressions.
+ *
+ * Processes a set of algebraic expressions and ensures that each variable-length
+ * edge expression contains only a single operand. In cases where a variable-length
+ * edge has labeled source or destination nodes, these labels are migrated to
+ * separate expressions or removed when appropriate.
+ *
+ * @param qg          Pointer to the query graph containing node and edge metadata.
+ * @param expressions Array of algebraic expression pointers to be processed.
+ *
+ * @return A newly allocated array of algebraic expressions where each variable-length
+ *         expression is guaranteed to have a single operand. The caller is responsible
+ *         for freeing the returned array.
+ */
 static AlgebraicExpression **_AlgebraicExpression_IsolateVariableLenExps
 (
 	const QueryGraph *qg,
