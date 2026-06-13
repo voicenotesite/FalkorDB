@@ -1,4 +1,5 @@
 """Tests Flow Test Betweenness."""
+
 from common import *
 
 GRAPH_ID = "betweenness"

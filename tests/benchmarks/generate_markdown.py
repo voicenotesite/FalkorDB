@@ -1,4 +1,5 @@
 """Tests Benchmarks Generate Markdown."""
+
 #! /usr/bin/env python3
 
 import glob

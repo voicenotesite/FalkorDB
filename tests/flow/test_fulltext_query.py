@@ -1,4 +1,5 @@
 """Tests Flow Test Fulltext Query."""
+
 from common import *
 from index_utils import *
 

@@ -1,4 +1,5 @@
 """Tests Flow Test Point."""
+
 from common import *
 from index_utils import *
 

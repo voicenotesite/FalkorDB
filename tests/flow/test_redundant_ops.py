@@ -1,4 +1,5 @@
 """Tests Flow Test Redundant Ops."""
+
 from common import *
 
 GRAPH_ID = "redundant_ops"

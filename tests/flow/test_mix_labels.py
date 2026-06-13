@@ -1,4 +1,5 @@
 """Tests Flow Test Mix Labels."""
+
 from common import *
 
 male = ["Roi", "Alon", "Omri"]

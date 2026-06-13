@@ -1,4 +1,5 @@
 """Tests Flow Test Path."""
+
 from common import *
 from collections import Counter
 

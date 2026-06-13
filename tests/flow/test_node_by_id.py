@@ -1,4 +1,5 @@
 """Tests Flow Test Node By Id."""
+
 from common import *
 
 GRAPH_ID = "node_by_id"

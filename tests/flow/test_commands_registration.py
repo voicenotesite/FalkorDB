@@ -1,4 +1,5 @@
 """Tests Flow Test Commands Registration."""
+
 from common import *
 
 GRAPH_ID = "cmd_reg"

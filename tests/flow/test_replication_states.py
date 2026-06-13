@@ -1,4 +1,5 @@
 """Tests Flow Test Replication States."""
+
 from common import *
 from itertools import permutations
 from enum import Enum

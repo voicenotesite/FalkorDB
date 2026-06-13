@@ -1,4 +1,5 @@
 """Tests Flow Test Null Handling."""
+
 from common import *
 
 GRAPH_ID = "null_handling"

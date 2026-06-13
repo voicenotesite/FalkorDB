@@ -1,4 +1,5 @@
 """Tests Flow Test Relation Patterns."""
+
 from common import *
 
 GRAPH_ID = "relation_patterns"

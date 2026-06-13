@@ -1,4 +1,5 @@
 """Tests Flow Test Optimizations Plan."""
+
 from common import *
 
 people = ["Roi", "Alon", "Ailon", "Boaz"]

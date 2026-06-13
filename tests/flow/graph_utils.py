@@ -1,4 +1,5 @@
 """Tests Flow Graph Utils."""
+
 # returns True if graphs have the same:
 # set of labels
 # set of relations

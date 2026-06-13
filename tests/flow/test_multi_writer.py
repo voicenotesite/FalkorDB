@@ -1,4 +1,5 @@
 """Tests Flow Test Multi Writer."""
+
 from common import *
 import time
 import threading

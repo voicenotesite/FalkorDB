@@ -1,4 +1,5 @@
 """Tests Flow Test Wcc."""
+
 from common import *
 from random_graph import create_random_schema, create_random_graph, run_random_graph_ops, ALL_OPS
 

@@ -1,4 +1,5 @@
 """Tests Flow Test Value Comparisons."""
+
 from common import *
 
 GRAPH_ID = "value_comparison"

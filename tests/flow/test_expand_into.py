@@ -1,4 +1,5 @@
 """Tests Flow Test Expand Into."""
+
 from common import *
 
 GRAPH_ID = "G"

@@ -1,4 +1,5 @@
 """Tests Flow Test Aggregation."""
+
 from common import *
 from math import floor, ceil, sqrt
 

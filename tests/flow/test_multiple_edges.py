@@ -1,4 +1,5 @@
 """Tests Flow Test Multiple Edges."""
+
 from common import *
 
 GRAPH_ID = "multi_edge"

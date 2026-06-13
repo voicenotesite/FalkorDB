@@ -1,4 +1,5 @@
 """Demo Social Social Utils."""
+
 import csv
 import os
 from falkordb import Graph, Node, Edge

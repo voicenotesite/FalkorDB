@@ -1,4 +1,5 @@
 """Tests Flow Test Shortest Path."""
+
 from common import *
 
 nodes        =  []

@@ -1,4 +1,5 @@
 """Tests Flow Test Index Scans."""
+
 from common import *
 from index_utils import *
 

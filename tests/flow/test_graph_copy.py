@@ -1,4 +1,5 @@
 """Tests Flow Test Graph Copy."""
+
 import time
 from graph_utils import graph_eq
 from redis import BusyLoadingError, ResponseError

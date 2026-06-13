@@ -1,4 +1,5 @@
 """Tests Flow Test Vecsim."""
+
 from common import *
 from index_utils import *
 

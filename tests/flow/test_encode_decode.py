@@ -1,4 +1,5 @@
 """Tests Flow Test Encode Decode."""
+
 import re
 
 from common import *

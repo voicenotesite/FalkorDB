@@ -1,4 +1,5 @@
 """Tests Flow Test Msf."""
+
 from common import *
 from random_graph import create_random_graph
 from random import randint

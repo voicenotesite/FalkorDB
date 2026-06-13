@@ -1,4 +1,5 @@
 """Tests Flow Test Star Projections."""
+
 from common import *
 
 GRAPH_ID = "starProjection"

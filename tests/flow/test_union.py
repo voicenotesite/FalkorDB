@@ -1,4 +1,5 @@
 """Tests Flow Test Union."""
+
 from common import *
 
 GRAPH_ID = "union_test"

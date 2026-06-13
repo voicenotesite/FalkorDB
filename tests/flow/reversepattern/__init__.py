@@ -1,6 +1,5 @@
 """Tests Flow Reversepattern   Init  ."""
 
-"""Class ReversePattern."""
 class ReversePattern(object):
 
     """__init__."""

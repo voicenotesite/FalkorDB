@@ -1,4 +1,5 @@
 """Tests Flow Test Empty Query."""
+
 from common import *
 
 

@@ -1,4 +1,5 @@
 """Tests Flow Test Rdb Load."""
+
 from common import *
 
 # TODO: when introducing new encoder/decoder this needs to be updated consider

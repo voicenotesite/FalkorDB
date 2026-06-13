@@ -1,4 +1,5 @@
 """Demo Social Social Queries."""
+
 import sys
 import os
 

@@ -1,4 +1,5 @@
 """Tests Flow Test Self Pointing Node."""
+
 from common import *
 
 GRAPH_ID = "self_pointing_node"

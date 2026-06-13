@@ -1,4 +1,5 @@
 """Tests Flow Test Pagerank."""
+
 from common import *
 
 GRAPH_ID = "pagerank"

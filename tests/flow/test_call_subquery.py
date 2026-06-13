@@ -1,4 +1,5 @@
 """Tests Flow Test Call Subquery."""
+
 from common import *
 from collections import OrderedDict
 from index_utils import create_node_range_index

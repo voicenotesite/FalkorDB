@@ -1,4 +1,5 @@
 """Tests Fuzz Process."""
+
 #!/usr/bin/env python3
 
 import os

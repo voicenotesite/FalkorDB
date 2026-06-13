@@ -1,4 +1,5 @@
 """Tests Flow Index Utils."""
+
 import time
 
 # wait for index to be operational

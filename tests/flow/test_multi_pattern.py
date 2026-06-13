@@ -1,4 +1,5 @@
 """Tests Flow Test Multi Pattern."""
+
 from common import *
 
 GRAPH_ID = "multi_pattern"

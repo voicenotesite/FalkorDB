@@ -1,4 +1,5 @@
 """Tests Flow Test Edge Index Updates."""
+
 import random
 import string
 from common import *

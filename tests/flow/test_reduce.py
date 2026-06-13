@@ -1,4 +1,5 @@
 """Tests Flow Test Reduce."""
+
 from common import *
 
 GRAPH_ID = "REDUCE"

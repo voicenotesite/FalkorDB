@@ -1,4 +1,5 @@
 """Tests Flow Test Query Validation."""
+
 from common import *
 
 GRAPH_ID = "query_validation"

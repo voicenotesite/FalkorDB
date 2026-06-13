@@ -1,4 +1,5 @@
 """Tests Flow Test Function Calls."""
+
 from cmath import isinf, isnan
 from common import *
 import json

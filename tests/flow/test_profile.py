@@ -1,4 +1,5 @@
 """Tests Flow Test Profile."""
+
 from common import *
 
 GRAPH_ID = "profile"

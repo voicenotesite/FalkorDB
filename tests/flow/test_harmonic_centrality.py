@@ -1,4 +1,5 @@
 """Tests Flow Test Harmonic Centrality."""
+
 from common import *
 
 GRAPH_ID = "centrality"

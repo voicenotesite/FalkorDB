@@ -1,4 +1,5 @@
 """Tests Flow Random Graph."""
+
 from index_utils import *
 from random import randint, random, choice
 from xmlrpc.client import MAXINT, MININT

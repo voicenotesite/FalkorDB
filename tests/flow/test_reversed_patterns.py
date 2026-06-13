@@ -1,4 +1,5 @@
 """Tests Flow Test Reversed Patterns."""
+
 from common import *
 
 GRAPH_ID = "reversed_patterns"

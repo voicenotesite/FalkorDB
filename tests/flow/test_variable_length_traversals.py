@@ -1,4 +1,5 @@
 """Tests Flow Test Variable Length Traversals."""
+
 from common import *
 
 node_names = ["A", "B", "C", "D"]

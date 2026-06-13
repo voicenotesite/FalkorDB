@@ -1,4 +1,5 @@
 """Tests Flow Test Social."""
+
 from common import *
 
 from reversepattern import ReversePattern

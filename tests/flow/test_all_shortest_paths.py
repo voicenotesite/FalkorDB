@@ -1,4 +1,5 @@
 """Tests Flow Test All Shortest Paths."""
+
 from common import *
 
 

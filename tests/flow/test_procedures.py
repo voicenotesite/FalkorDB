@@ -1,4 +1,5 @@
 """Tests Flow Test Procedures."""
+
 from common import *
 from index_utils import create_node_fulltext_index, create_node_range_index
 

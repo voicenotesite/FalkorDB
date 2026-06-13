@@ -1,4 +1,5 @@
 """Demo   Init  ."""
+
 class QueryInfo(object):
     """
     This class contains the needed data about a query

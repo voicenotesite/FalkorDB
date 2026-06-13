@@ -1,4 +1,5 @@
 """Tests Flow Test Maxflow."""
+
 from common import *
 
 GRAPH_ID = "max_flow"

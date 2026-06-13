@@ -1,4 +1,5 @@
 """Tests Flow Test Graph Versioning."""
+
 from common import *
 from redis import ResponseError
 

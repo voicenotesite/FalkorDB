@@ -1,4 +1,5 @@
 """Tests Flow Test Hashjoin."""
+
 from common import *
 
 GRAPH_ID = "hashjoin"

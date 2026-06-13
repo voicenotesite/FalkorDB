@@ -1,4 +1,5 @@
 """Tests Flow Test Map."""
+
 from common import *
 
 GRAPH_ID = "map_test"

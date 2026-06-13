@@ -1,4 +1,5 @@
 """Tests Flow Test Opening Node."""
+
 from common import *
 from itertools import permutations, chain, combinations
 
