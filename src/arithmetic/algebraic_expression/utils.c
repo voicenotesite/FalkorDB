@@ -133,6 +133,11 @@ AlgebraicExpression *_AlgebraicExpression_MultiplyToTheLeft
 	return mul;
 }
 
+// multiplies `exp` to the right by `rhs`
+// returns new expression root
+// `exp` = Transpose(C)
+// `rhs` = (A + B)
+// returns Transpose(C) * (A + B) where `*` is the new root
 /**
  * @brief Multiplies an expression to the right by another expression.
  *
@@ -145,10 +150,6 @@ AlgebraicExpression *_AlgebraicExpression_MultiplyToTheLeft
  * @return A new algebraic expression representing the multiplication, owned by the caller.
  */
 AlgebraicExpression *_AlgebraicExpression_MultiplyToTheRight
-(
-	AlgebraicExpression *exp,
-	AlgebraicExpression *rhs
-) {
 (
 	AlgebraicExpression *exp,
 	AlgebraicExpression *rhs

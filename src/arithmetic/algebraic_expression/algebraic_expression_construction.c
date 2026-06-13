@@ -13,6 +13,14 @@
 
 // node with (income + outcome degree) > 2
 // is considered a highly connected node
+/**
+ * @brief Checks if a node is highly connected (degree > 2).
+ *
+ * @param qg    Pointer to the query graph.
+ * @param alias Node alias to look up.
+ *
+ * @return true if the node has income + outcome degree > 2, false otherwise.
+ */
 static bool _highly_connected_node
 (
 	const QueryGraph *qg,
@@ -27,6 +35,13 @@ static bool _highly_connected_node
 	return QGNode_HighlyConnected(n);
 }
 
+/**
+ * @brief Checks if an entity alias is referenced in the AST.
+ *
+ * @param alias Entity alias to check.
+ *
+ * @return true if the alias is referenced, false otherwise.
+ */
 static inline bool _referred_entity
 (
 	const char *alias
@@ -37,8 +52,13 @@ static inline bool _referred_entity
 	return AST_AliasIsReferenced(ast, alias);
 }
 
-// if the edge is referenced or of a variable length
-// it should populate the AlgebraicExpression
+/**
+ * @brief Determines if an edge should populate the algebraic expression.
+ *
+ * @param e Edge to check.
+ *
+ * @return true if the edge is referenced, variable-length, or a ghost edge.
+ */
 static inline bool _should_populate_edge
 (
 	QGEdge *e
@@ -49,7 +69,16 @@ static inline bool _should_populate_edge
 			QGEdge_GhostEdge(e));
 }
 
-// checks if given expression contains a variable length edge
+/**
+ * @brief Checks if an algebraic expression contains a variable-length edge.
+ *
+ * Recursively traverses the expression tree to find variable-length or ghost edges.
+ *
+ * @param qg  Pointer to the query graph.
+ * @param exp Algebraic expression to check.
+ *
+ * @return true if the expression contains a variable-length edge, false otherwise.
+ */
 static bool _AlgebraicExpression_ContainsVariableLengthEdge
 (
 	const QueryGraph *qg,
@@ -81,6 +110,12 @@ static bool _AlgebraicExpression_ContainsVariableLengthEdge
 	return false;
 }
 
+/**
+ * @brief Removes a path from the query graph and frees associated memory.
+ *
+ * @param g    Pointer to the query graph.
+ * @param path Array of edges constituting the path.
+ */
 static void _RemovePathFromGraph
 (
 	QueryGraph *g,
@@ -110,6 +145,15 @@ static void _RemovePathFromGraph
 	}
 }
 
+/**
+ * @brief Determines if an expression should be divided at a given index.
+ *
+ * @param path Array of edges representing the path.
+ * @param idx  Current index in the path.
+ * @param qg   Pointer to the query graph.
+ *
+ * @return true if the expression should be divided, false otherwise.
+ */
 static inline bool _should_divide_expression
 (
 	QGEdge **path,
@@ -223,8 +267,14 @@ static AlgebraicExpression **_AlgebraicExpression_IsolateVariableLenExps
 	return res;
 }
 
-// break down path into sub paths
-// considering referenced intermidate nodes and edges
+/**
+ * @brief Breaks down path into sub-paths considering referenced intermediate nodes and edges.
+ *
+ * @param path Array of edges representing the path.
+ * @param qg   Pointer to the query graph.
+ *
+ * @return Array of sub-path arrays.
+ */
 static QGEdge ***_Intermediate_Paths
 (
 	QGEdge **path,
@@ -260,7 +310,14 @@ static QGEdge ***_Intermediate_Paths
 	return paths;
 }
 
-static AlgebraicExpression *_AlgebraicExpression_OperandFromNode
+/**
+ * @brief Creates an algebraic operand from a query graph node.
+ *
+ * @param n Query graph node to create operand from.
+ *
+ * @return Newly allocated algebraic expression operand.
+ */
+static  AlgebraicExpression *_AlgebraicExpression_OperandFromNode
 (
 	QGNode *n
 ) {
@@ -272,6 +329,12 @@ static AlgebraicExpression *_AlgebraicExpression_OperandFromNode
 	return AlgebraicExpression_NewOperand(NULL, diag, alias, alias, NULL, NULL);
 }
 
+/**
+ * @brief Expands a diagonal node operand with label matrix.
+ *
+ * @param qg  Pointer to the query graph.
+ * @param exp Diagonal operand expression to expand.
+ */
 static void _AlgebraicExpression_ExpandNodeOperand
 (
 	const QueryGraph *qg,
@@ -306,6 +369,12 @@ static void _AlgebraicExpression_ExpandNodeOperand
 	}
 }
 
+/**
+ * @brief Recursively expands all diagonal node operands in an expression.
+ *
+ * @param qg  Pointer to the query graph.
+ * @param exp Algebraic expression to expand.
+ */
 static void _AlgebraicExpression_ExpandNodeOperands
 (
 	const QueryGraph *qg,
@@ -334,6 +403,14 @@ static void _AlgebraicExpression_ExpandNodeOperands
 	}
 }
 
+/**
+ * @brief Creates an algebraic operand from an edge.
+ *
+ * @param e         Edge to create operand from.
+ * @param transpose Whether to transpose the edge direction.
+ *
+ * @return Newly allocated algebraic expression operand.
+ */
 static AlgebraicExpression *_AlgebraicExpression_OperandFromEdge
 (
 	QGEdge *e,
@@ -430,10 +507,14 @@ static AlgebraicExpression *_AlgebraicExpression_OperandFromEdge
 	return root;
 }
 
-/* In case edges `e0` and `e1` share a node:
- * (a)-[E0]->(b)<-[E1]-(c)
- * than the shared entity is returned
- * if edges are disjoint, NULL is returned. */
+/**
+ * @brief Finds the shared node between two edges.
+ *
+ * @param e0 First edge.
+ * @param e1 Second edge.
+ *
+ * @return Pointer to the shared node, or NULL if edges are disjoint.
+ */
 static QGNode *_SharedNode
 (
 	const QGEdge *e0,
@@ -450,6 +531,13 @@ static QGNode *_SharedNode
 	return NULL;
 }
 
+/**
+ * @brief Reverses a path and flips transpositions.
+ *
+ * @param path        Array of edges representing the path.
+ * @param path_len    Length of the path.
+ * @param transpositions Array indicating which edges need transposition.
+ */
 static void _reversePath
 (
 	QGEdge **path,
@@ -482,6 +570,13 @@ static void _reversePath
 	}
 }
 
+/**
+ * @brief Normalizes a path by determining transpositions for each edge.
+ *
+ * @param path         Array of edges representing the path.
+ * @param path_len     Length of the path.
+ * @param transpositions Output array indicating which edges need transposition.
+ */
 static void _normalizePath
 (
 	QGEdge **path,          // path to normalize
@@ -531,6 +626,14 @@ static void _normalizePath
 	}
 }
 
+/**
+ * @brief Constructs an algebraic expression from a path.
+ *
+ * @param path         Array of edges representing the path.
+ * @param transpositions Array indicating which edges need transposition.
+ *
+ * @return Algebraic expression representing the path.
+ */
 static AlgebraicExpression *_AlgebraicExpression_FromPath
 (
 	QGEdge **path,
@@ -580,7 +683,15 @@ static AlgebraicExpression *_AlgebraicExpression_FromPath
 // AlgebraicExpression construction.
 //------------------------------------------------------------------------------
 
-// construct algebraic expression form query graph
+/**
+ * @brief Constructs algebraic expressions from a query graph.
+ *
+ * Transforms query graph paths into algebraic expressions for query optimization.
+ *
+ * @param qg Pointer to the query graph to process.
+ *
+ * @return Array of algebraic expression pointers representing the query graph.
+ */
 AlgebraicExpression **AlgebraicExpression_FromQueryGraph
 (
 	const QueryGraph *qg    // Query-graph to process
