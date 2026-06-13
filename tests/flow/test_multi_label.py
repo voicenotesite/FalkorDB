@@ -1,14 +1,21 @@
+"""Tests Flow Test Multi Label."""
 from common import *
 from index_utils import *
 
 GRAPH_ID = "multi_label"
 
+
+"""Class testMultiLabel."""
 class testMultiLabel():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         # Construct a graph with the form:
         # (v1:L0:L1)-[:E]->(v2:L1)-[:E]->(v3:L1:L2)
@@ -16,6 +23,8 @@ class testMultiLabel():
         self.graph.query(q)
 
     # Validate basic multi-label scans.
+
+    """test01_multilabel_scan."""
     def test01_multilabel_scan(self):
         # Issue a query that matches the single (:L0) node.
         query = "MATCH (a:L0) RETURN LABELS(a)"
@@ -48,6 +57,8 @@ class testMultiLabel():
         self.env.assertEquals(query_result.result_set, expected_result)
 
     # Validate basic multi-label traversals.
+
+    """test02_multilabel_traversal."""
     def test02_multilabel_traversal(self):
         # (v1:L0:L1)-[:E]->(v2:L1)-[:E]->(v3:L1:L2)
         queries = [
@@ -65,6 +76,8 @@ class testMultiLabel():
             self.env.assertEquals(query_result.result_set, expected_result)
 
     # Validate that the graph properly handles label counts greater than its default.
+
+    """test03_large_label_count."""
     def test03_large_label_count(self):
         # Introduce a node with enough labels to force graph resizes.
         labels = ['L' + str(x) for x in range(10, 28)]
@@ -73,6 +86,8 @@ class testMultiLabel():
         expected_result = [[labels]]
         self.env.assertEquals(query_result.result_set, expected_result)
 
+
+    """test04_label_scan_optimization."""
     def test04_label_scan_optimization(self):
         # create graph with 10 A nodes, 100 B nodes and 1000 C nodes
         query = "UNWIND range(0, 10) AS x CREATE (:A)"
@@ -109,6 +124,8 @@ class testMultiLabel():
                 self.env.assertContains("Node By Label Scan | (n:A)", plan)
 
     # Validate behavior of index scans on multi-labeled nodes
+
+    """test05_index_scan."""
     def test05_index_scan(self):
 
         query_result = create_node_range_index(self.graph, 'L1', 'v', sync=True)
@@ -138,6 +155,8 @@ class testMultiLabel():
             self.env.assertEquals(query_result.result_set, expected_result)
 
     # Validate the creation of multi-labeled nodes with the MERGE clause
+
+    """test06_multi_label_merge."""
     def test06_multi_label_merge(self):
         query = """MERGE (a:L2:L3 {v: 4}) RETURN labels(a)"""
         query_result = self.graph.query(query)
@@ -153,6 +172,8 @@ class testMultiLabel():
         self.env.assertEquals(query_result.result_set, expected_result)
 
     # Validate that OPTIONAL MATCH enforces multi-label constraints
+
+    """test07_multi_label_optional_match."""
     def test07_multi_label_optional_match(self):
         # Traverse to a multi-label destination in an OPTIONAL MATCH
         query = """MATCH (a:L1) OPTIONAL MATCH (a)-[]->(b:L2:L1) RETURN labels(a) AS la, labels(b) AS lb ORDER BY la, lb"""
@@ -169,6 +190,8 @@ class testMultiLabel():
         self.env.assertEquals(query_result.result_set, expected_result)
 
     # Validate multi-labeled sources and destinations in variable-length traversals
+
+    """test08_multi_label_variable_length_traversal."""
     def test08_multi_label_variable_length_traversal(self):
         query = """MATCH (a {v: 1})-[*]->(b:L1:L2 {v: 3}) RETURN labels(a), labels(b)"""
         query_result = self.graph.query(query)
@@ -203,6 +226,8 @@ class testMultiLabel():
         query_result = self.graph.query(query)
         self.env.assertEquals(query_result.result_set, expected_result)
 
+
+    """test10_test_delete_label."""
     def test10_test_delete_label(self):
         self.graph = self.db.select_graph('delete_multi_label')
 

@@ -1,13 +1,20 @@
+"""Tests Flow Test Multiple Edges."""
 from common import *
 
 GRAPH_ID = "multi_edge"
 
+
+"""Class testGraphMultipleEdgeFlow."""
 class testGraphMultipleEdgeFlow(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
     # Connect a single node to all other nodes.
+
+    """test_multiple_edges."""
     def test_multiple_edges(self):
         # Create graph with no edges.
         query = """CREATE (a {v:1}), (b {v:2})"""

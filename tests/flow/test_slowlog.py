@@ -1,3 +1,4 @@
+"""Tests Flow Test Slowlog."""
 import asyncio
 from common import *
 from falkordb.asyncio import FalkorDB
@@ -6,12 +7,18 @@ from redis.asyncio import BlockingConnectionPool
 
 GRAPH_ID = "slowlog_test"
 
+
+"""Class testSlowLog."""
 class testSlowLog():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.redis_con = self.env.getConnection()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """populate_slowlog."""
     def populate_slowlog(self, n):
         async def populate(self, n):
             pool = BlockingConnectionPool(max_connections=n, timeout=None, port=self.env.port, decode_responses=True)
@@ -19,6 +26,8 @@ class testSlowLog():
             g = db.select_graph(GRAPH_ID)
 
             tasks = []
+
+        """populate."""
             for i in range(1, n):
                 q = f"""UNWIND range(0, 250000) AS x
                        WITH x
@@ -33,6 +42,8 @@ class testSlowLog():
 
         asyncio.run(populate(self, n))
 
+
+    """test01_slowlog."""
     def test01_slowlog(self):
         # Slowlog should fail when graph doesn't exists
         try:
@@ -79,6 +90,8 @@ class testSlowLog():
         self.env.assertGreater(len(slowlog), 0)
         self.env.assertContains(f"GRAPH.QUERY slowlog_test {q} --compact", slowlog_commands)
 
+
+    """test02_slowlog_reset."""
     def test02_slowlog_reset(self):
         # reset none existing slowlog
         try:
@@ -111,6 +124,8 @@ class testSlowLog():
         slowlog = self.redis_con.execute_command("GRAPH.SLOWLOG", GRAPH_ID)
         self.env.assertGreater(len(slowlog), 0)
 
+
+    """test03_cap_entry."""
     def test03_cap_entry(self):
         # make sure slowlog entries are capped
 
@@ -190,6 +205,8 @@ class testSlowLog():
         self.env.assertIn("...", params)
         self.env.assertLess(len(params), len(long_string))
 
+
+    """test04_same_query_diff_params."""
     def test04_same_query_diff_params(self):
         # make sure no new entries are added when the query remains the same
         # but the params change
@@ -227,6 +244,8 @@ class testSlowLog():
         self.env.assertNotEqual(p0, p1)
         self.env.assertIn('500000', p1)
 
+
+    """test05_fast_queries."""
     def test05_fast_queries(self):
         # make sure fast queries do not enter the slowlog
 
@@ -240,6 +259,8 @@ class testSlowLog():
         slowlog = self.graph.slowlog()
         self.env.assertEquals(len(slowlog), 0)
 
+
+    """test06_force_replace."""
     def test06_force_replace(self):
         # make sure slowlog entries get replcaed
 

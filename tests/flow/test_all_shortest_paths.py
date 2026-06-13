@@ -1,6 +1,11 @@
+"""Tests Flow Test All Shortest Paths."""
 from common import *
 
+
+"""Class testAllShortestPaths."""
 class testAllShortestPaths():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph("all_shortest_paths")
@@ -8,6 +13,8 @@ class testAllShortestPaths():
         self.populate_graph()
         self.populate_cyclic_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         # Construct a graph with the form:
         # (v1)-[:E]->(v2)-[:E]->(v3)-[:E]->(v4)
@@ -31,6 +38,8 @@ class testAllShortestPaths():
         {e0}, {e1}, {e2}, {e3}, {e4}, {e5}"""
         self.graph.query(query)
 
+
+    """populate_cyclic_graph."""
     def populate_cyclic_graph(self):
         # Construct a graph with the form:
         # (v1)-[:E]->(v2)-[:E]->(v3)-[:E]->(v4)
@@ -58,6 +67,8 @@ class testAllShortestPaths():
         {e0}, {e1}, {e2}, {e3}, {e4}, {e5}, {e6}, {e7}"""
         self.cyclic_graph.query(query)
 
+
+    """test01_invalid_shortest_paths."""
     def test01_invalid_shortest_paths(self):
         # running against following graph
         #
@@ -123,6 +134,8 @@ class testAllShortestPaths():
         except redis.exceptions.ResponseError as e:
             self.env.assertIn("FalkorDB support allShortestPaths only in match clauses", str(e))
 
+
+    """test02_all_shortest_paths."""
     def test02_all_shortest_paths(self):
         # running against following graph
         #
@@ -165,6 +178,8 @@ class testAllShortestPaths():
                            [[self.v1, self.v5, self.v4]]]
         self.env.assertEqual(actual_result.result_set, expected_result)
 
+
+    """test03_all_shortest_multiple_traversals."""
     def test03_all_shortest_multiple_traversals(self):
         # running against following graph
         #
@@ -196,6 +211,8 @@ class testAllShortestPaths():
                            [[self.v4, self.v5, self.v1]]]
         self.env.assertEqual(actual_result.result_set, expected_result)
 
+
+    """test04_all_shortest_edge_filter."""
     def test04_all_shortest_edge_filter(self):
         # running against following graph
         #
@@ -224,6 +241,8 @@ class testAllShortestPaths():
         expected_result = [[[self.v4, self.v5, self.v1]]]
         self.env.assertEqual(actual_result.result_set, expected_result)
 
+
+    """test05_all_shortest_no_results."""
     def test05_all_shortest_no_results(self):
         # running against following graph
         #
@@ -252,6 +271,8 @@ class testAllShortestPaths():
         actual_result = self.graph.query(query)
         self.env.assertEqual(actual_result.result_set, expected_result)
 
+
+    """test06_all_shortest_cycle."""
     def test06_all_shortest_cycle(self):
         # running against following graph
         #

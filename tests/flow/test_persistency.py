@@ -1,3 +1,4 @@
+"""Tests Flow Test Persistency."""
 import psutil
 import random
 import threading
@@ -12,6 +13,8 @@ from falkordb_bulk_loader.bulk_insert import bulk_insert
 
 GRAPH_ID = "persistency"
 
+
+"""get_total_rss_memory."""
 def get_total_rss_memory(pid):
     parent = psutil.Process(pid)
     children = parent.children(recursive=True)
@@ -20,7 +23,11 @@ def get_total_rss_memory(pid):
     total_rss = sum(p.memory_info().rss for p in all_processes)
     return total_rss  # in bytes
 
+
+"""Class testGraphPersistency."""
 class testGraphPersistency():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env(enableDebugCommand=True)
         self.conn = self.env.getConnection()
@@ -29,9 +36,13 @@ class testGraphPersistency():
         if SANITIZER:
             self.env.skip() # sanitizer is not working correctly with bulk
 
+
+    """tearDown."""
     def tearDown(self):
         self.conn.flushall()
 
+
+    """populate_graph."""
     def populate_graph(self, graph_name):
         graph = self.db.select_graph(graph_name)
         # quick return if graph already exists
@@ -83,6 +94,8 @@ class testGraphPersistency():
 
         return graph
 
+
+    """populate_dense_graph."""
     def populate_dense_graph(self, graph_name):
         dense_graph = self.db.select_graph(graph_name)
 
@@ -106,6 +119,8 @@ class testGraphPersistency():
 
         return dense_graph
 
+
+    """test_save_load."""
     def test_save_load(self):
         graph_names = ["G", "{tag}_G"]
         for graph_name in graph_names:
@@ -158,6 +173,8 @@ class testGraphPersistency():
                         self.env.assertIn(expected_index, index)
 
     # Verify that edges are not modified after entity deletion
+
+    """test_deleted_entity_migration."""
     def test_deleted_entity_migration(self):
         graph_names = ("H", "{tag}_H")
         for graph_name in graph_names:
@@ -178,6 +195,8 @@ class testGraphPersistency():
                                   second_result.result_set)
 
     # Strings, numerics, booleans, array, and point properties should be properly serialized and reloaded
+
+    """test_restore_properties."""
     def test_restore_properties(self):
         graph_names = ("simple_props", "{tag}_simple_props")
         for graph_name in graph_names:
@@ -222,6 +241,8 @@ class testGraphPersistency():
 
     # Verify multiple edges of the same relation between nodes A and B
     # are saved and restored correctly.
+
+    """test_repeated_edges."""
     def test_repeated_edges(self):
         graph_names = ["repeated_edges", "{tag}_repeated_edges"]
         for graph_name in graph_names:
@@ -246,6 +267,8 @@ class testGraphPersistency():
 
     # Verify that graphs larger than the
     # default capacity are persisted correctly.
+
+    """test_load_large_graph."""
     def test_load_large_graph(self):
         graph_name = "LARGE_GRAPH"
         graph = self.db.select_graph(graph_name)
@@ -270,6 +293,8 @@ class testGraphPersistency():
             self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Verify that graphs created using the GRAPH.BULK endpoint are persisted correctly
+
+    """test_bulk_insert."""
     def test_bulk_insert(self):
         port      = self.env.envRunner.port
         runner    = CliRunner()
@@ -407,6 +432,8 @@ class testGraphPersistency():
         self.env.assertEquals(query_result.result_set, expected_result)
 
     # Verify that nodes with multiple labels are saved and restored correctly.
+
+    """test_persist_multiple_labels."""
     def test_persist_multiple_labels(self):
         graph_id = "multiple_labels"
         g = self.db.select_graph(graph_id)
@@ -448,6 +475,8 @@ class testGraphPersistency():
             self.env.assertEquals(actual_result.result_set[0], [1])
 
     # test encoding and decoding of multiple graphs
+
+    """test_multi_graph."""
     def test_multi_graph(self):
         if SANITIZER:
             # Sanitizers are not compatible with the crash handler
@@ -506,6 +535,8 @@ class testGraphPersistency():
                     self.env.assertFalse(True)
 
     # Verify that the DB will respond to PING while taking a snapshot
+
+    """test_ping_while_saving."""
     def test_ping_while_saving(self):
         if SANITIZER:
             # Sanitizers are not compatible with the crash handler
@@ -518,6 +549,8 @@ class testGraphPersistency():
 
         # Start pinging
         def ping_worker(conn, pings):
+
+        """ping_worker."""
             while not stop_event.is_set():
                 conn.ping()
                 pings.append(datetime.now())
@@ -557,6 +590,8 @@ class testGraphPersistency():
 
     # make sure peak memory consumption doesn't goes beyond
     # 50% when taking a snapshot
+
+    """test_bgsave_memory_consumption."""
     def test_bgsave_memory_consumption(self):
         # TODO: unreliable, skipping for now
         self.env.skip()

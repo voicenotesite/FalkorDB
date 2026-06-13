@@ -1,3 +1,4 @@
+"""Tests Flow Test Graph Copy."""
 import time
 from graph_utils import graph_eq
 from redis import BusyLoadingError, ResponseError
@@ -8,15 +9,23 @@ from random_graph import create_random_schema, create_random_graph
 GRAPH_ID = "graph_copy"
 
 # tests the GRAPH.COPY command
+
+"""Class testGraphCopy."""
 class testGraphCopy():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env(enableDebugCommand=True)
         self.conn = self.env.getConnection()
 
+
+    """graph_copy."""
     def graph_copy(self, src, dest):
         # invokes the GRAPH.COPY command
         self.conn.execute_command("GRAPH.COPY", src, dest)
 
+
+    """graph_copy_with_retry."""
     def graph_copy_with_retry(self, src, dest):
         # invokes GRAPH.COPY, retrying on fork errors for up to 1 minute
         deadline = time.time() + 60
@@ -32,6 +41,8 @@ class testGraphCopy():
                     raise
 
     # compare graphs
+
+    """assert_graph_eq."""
     def assert_graph_eq(self, A, B):
         max_iterations = 20
         # tests that the graphs are the same
@@ -46,6 +57,8 @@ class testGraphCopy():
 
         raise RuntimeError("Redis not loaded after 20 seconds")
 
+
+    """test_01_invalid_invocation."""
     def test_01_invalid_invocation(self):
         # skip test if we're running under Sanitizer
         if SANITIZER:
@@ -102,6 +115,8 @@ class testGraphCopy():
         # clean up
         self.conn.delete(src, dest)
 
+
+    """test_02_copy_empty_graph."""
     def test_02_copy_empty_graph(self):
         # skip test if we're running under Sanitizer
         if SANITIZER:
@@ -134,6 +149,8 @@ class testGraphCopy():
         src_graph.delete()
         dest_graph.delete()
 
+
+    """test_03_copy_random_graph."""
     def test_03_copy_random_graph(self):
         # skip test if we're running under Sanitizer
         if SANITIZER:
@@ -158,6 +175,8 @@ class testGraphCopy():
         src_graph.delete()
         dest_graph.delete()
 
+
+    """test_04_copy_constraints."""
     def test_04_copy_constraints(self):
         # skip test if we're running under Sanitizer
         if SANITIZER:
@@ -186,6 +205,8 @@ class testGraphCopy():
         src_graph.delete()
         clone_graph.delete()
 
+
+    """test_05_chain_of_copies."""
     def test_05_chain_of_copies(self):
         # skip test if we're running under Sanitizer
         if SANITIZER:
@@ -219,6 +240,8 @@ class testGraphCopy():
             graph = self.db.select_graph(chr(key))
             graph.delete()
 
+
+    """test_06_write_to_copy."""
     def test_06_write_to_copy(self):
         # skip test if we're running under Sanitizer
         if SANITIZER:
@@ -250,6 +273,8 @@ class testGraphCopy():
         src_graph.delete()
         copy_graph.delete()
 
+
+    """test_07_copy_uneffected_by_vkey_size."""
     def test_07_copy_uneffected_by_vkey_size(self):
         # skip test if we're running under Sanitizer
         if SANITIZER:
@@ -284,6 +309,8 @@ class testGraphCopy():
         # clean up
         src_graph.delete()
 
+
+    """test_08_replicated_copy."""
     def test_08_replicated_copy(self):
         # skip test if we're running under Valgrind or sanitizer
         if VALGRIND or SANITIZER:
@@ -322,6 +349,8 @@ class testGraphCopy():
         # make sure src graph on master is the same as cloned graph on replica
         self.assert_graph_eq(src_graph, replica_cloned_graph)
 
+
+    """test_09_copy_with_multiple_graphs."""
     def test_09_copy_with_multiple_graphs(self):
         # skip test if we're running under Sanitizer
         if SANITIZER:

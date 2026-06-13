@@ -1,17 +1,26 @@
+"""Tests Flow Test Aggregation."""
 from common import *
 from math import floor, ceil, sqrt
 
 GRAPH_ID = "aggregations"
 
+
+"""Class testAggregations."""
 class testAggregations():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """get_res_and_assertEquals."""
     def get_res_and_assertEquals(self, query, expected_result):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set, expected_result)
     
+
+    """get_res_and_assertAlmostEquals."""
     def get_res_and_assertAlmostEquals(self, query, expected_result):
         actual_result = self.graph.query(query)
         self.env.assertAlmostEqual(actual_result.result_set[0][0], expected_result[0][0], 0.0001)
@@ -20,6 +29,8 @@ class testAggregations():
     # default values should be returned when the aggregation operation
     # was not given any data to process
     # and the aggregation doesn't specify any keys
+
+    """test01_empty_aggregation."""
     def test01_empty_aggregation(self):
         # default aggregation values
         expected_result = [0,    # count
@@ -52,18 +63,24 @@ class testAggregations():
         result = self.graph.query(query)
         self.env.assertEquals(result.result_set[0], expected_result)
     
+
+    """test02_countTest."""
     def test02_countTest(self):
         query = "UNWIND [NULL, NULL, NULL, NULL, NULL] AS x RETURN count(1)"
         expected = 5
         actual_result = self.graph.query(query).result_set[0][0]
         self.env.assertEquals(actual_result, expected)
     
+
+    """test03_partialCountTest."""
     def test03_partialCountTest(self):
         query = "UNWIND [NULL, 1, NULL, 1, NULL, 1, NULL, 1, NULL, 1] AS x RETURN count(x)"
         expected = 5
         actual_result = self.graph.query(query).result_set[0][0]
         self.env.assertEquals(actual_result, expected)
     
+
+    """test04_percentileCont."""
     def test04_percentileCont(self):
         expected_values = []
         percentile_doubles = [0, 0.1, 0.33, 0.5, 1]
@@ -85,6 +102,8 @@ class testAggregations():
             query = f'UNWIND [2, 4, 6, 8, 10] AS x RETURN percentileCont(x, {percentile_doubles[i]})'
             self.get_res_and_assertAlmostEquals(query, expected_values[i])
     
+
+    """test05_percentileDisc."""
     def test05_percentileDisc(self):
         percentile_doubles = [0, 0.1, 0.33, 0.5, 1]
         expected = [0, 0, 1, 2, 4]
@@ -98,6 +117,8 @@ class testAggregations():
         query = f'UNWIND [0.5, 0, 1] AS x RETURN percentileDisc(x, 0)'
         self.get_res_and_assertAlmostEquals(query, [[0]])
     
+
+    """test06_StDev."""
     def test06_StDev(self):
         # Edge case - less than 2 arguments.
         self.get_res_and_assertEquals("RETURN stDev(5.1)", [[0]])
@@ -114,6 +135,8 @@ class testAggregations():
         sample_res = sqrt(sample_var)
         self.get_res_and_assertAlmostEquals(query, [[sample_res]])
 
+
+    """test07_AverageDoubleOverflow."""
     def test07_AverageDoubleOverflow(self):
         double_max = '1.7976931348623157e+308'
         query = f'UNWIND [{double_max}, {double_max} / 2] AS x RETURN avg(x)'
@@ -122,12 +145,16 @@ class testAggregations():
         res2 = self.graph.query(query2).result_set[0][0]
         self.env.assertEquals(res1, res2)
     
+
+    """test08_AggregateLongOverflow."""
     def test08_AggregateLongOverflow(self):
         long_max = 2147483647
         query = f'UNWIND [{long_max}, {long_max / 2}] AS x RETURN avg(x)'
         expected = [[long_max / 2 + long_max / 4]]
         self.get_res_and_assertAlmostEquals(query, expected)
     
+
+    """test09_AggregateWithNullFilter."""
     def test09_AggregateWithNullFilter(self):
         query = 'CREATE (:L {p:0.0/0.0})'
         self.graph.query(query)

@@ -1,3 +1,4 @@
+"""Tests Flow Test Variable Length Traversals."""
 from common import *
 
 node_names = ["A", "B", "C", "D"]
@@ -7,12 +8,18 @@ max_results = 6
 
 GRAPH_ID = "variable_length_traversals"
 
+
+"""Class testVariableLengthTraversals."""
 class testVariableLengthTraversals(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         nodes = []
         # Create nodes
@@ -30,6 +37,8 @@ class testVariableLengthTraversals(FlowTestsBase):
         self.graph.query(f"CREATE {','.join(nodes_str + edges_str)}")
 
     # Sanity check against single-hop traversal
+
+    """test01_conditional_traverse."""
     def test01_conditional_traverse(self):
         query = """MATCH (a)-[e]->(b)
                    RETURN a.name, e.connects, b.name
@@ -41,6 +50,8 @@ class testVariableLengthTraversals(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Traversal with no labels
+
+    """test02_unlabeled_traverse."""
     def test02_unlabeled_traverse(self):
         query = """MATCH (a)-[*]->(b)
                    RETURN a.name, b.name
@@ -55,6 +66,8 @@ class testVariableLengthTraversals(FlowTestsBase):
         self.env.assertEquals(len(actual_result.result_set), max_results)
 
     # Traversal with labeled source
+
+    """test03_source_labeled."""
     def test03_source_labeled(self):
         query = """MATCH (a:node)-[*]->(b)
                    RETURN a.name, b.name
@@ -69,6 +82,8 @@ class testVariableLengthTraversals(FlowTestsBase):
         self.env.assertEquals(len(actual_result.result_set), max_results)
 
     # Traversal with labeled dest
+
+    """test04_dest_labeled."""
     def test04_dest_labeled(self):
         query = """MATCH (a)-[*]->(b:node)
                    RETURN a.name, b.name
@@ -83,12 +98,16 @@ class testVariableLengthTraversals(FlowTestsBase):
         self.env.assertEquals(len(actual_result.result_set), max_results)
 
     # Attempt to traverse non-existent relationship type.
+
+    """test05_invalid_traversal."""
     def test05_invalid_traversal(self):
         query = """MATCH (a)-[:no_edge*]->(b) RETURN a.name"""
         actual_result = self.graph.query(query)
         self.env.assertEquals(len(actual_result.result_set), 0)
 
     # Test bidirectional traversal
+
+    """test06_bidirectional_traversal."""
     def test06_bidirectional_traversal(self):
         query = """MATCH (a)-[*]-(b)
                    RETURN a.name, b.name
@@ -97,6 +116,8 @@ class testVariableLengthTraversals(FlowTestsBase):
         # The undirected traversal should represent every combination twice.
         self.env.assertEquals(len(actual_result.result_set), max_results * 2)
 
+
+    """test07_non_existing_edge_traversal_with_zero_length."""
     def test07_non_existing_edge_traversal_with_zero_length(self):
         # Verify that zero length traversals always return source, even for non existing edges.
         query = """MATCH (a)-[:not_knows*0..1]->(b)
@@ -105,6 +126,8 @@ class testVariableLengthTraversals(FlowTestsBase):
         self.env.assertEquals(len(actual_result.result_set), 4)
 
     # Test traversal with a possibly-null source.
+
+    """test08_optional_source."""
     def test08_optional_source(self):
         query = """OPTIONAL MATCH (a:fake)
                    OPTIONAL MATCH (a)-[*]->(b)
@@ -123,6 +146,8 @@ class testVariableLengthTraversals(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test traversals with filters on variable-length edges
+
+    """test09_filtered_edges."""
     def test09_filtered_edges(self):
         # Test an inline equality predicate
         query = """MATCH (a)-[* {connects: 'BC'}]->(b)
@@ -199,6 +224,8 @@ class testVariableLengthTraversals(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test traversals with filters on variable-length edges in WITH...OPTIONAL MATCH constructs
+
+    """test10_filtered_edges_after_segment_change."""
     def test10_filtered_edges_after_segment_change(self):
         # Test a query that produces the subtree:
         #   Project
@@ -222,6 +249,8 @@ class testVariableLengthTraversals(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test range-length edges
+
+    """test11_range_length_edges."""
     def test11_range_length_edges(self):
         # clear previous data
         self.graph.delete()
@@ -252,6 +281,8 @@ class testVariableLengthTraversals(FlowTestsBase):
             actual_result = self.graph.query(query)
             self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test12_close_cycle."""
     def test12_close_cycle(self):
         # create a graph with a cycle in it
         # a->d
@@ -284,6 +315,8 @@ class testVariableLengthTraversals(FlowTestsBase):
         self.env.assertEquals(result[0][0], 'a')
         self.env.assertEquals(result[1][0], 'c')
 
+
+    """test13_fanout."""
     def test13_fanout(self):
         # create a tree structure graph with a fanout of 3
         # root->a1
@@ -335,6 +368,8 @@ class testVariableLengthTraversals(FlowTestsBase):
             self.env.assertEquals(l, 2)
             self.env.assertEquals(identity, i)
 
+
+    """test14_no_hops."""
     def test14_no_hops(self):
         self.graph.delete()
 
@@ -426,6 +461,8 @@ class testVariableLengthTraversals(FlowTestsBase):
         res  = self.graph.query(q)
         self.env.assertEquals(res.result_set, [[1, 1, 1], [3, 3, 3], [5, 5, 5]])
 
+
+    """test15_var_len_with_prev_filter."""
     def test15_var_len_with_prev_filter(self):
         self.graph.delete()
 

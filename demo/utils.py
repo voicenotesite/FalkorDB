@@ -1,3 +1,4 @@
+"""Demo Utils."""
 import os
 from disposableredis import DisposableRedis
 
@@ -7,6 +8,8 @@ REDIS_PATH_ENVVAR = 'REDIS_PATH'
 REDIS_PORT_ENVVAR = 'REDIS_PORT'
 
 
+
+"""execute_query."""
 def execute_query(graph, query_desc, query):
     print(query_desc)
     print("query: {query}".format(query=query))
@@ -16,6 +19,8 @@ def execute_query(graph, query_desc, query):
     print("\n")
 
 
+
+"""_redis."""
 def _redis():
     module_path = os.getenv(REDIS_MODULE_PATH_ENVVAR)
     redis_path = os.getenv(REDIS_PATH_ENVVAR)

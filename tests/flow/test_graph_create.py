@@ -1,12 +1,19 @@
+"""Tests Flow Test Graph Create."""
 from common import *
 
 GRAPH_ID = "G"
 
+
+"""Class testGraphCreationFlow."""
 class testGraphCreationFlow(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """test01_create_return."""
     def test01_create_return(self):
         query = """CREATE (a:person {name:'A'}), (b:person {name:'B'})"""
         result = self.graph.query(query)
@@ -21,6 +28,8 @@ class testGraphCreationFlow(FlowTestsBase):
         self.env.assertEquals(len(result.result_set), 1)
         self.env.assertEquals(result.result_set[0][0].properties['name'], 'B')
 
+
+    """test02_create_from_prop."""
     def test02_create_from_prop(self):
         query = """MATCH (p:person)-[e:knows]->()
                    CREATE (c:clone {doublename: p.name + toLower(p.name), source_of: TYPE(e)})
@@ -33,6 +42,8 @@ class testGraphCreationFlow(FlowTestsBase):
         self.env.assertEquals(result.properties_set, 4)
         self.env.assertEquals(result.result_set, expected_result)
 
+
+    """test03_create_from_projection."""
     def test03_create_from_projection(self):
         query = """UNWIND [10,20,30] AS x CREATE (p:person {age:x}) RETURN p.age ORDER BY p.age"""
         result = self.graph.query(query)
@@ -48,6 +59,8 @@ class testGraphCreationFlow(FlowTestsBase):
         self.env.assertEquals(result.properties_set, 3)
         self.env.assertEquals(result.result_set, expected_result)
 
+
+    """test04_create_with_null_properties."""
     def test04_create_with_null_properties(self):
         query = """CREATE (a:L {v1: NULL, v2: 'prop'}) RETURN a"""
         result = self.graph.query(query)
@@ -69,6 +82,8 @@ class testGraphCreationFlow(FlowTestsBase):
         self.env.assertEquals(result.nodes_created, 2)
         self.env.assertEquals(result.properties_set, 1)
 
+
+    """test05_create_with_property_reference."""
     def test05_create_with_property_reference(self):
         # Queries that reference properties before they have been created should emit an error.
         try:
@@ -78,6 +93,8 @@ class testGraphCreationFlow(FlowTestsBase):
         except redis.exceptions.ResponseError as e:
             self.env.assertIn("'a' not defined", str(e))
 
+
+    """test06_create_project_volatile_value."""
     def test06_create_project_volatile_value(self):
         # The path e is volatile; verify that it can be projected after entity creation.
         query = """MATCH ()-[e*]->() CREATE (:L) WITH e RETURN 5"""
@@ -95,6 +112,8 @@ class testGraphCreationFlow(FlowTestsBase):
         self.env.assertEquals(result.result_set, expected_result)
 
     # Fail when a property is a complex type nested within an array type
+
+    """test07_create_invalid_complex_type_in_array."""
     def test07_create_invalid_complex_type_in_array(self):
         # Test combinations of invalid types with nested and top-level arrays
         # Invalid types are NULL, maps, nodes, edges, and paths
@@ -111,6 +130,8 @@ class testGraphCreationFlow(FlowTestsBase):
 
     # test creating a node with multiple attributes with the same name
     # expecting node with single attribute 'name' with the last mentioned value 'B'
+
+    """test08_create_node_with_2_attr_same_name."""
     def test08_create_node_with_2_attr_same_name(self):
         query = """CREATE (a:N {name:'A', name:'B'})"""
         result = self.graph.query(query)
@@ -125,6 +146,8 @@ class testGraphCreationFlow(FlowTestsBase):
     # test creating a node with some alias, and then creating an edge that touches that node
     # "variable redeclared" error should return only if the relation alias was already declared
     # also, a node cannot be redeclared unless it is used to create new edges in a pattern
+
+    """test09_create_use_alias_in_many_clauses."""
     def test09_create_use_alias_in_many_clauses(self):
         query = """CREATE (n1:Node1) CREATE (n2:Node1) CREATE (n1)-[r:Rel1]->(n2)"""
         result = self.graph.query(query)
@@ -156,6 +179,8 @@ class testGraphCreationFlow(FlowTestsBase):
 
     # test creating queries with matching relationship type :R|R
     # the results can't report duplicates
+
+    """test10_match_duplicated_reltype."""
     def test10_match_duplicated_reltype(self):
         query = """CREATE (a:A)-[r1:R1]->(b:B), (a:A)-[r2:R2]->(b:B)"""
         result = self.graph.query(query)

@@ -1,3 +1,4 @@
+"""Tests Flow Test Opening Node."""
 from common import *
 from itertools import permutations, chain, combinations
 
@@ -12,6 +13,8 @@ from itertools import permutations, chain, combinations
 
 GRAPH_ID = "opening_node"
 
+
+"""all_combinations_and_permutations."""
 def all_combinations_and_permutations(lst):
     # Generate all subsets except the empty set
     subsets = chain.from_iterable(combinations(lst, r) for r in range(1, len(lst) + 1))
@@ -22,7 +25,11 @@ def all_combinations_and_permutations(lst):
     # Sort and convert to list of lists
     return [list(x) for x in sorted(result, key=len)]
 
+
+"""Class testOpeningNode."""
 class testOpeningNode():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
@@ -30,6 +37,8 @@ class testOpeningNode():
     # in a pattern where both ends have only a single label
     # make sure the label with the least number of nodes associated with it
     # is used as the starting point
+
+    """test01_single_label."""
     def test01_single_label(self):
         # create the graph
         # number of A nodes: 2
@@ -65,6 +74,8 @@ class testOpeningNode():
     # when there are multiple labels to pick from
     # make sure the label with the least number of nodes associated with it is
     # used as the traversal starting point
+
+    """test02_multi_label."""
     def test02_multi_label(self):
         # start fresh
         self.graph.delete()

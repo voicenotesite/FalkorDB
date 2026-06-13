@@ -1,3 +1,4 @@
+"""Tests Flow Test Graph Versioning."""
 from common import *
 from redis import ResponseError
 
@@ -5,7 +6,11 @@ VERSION = 0
 GRAPH_ID = "GraphVersion"
 
 
+
+"""Class testGraphVersioning."""
 class testGraphVersioning(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env(env='oss', useSlaves=True)
         self.master = self.env.getConnection()
@@ -15,6 +20,8 @@ class testGraphVersioning(FlowTestsBase):
         self.master.wait(1, 0)
 
     # Make sure graph version changes once a new label is created
+
+    """test01_version_update_on_label_creation."""
     def test01_version_update_on_label_creation(self):
         global VERSION
 
@@ -47,6 +54,8 @@ class testGraphVersioning(FlowTestsBase):
         self.env.assertFalse(isinstance(res[0], ResponseError))
 
     # Make sure graph version changes once a new relationship type is created
+
+    """test02_version_update_on_relation_creation."""
     def test02_version_update_on_relation_creation(self):
         global VERSION
         con = self.master
@@ -73,6 +82,8 @@ class testGraphVersioning(FlowTestsBase):
         self.env.assertFalse(isinstance(res[0], ResponseError))
 
     # Make sure graph version changes once a new attribute is created
+
+    """test03_version_update_on_attribute_creation."""
     def test03_version_update_on_attribute_creation(self):
         global VERSION
         con = self.master
@@ -113,6 +124,8 @@ class testGraphVersioning(FlowTestsBase):
 
     # make sure the graph version on the replica matches the one on the master
     # after each schema-changing operation (new label, relation type, attribute).
+
+    """test04_version_sync_master_replica."""
     def test04_version_sync_master_replica(self):
         global VERSION
 

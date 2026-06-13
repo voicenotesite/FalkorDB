@@ -1,3 +1,4 @@
+"""Tests Flow Test Replication."""
 from common import *
 from index_utils import wait_for_indices_to_sync
 from constraint_utils import *
@@ -13,8 +14,12 @@ GRAPH_ID = "replication"
 # constraint creation and removal
 # read queries shouldn't be replicated.
 
+
+"""Class testReplication."""
 class testReplication(FlowTestsBase):
 
+
+    """__init__."""
     def __init__(self):
         # skip test if we're running under Valgrind
         if VALGRIND or SANITIZER:
@@ -22,6 +27,8 @@ class testReplication(FlowTestsBase):
 
         self.env, self.db = Env(env='oss', useSlaves=True)
 
+
+    """test_CRUD_replication."""
     def test_CRUD_replication(self):
         # create a simple graph
         env = self.env

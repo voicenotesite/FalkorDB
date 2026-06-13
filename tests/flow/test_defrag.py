@@ -1,3 +1,4 @@
+"""Tests Flow Test Defrag."""
 import time
 import redis
 import random
@@ -8,11 +9,17 @@ from common import *
 
 GRAPH_ID = "defrag"
 
+
+"""Class testDefrag."""
 class testDefrag():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env(enableDebugCommand=True)
         self.conn = self.env.getConnection()
 
+
+    """test_frag_ratio."""
     def test_frag_ratio(self):
         #-----------------------------------------------------------------------
         # 1. Create many fragmented graphs

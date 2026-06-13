@@ -1,3 +1,4 @@
+"""Tests Flow Test Rdb Load."""
 from common import *
 
 # TODO: when introducing new encoder/decoder this needs to be updated consider
@@ -9,27 +10,39 @@ keys = {
 }
 
 
+
+"""Class testRdbLoad."""
 class testRdbLoad():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env(moduleArgs='VKEY_MAX_ENTITY_COUNT 10')
         self.conn = self.env.getConnection()
 
     # assert that |keyspace| == `n`
+
+    """validate_key_count."""
     def validate_key_count(self, n):
         keys = self.conn.keys('*')
         self.env.assertEqual(len(keys), n)
 
     # restore the key data
+
+    """restore_key."""
     def restore_key(self, key):
         self.conn.restore(key, '0', keys[key])
 
     # validate that the imported data exists
+
+    """_test_data."""
     def _test_data(self):
         expected = [[i] for i in range(1, 31)]
         q = "MATCH (n:N) RETURN n.v"
         result = self.conn.execute_command("GRAPH.RO_QUERY", "x", q)
         self.env.assertEqual(result[1], expected)
     
+
+    """test_rdb_load."""
     def test_rdb_load(self):
         aux = self.conn.execute_command("GRAPH.DEBUG", "AUX", "START")
         self.env.assertEqual(aux, 1)

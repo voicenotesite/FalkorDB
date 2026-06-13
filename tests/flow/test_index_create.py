@@ -1,3 +1,4 @@
+"""Tests Flow Test Index Create."""
 import asyncio
 from common import *
 from time import sleep
@@ -11,12 +12,18 @@ from execution_plan_util import locate_operation
 
 GRAPH_ID = "index_create"
 
+
+"""Class testIndexCreationFlow."""
 class testIndexCreationFlow():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
     # full-text index creation
+
+    """test01_fulltext_index_creation."""
     def test01_fulltext_index_creation(self):
         # create an index over L:v0
         result = create_node_fulltext_index(self.graph, 'L', 'v0')
@@ -30,6 +37,8 @@ class testIndexCreationFlow():
         result = create_node_fulltext_index(self.graph, 'L', 'v3', 'v4', 'v5', 'v6', sync=True)
         self.env.assertEquals(result.indices_created, 4)
 
+
+    """test02_fulltext_index_creation_label_config."""
     def test02_fulltext_index_creation_label_config(self):
         # create an index over L1:v1
         result = self.graph.create_node_fulltext_index('L1', 'v1')
@@ -138,6 +147,8 @@ class testIndexCreationFlow():
         except ResponseError as e:
             self.env.assertIn("Phonetic must be string", str(e))
 
+
+    """test03_multi_prop_index_creation."""
     def test03_multi_prop_index_creation(self):
         # create an index over person:age and person:name
         result = self.graph.query("CREATE INDEX ON :person(age, name)")
@@ -180,6 +191,8 @@ class testIndexCreationFlow():
         except ResponseError as e:
             self.env.assertIn("Attribute 'height' is already indexed", str(e))
 
+
+    """test04_index_creation_pattern_syntax."""
     def test04_index_creation_pattern_syntax(self):
         # create an index over user:age and user:name
         result = self.graph.query("CREATE INDEX FOR (p:user) ON (p.age, p.name)")
@@ -189,6 +202,8 @@ class testIndexCreationFlow():
         result = self.graph.query("CREATE INDEX FOR ()-[r:follow]-() ON (r.prop1, r.prop2)")
         self.env.assertEquals(result.indices_created, 2)
 
+
+    """test05_index_delete."""
     def test05_index_delete(self):
         async def create_drop_index(g):
             for _ in range(1, 30):
@@ -202,16 +217,22 @@ class testIndexCreationFlow():
 
             tasks = []
             for i in range(1, 16):
+
+        """create_drop_index."""
                 g = db.select_graph(str(i))
                 tasks.append(create_drop_index(g))
 
             await asyncio.gather(*tasks)
 
             # close the connection pool
+
+        """run."""
             await pool.aclose()
 
         asyncio.run(run(self))
 
+
+    """test06_syntax_error_index_creation."""
     def test06_syntax_error_index_creation(self):
         # create index on invalid property name
         try:
@@ -269,6 +290,8 @@ class testIndexCreationFlow():
         except ResponseError as e:
             self.env.assertContains("Invalid input '1': expected an identifier", str(e))
 
+
+    """test07_index_creation_undefined_identifier."""
     def test07_index_creation_undefined_identifier(self):   
         # create index on undefined identifier
         try:
@@ -298,6 +321,8 @@ class testIndexCreationFlow():
         except ResponseError as e:
             self.env.assertContains("'a' not defined", str(e))
 
+
+    """test08_async_index_creation."""
     def test08_async_index_creation(self):
         # skip test if we're running under Valgrind
         if VALGRIND:
@@ -408,6 +433,8 @@ class testIndexCreationFlow():
         res = g.query(q, {'id': 2}).result_set
         self.env.assertEquals(res[0][0], 0)
 
+
+    """test09_async_fulltext_index_creation."""
     def test09_async_fulltext_index_creation(self):
         # 1. create a large graph
         # 2. create an index
@@ -508,6 +535,8 @@ class testIndexCreationFlow():
             res = self.graph.query(q, {'uid': uid}).result_set
             self.env.assertEquals(res[0][0], 0)
 
+
+    """test10_delete_interrupt_async_index_creation."""
     def test10_delete_interrupt_async_index_creation(self):
         # 1. create a large graph
         # 2. create an index
@@ -552,6 +581,8 @@ class testIndexCreationFlow():
         # at the moment there's no way of checking index status once its graph
         # key had been removed
 
+
+    """test11_delete_interrupt_async_fulltext_index_creation."""
     def test11_delete_interrupt_async_fulltext_index_creation(self):
         # 1. create a large graph
         # 2. create an index
@@ -593,6 +624,8 @@ class testIndexCreationFlow():
         # at the moment there's no way of checking index status once its graph
         # key had been removed
 
+
+    """test12_multi_index_creation."""
     def test12_multi_index_creation(self):
         # interrupt index creation by adding/removing fields
         #
@@ -663,6 +696,8 @@ class testIndexCreationFlow():
         # one (v) we're expecting thier overall construction time to be similar
         self.env.assertTrue(elapsed_2 < elapsed * 2)
 
+
+    """test13_multi_fulltext_index_creation."""
     def test13_multi_fulltext_index_creation(self):
         # interrupt index creation by adding/removing fields
         #
@@ -721,6 +756,8 @@ class testIndexCreationFlow():
         # wait for index to become operational
         wait_for_indices_to_sync(self.graph)
 
+
+    """test14_multi_type_index_listing."""
     def test14_multi_type_index_listing(self):
         # clear DB
         self.graph.delete()
@@ -784,6 +821,8 @@ class testIndexCreationFlow():
         self.env.assertEquals(language, 'english')
         self.env.assertEquals(entitytype, 'NODE')
 
+
+    """test15_index_progress_report."""
     def test15_index_progress_report(self):
         # create a relatively large graph
         node_count = 200000
@@ -819,6 +858,8 @@ class testIndexCreationFlow():
             # re-pull index status
             status = self.graph.query("CALL db.indexes() yield status").result_set[0][0]
 
+
+    """test16_index_creation_stats."""
     def test16_index_creation_stats(self):
         graph_name = "index_create_stats_contract"
         graph = self.db.select_graph(graph_name)
@@ -829,6 +870,8 @@ class testIndexCreationFlow():
         self.env.assertEquals(result.indices_created, 1)
         self.env.assertEquals(result.labels_added, 0)
 
+
+    """test17_index_catalog_response."""
     def test17_index_catalog_response(self):
         graph_name = "index_catalog_response"
         graph = self.db.select_graph(graph_name)

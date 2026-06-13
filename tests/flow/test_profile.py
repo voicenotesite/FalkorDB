@@ -1,12 +1,19 @@
+"""Tests Flow Test Profile."""
 from common import *
 
 GRAPH_ID = "profile"
 
+
+"""Class testProfile."""
 class testProfile(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """test01_profile."""
     def test01_profile(self):
         q = """UNWIND range(1, 3) AS x CREATE (p:Person {v:x})"""
         profile = self.graph.profile(q)
@@ -39,6 +46,8 @@ class testProfile(FlowTestsBase):
         self.env.assertEquals(node_by_label_scan_op.name, 'Node By Label Scan')
         self.env.assertEquals(node_by_label_scan_op.records_produced, 3)
 
+
+    """test02_profile_after_op_reset."""
     def test02_profile_after_op_reset(self):
         #validate that profile works properly on reset operations
         q = """MATCH (a:L)-[*]->() SET a.v = 5"""

@@ -1,7 +1,14 @@
+"""Tests Flow Reversepattern   Init  ."""
+
+"""Class ReversePattern."""
 class ReversePattern(object):
+
+    """__init__."""
     def __init__(self):
         pass
 
+
+    """consume_node."""
     def consume_node(self, q):
         if q[0] != "(":
             return None
@@ -12,6 +19,8 @@ class ReversePattern(object):
 
         return q[0:end+1]
 
+
+    """consume_edge."""
     def consume_edge(self, q):
         if q[0] != "[":
             return None
@@ -22,29 +31,39 @@ class ReversePattern(object):
 
         return q[0:end+1]
 
+
+    """consume_ltr_arrow."""
     def consume_ltr_arrow(self, q):
         if q[:2] != "->":
             return None
         # Reversed on purpose!
         return "<-"
 
+
+    """consume_rtl_arrow."""
     def consume_rtl_arrow(self, q):
         if q[:2] != "<-":
             return None
         # Reversed on purpose!
         return "->"
 
+
+    """consume_dash."""
     def consume_dash(self, q):
         if q[0] != "-":
             return None
         return q[0:1]
 
+
+    """consume_space."""
     def consume_space(self, q):
         if q[0] != " ":
             return None
         return q[0:1]
 
     # TODO update to handle WITH clauses
+
+    """reverse_query_pattern."""
     def reverse_query_pattern(self, q):
         q = q.replace('\r', '')
         q = q.replace('\n', '')

@@ -1,3 +1,4 @@
+"""Demo Imdb Imdb Demo."""
 import os
 import sys
 import redis
@@ -14,6 +15,8 @@ db    = None
 conn  = None
 graph = None
 
+
+"""run_queries."""
 def run_queries():
     print("Querying...\n")
     queries = imdb_queries.IMDBQueries().queries()
@@ -22,6 +25,8 @@ def run_queries():
                       q.description,
                       q.query)
 
+
+"""debug."""
 def debug(host, port):
     global db
     global conn
@@ -36,6 +41,8 @@ def debug(host, port):
     print("run_queries")
     run_queries()
 
+
+"""main."""
 def main(argv):
     global db
     global conn

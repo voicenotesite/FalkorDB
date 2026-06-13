@@ -1,15 +1,24 @@
+"""Tests Flow Test Parser."""
 from common import *
 
 GRAPH_ID = "parser"
 
+
+"""Class testParser."""
 class testParser(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
     
+
+    """test_multiple_single_line_comments."""
     def test_multiple_single_line_comments(self):
         q = """
         MATCH (n:N)
@@ -57,6 +66,8 @@ class testParser(FlowTestsBase):
         # make sure graph.query ran without raising exception
         self.env.assertTrue(True)
 
+
+    """test_multiple_multi_line_comments."""
     def test_multiple_multi_line_comments(self):
         q = """
         MATCH (n:N)
@@ -107,6 +118,8 @@ class testParser(FlowTestsBase):
         # make sure graph.query ran without raising exception
         self.env.assertTrue(True)
 
+
+    """test_complex."""
     def test_complex(self):
         q = """
             MATCH (b:B)
@@ -299,6 +312,8 @@ class testParser(FlowTestsBase):
         # make sure graph.query ran without raising exception
         self.env.assertTrue(True)
 
+
+    """test_midway_comment."""
     def test_midway_comment(self):
         q = """
         MATCH /**/ (n)
@@ -324,6 +339,8 @@ class testParser(FlowTestsBase):
         except:
             pass
 
+
+    """test_just_comment."""
     def test_just_comment(self):
         # create graph
         self.graph.query("RETURN 1")

@@ -1,14 +1,21 @@
+"""Tests Flow Test Relation Patterns."""
 from common import *
 
 GRAPH_ID = "relation_patterns"
 
 
+
+"""Class testRelationPattern."""
 class testRelationPattern(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         # Construct a graph with the form:
         # (v1)-[:e]->(v2)-[:e]->(v3)
@@ -25,6 +32,8 @@ class testRelationPattern(FlowTestsBase):
         self.graph.query(f"CREATE {nodes[0]}, {nodes[1]}, {nodes[2]}, {e0}, {e1}")
 
     # Test patterns that traverse 1 edge.
+
+    """test01_one_hop_traversals."""
     def test01_one_hop_traversals(self):
         # Conditional traversal with label
         query = """MATCH (a)-[:e]->(b) RETURN a.val, b.val ORDER BY a.val, b.val"""
@@ -54,6 +63,8 @@ class testRelationPattern(FlowTestsBase):
         self.env.assertEquals(result_e.result_set, result_a.result_set)
 
     # Test patterns that traverse 2 edges.
+
+    """test02_two_hop_traversals."""
     def test02_two_hop_traversals(self):
         # Conditional two-hop traversal without referenced intermediate node
         query = """MATCH (a)-[:e]->()-[:e]->(b) RETURN a.val, b.val ORDER BY a.val, b.val"""
@@ -77,6 +88,8 @@ class testRelationPattern(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test variable-length patterns
+
+    """test03_var_len_traversals."""
     def test03_var_len_traversals(self):
         # Variable-length traversal with label
         query = """MATCH (a)-[:e*]->(b) RETURN a.val, b.val ORDER BY a.val, b.val"""
@@ -110,6 +123,8 @@ class testRelationPattern(FlowTestsBase):
 
     # Test variable-length patterns with alternately labeled source
     # and destination nodes, which can cause different execution sequences.
+
+    """test04_variable_length_labeled_nodes."""
     def test04_variable_length_labeled_nodes(self):
         # Source and edge labeled variable-length traversal
         query = """MATCH (a:L)-[:e*]->(b) RETURN a.val, b.val ORDER BY a.val, b.val"""
@@ -135,6 +150,8 @@ class testRelationPattern(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test traversals over explicit relationship types
+
+    """test05_relation_types."""
     def test05_relation_types(self):
         # Add two nodes and two edges of a new type.
         # The new form of the graph will be:
@@ -206,6 +223,8 @@ class testRelationPattern(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test traversals over transposed edge matrices.
+
+    """test06_transposed_traversals."""
     def test06_transposed_traversals(self):
         # The intermediate node 'b' will be used to form the scan operation because it is filtered.
         # As such, one of the traversals must be transposed.
@@ -221,6 +240,8 @@ class testRelationPattern(FlowTestsBase):
         expected_result = [[1]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test07_transposed_multi_hop."""
     def test07_transposed_multi_hop(self):
         redis_con = self.env.getConnection()
         g = self.db.select_graph("tran_multi_hop")
@@ -243,6 +264,8 @@ class testRelationPattern(FlowTestsBase):
         expected_result = [['a', 'c', 'a'], ['a', 'c', 'e'], ['e', 'c', 'a'], ['e', 'c', 'e']]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test08_transposed_varlen_traversal."""
     def test08_transposed_varlen_traversal(self):
         # Verify that variable-length traversals with nested transpose operations perform correctly.
         query = """MATCH (a {val: 'v1'})-[*]-(b {val: 'v2'})-[:e]->(:L {val: 'v3'}) RETURN a.val ORDER BY a.val"""
@@ -250,6 +273,8 @@ class testRelationPattern(FlowTestsBase):
         expected_result = [['v1']]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test09_transposed_elem_order."""
     def test09_transposed_elem_order(self):
         redis_con = self.env.getConnection()
         g = self.db.select_graph("transpose_patterns")
@@ -268,6 +293,8 @@ class testRelationPattern(FlowTestsBase):
             actual_result = g.query(query)
             self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test10_triple_edge_type."""
     def test10_triple_edge_type(self):
         # Construct a simple graph:
         # (A)-[X]->(B)
@@ -286,6 +313,8 @@ class testRelationPattern(FlowTestsBase):
             res = g.query(q.format(L0=perm[0], L1=perm[1], L2=perm[2]))
             self.env.assertEquals(res.result_set, expected_result)
 
+
+    """test11_shared_node_detection."""
     def test11_shared_node_detection(self):
         # Construct a simple graph
         # (s)<-[:A]-(x)
@@ -304,6 +333,8 @@ class testRelationPattern(FlowTestsBase):
         self.env.assertEquals(result.relationships_created, 0)
 
     # test error reporting for invalid min, max variable length edge length
+
+    """test12_lt_zero_hop_traversals."""
     def test12_lt_zero_hop_traversals(self):
         # Construct an empty graph
         g = self.db.select_graph("lt_zero_hop_traversals")
@@ -320,6 +351,8 @@ class testRelationPattern(FlowTestsBase):
             self._assert_exception(g, query,
                 "Variable length path, maximum number of hops must be greater or equal to minimum number of hops.")
 
+
+    """test13_return_var_len_edge_array."""
     def test13_return_var_len_edge_array(self):
         # Construct a simple graph:
         # (A)-[R]->(b)

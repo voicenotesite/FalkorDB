@@ -1,3 +1,4 @@
+"""Tests Flow Test Memory Usage."""
 import itertools
 
 from common import *
@@ -11,6 +12,8 @@ class MemoryUsage:
     in a convenient way for consumption"""
 
     def __init__(
+
+    """__init__."""
         self,
         indices_sz_mb,
         total_graph_sz_mb,
@@ -50,11 +53,17 @@ class MemoryUsage:
 
         assert (abs(total_graph_sz_mb - expected) < 20)
 
+
+"""Class testGraphMemoryUsage."""
 class testGraphMemoryUsage(FlowTestsBase):
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env(env='oss-cluster')
         self.conn = self.env.getConnection()
@@ -68,6 +77,8 @@ class testGraphMemoryUsage(FlowTestsBase):
                                         "SAMPLES", samples)
         return MemoryUsage(res[17], res[1], res[7], res[11], res[9], res[13], res[15], res[3], res[5])
 
+
+    """_assert_mb_close."""
     def _assert_mb_close(self, actual, expected, tolerance_mb=1):
         self.env.assertLessEqual(abs(actual - expected), tolerance_mb)
 

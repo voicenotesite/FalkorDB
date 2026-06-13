@@ -1,3 +1,4 @@
+"""Tests Tck Redis Utils Graphs."""
 import os
 import sys
 from RLTest import Env
@@ -9,10 +10,14 @@ graph_name = "G"
 graph = None
 
 
+
+"""redis."""
 def redis():
     return Env.RTestInstance.currEnv
 
 
+
+"""_brand_new_redis."""
 def _brand_new_redis():
     global r
     if r is not None:
@@ -23,6 +28,8 @@ def _brand_new_redis():
     db = FalkorDB("localhost", 6379)
     return db
 
+
+"""empty_graph."""
 def empty_graph():
     global graph
     db = _brand_new_redis()
@@ -34,10 +41,14 @@ def empty_graph():
     # Delete node to have an empty graph.
     graph.query("MATCH (n) DELETE n")
 
+
+"""any_graph."""
 def any_graph():
     empty_graph()
 
 
+
+"""binary_tree_graph1."""
 def binary_tree_graph1():
     global graph
 
@@ -74,6 +85,8 @@ def binary_tree_graph1():
                        (b4)-[:FRIEND] -> (b1)""")
 
 
+
+"""binary_tree_graph2."""
 def binary_tree_graph2():
     global graph
 
@@ -110,10 +123,14 @@ def binary_tree_graph2():
                       (b4)-[:FRIEND] -> (b1)""")
 
 
+
+"""query."""
 def query(q):
     return graph.query(q)
 
 
+
+"""schema_label_count."""
 def schema_label_count():
     res = graph.query("CALL db.labels() YIELD label RETURN count(label)")
     if not res.result_set:

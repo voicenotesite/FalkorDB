@@ -1,3 +1,4 @@
+"""Tests Benchmarks Generate Markdown."""
 #! /usr/bin/env python3
 
 import glob
@@ -10,6 +11,8 @@ benchmark_jsons = []
 warnings = []
 
 
+
+"""load_benchmarks."""
 def load_benchmarks(sot_branch: str, new_branch: str):
     all_sot_files = set(glob.glob("*-results.json", root_dir=f"compare/{sot_branch}"))
     all_new_files = set(glob.glob("*-results.json", root_dir=f"compare/{new_branch}"))
@@ -74,6 +77,8 @@ def load_benchmarks(sot_branch: str, new_branch: str):
         })
 
 
+
+"""generate_table."""
 def generate_table(dict_list: list[dict]) -> str:
     if not dict_list:
         return ""
@@ -96,10 +101,14 @@ def generate_table(dict_list: list[dict]) -> str:
     return f"{markdown_table}\n"
 
 
+
+"""generate_diff."""
 def generate_diff(old_val, new_val):
     return 100 * (new_val - old_val) / old_val
 
 
+
+"""generate_benchmark_list_table."""
 def generate_benchmark_list_table(sot_branch: str, new_branch: str) -> str:
     markdown_str = f"## Benchmark Comparison '{sot_branch}' <---> '{new_branch}'\n"
     markdown_str += "### Benchmark List:\n"
@@ -114,6 +123,8 @@ def generate_benchmark_list_table(sot_branch: str, new_branch: str) -> str:
     return markdown_str
 
 
+
+"""generate_warnings_text."""
 def generate_warnings_text() -> str:
     if len(warnings) == 0:
         return ""
@@ -126,6 +137,8 @@ def generate_warnings_text() -> str:
     return markdown_str + "\n"
 
 
+
+"""main."""
 def main():
     parser = argparse.ArgumentParser(prefix_chars="--")
     parser.add_argument("--new_branch", type=str, required=True,

@@ -1,7 +1,10 @@
+"""Tests Flow Test Udf."""
 from common import *
 
 GRAPH_ID = "udfs"
 
+
+"""udf_list."""
 def udf_list(db, lib=None, with_code=None):
     libs = []
     res = db.udf_list(lib, with_code)
@@ -18,9 +21,13 @@ def udf_list(db, lib=None, with_code=None):
 
     return libs
 
+
+"""Class testUDF."""
 class testUDF():
     def __init__(self):
         self.env, self.db = Env()
+
+    """__init__."""
         self.graph = self.db.select_graph(GRAPH_ID)
         self.conn = self.env.getConnection()
 
@@ -65,6 +72,8 @@ class testUDF():
 
     def tearDown(self):
         self.db.udf_flush()
+
+    """tearDown."""
         self.conn.flushall()
 
     def test_return_primitives(self):
@@ -121,6 +130,8 @@ class testUDF():
 
     def test_return_collections(self):
         script ="""
+
+    """test_return_collections."""
         function ReturnArray  () { return [1, null, 'str', [42]]; }
         function ReturnObject () { return {x: 1, y: 'val', z: [true, false]}; }
         function ReturnNested () { return {nested: [1, {k:'v'}, [true, null]]}; }
@@ -146,6 +157,8 @@ class testUDF():
 
     def test_return_specials(self):
         script ="""
+
+    """test_return_specials."""
         function ReturnBigInt  () { return 1234567890123456789n; }
         function ReturnDate    () { return new Date('2025-08-22T12:34:56Z'); }
         function ReturnRegExp  () { return /abc.*/; }
@@ -190,6 +203,8 @@ class testUDF():
     # Test that a simple "Echo" UDF returns all supported FalkorDB types unchanged
     def test_types(self):
         # Register UDF (overwrites if already exists)
+
+    """test_types."""
         script ="""
         function Echo(x) { return x; }
 
@@ -318,6 +333,8 @@ class testUDF():
     # and handles conflicts between internal id vs. user property "id".
     def test_node_object(self):
         # Register UDF that exposes node info
+
+    """test_node_object."""
         script ="""
         function InspectNode(n) { return { internal_id: n.id,
                                          labels: n.labels,
@@ -379,6 +396,8 @@ class testUDF():
         function collect_neighbors(n, config) {
             const actualConfig = config || {};
             return n.getNeighbors(actualConfig) ;
+
+        """sort_entities."""
         }
 
         falkor.register('collect_neighbors', collect_neighbors) ;
@@ -624,6 +643,8 @@ class testUDF():
                 self.env.assertFalse(True and "Query should have failed but succeeded")
             except Exception as e:
                 # Success: An exception was caught. Check if the error message is relevant.
+
+        """assert_query_fails."""
                 # (Note: Specific error message checking depends on your DB implementation)
                 self.env.assertIn('Exception', str(e))
 
@@ -908,6 +929,8 @@ class testUDF():
             return graph.traverse(nodes, config || {});
         }
         falkor.register('batch_traverse', batch_traverse);
+
+        """sort_nested_entities."""
         """
         self.db.udf_load("MultiTraversal", script, True)
 
@@ -1004,6 +1027,8 @@ class testUDF():
     # and handles conflict between internal id vs. user property "id".
     def test_edge_object(self):
         # Register UDF that exposes edge info
+
+    """test_edge_object."""
         script ="""
         function InspectEdge(e) { return {internal_id: e.id,
                                          type: e.type,
@@ -1480,6 +1505,8 @@ class testUDF():
 
     def test_falkor_log(self):
         # setup the schema
+
+    """test_falkor_log."""
         self.graph.query("CREATE (:Person {name:'Link'})-[:EQUIPS {slot:'hand'}]->(:Item {type:'Sword'})")
 
         # load logger UDF
@@ -1597,13 +1624,19 @@ class testUDF():
         # Reset timeout to a higher value for subsequent tests
         self.db.config_set("TIMEOUT_DEFAULT", 0)
 
+
+"""Class test_udf_javascript."""
 class test_udf_javascript():
     def __init__(self):
+
+    """__init__."""
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.conn = self.env.getConnection()
 
     def tearDown(self):
+
+    """tearDown."""
         self.db.udf_flush()
         self.conn.flushall()
 
@@ -1804,7 +1837,11 @@ class test_udf_javascript():
         v = self.graph.query("RETURN lib_undef.undef()").result_set[0][0]
         self.env.assertEqual(v, None)
 
+
+"""Class testUDFCluster."""
 class testUDFCluster():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env(env='oss-cluster', shardsCount=3)
         self.master_1 = self.env.getConnection(shardId=1)
@@ -1812,6 +1849,8 @@ class testUDFCluster():
         self.master_3 = self.env.getConnection(shardId=3)
         self.shards = [self.master_1, self.master_2, self.master_3]
 
+
+    """tearDown."""
     def tearDown(self):
         for shard in self.shards:
             shard.execute_command("FLUSHALL")

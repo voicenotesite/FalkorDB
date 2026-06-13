@@ -1,8 +1,13 @@
+"""Tests Flow Test Execution Plan Print."""
 from common import *
 
 GRAPH_KEY = "execution_plan_print"
 
+
+"""Class test_execution_plan_print."""
 class test_execution_plan_print():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_KEY)
@@ -12,6 +17,8 @@ class test_execution_plan_print():
     
     # 'conditional traverse' after a 'label scan' should not print
     # the label scanned
+
+    """test01_conditional_traverse."""
     def test01_conditional_traverse(self):
         # empty graph (first test) --> order of traversal stays as in query (A --> B).
         plan = str(self.graph.explain("MATCH (n:A:B) RETURN n"))
@@ -23,6 +30,8 @@ class test_execution_plan_print():
         self.env.assertIn("Conditional Traverse | (n:B)->(n:B)", plan)
     
     # 'expand into' should not print the label scanned
+
+    """test02_expand_into."""
     def test02_expand_into(self):
         plan = str(self.graph.explain("MATCH (n:A:B:C) RETURN n"))
 
@@ -34,6 +43,8 @@ class test_execution_plan_print():
     
     # Make sure the 'conditional traverse' and 'expand into' operations
     # which do not come after a 'label scan' print all labels
+
+    """test03_operations_not_after_scan."""
     def test03_operations_not_after_scan(self):
         plan = str(self.graph.explain("match p=(n:A:B)-[*]-(m:C:D) RETURN p"))
 

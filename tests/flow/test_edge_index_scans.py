@@ -1,3 +1,4 @@
+"""Tests Flow Test Edge Index Scans."""
 from common import *
 from index_utils import *
 
@@ -5,18 +6,28 @@ GRAPH_ID = "edge_index_scan"
 
 people = ["Roi", "Alon", "Ailon", "Boaz", "Tal", "Omri", "Ori"]
 
+
+"""Class testEdgeByIndexScanFlow."""
 class testEdgeByIndexScanFlow(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
 
+
+    """setUp."""
     def setUp(self):
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
         self.build_indices()
 
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
 
+
+    """populate_graph."""
     def populate_graph(self):
         nodes = {}
 
@@ -43,12 +54,16 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
 
         self.graph.query(f"CREATE {','.join(nodes_str + edges_str)}")
 
+
+    """build_indices."""
     def build_indices(self):
         create_node_range_index(self.graph, "person", "age")
         create_edge_range_index(self.graph, "friend", "created_at")
         create_edge_range_index(self.graph, "knows", "created_at", sync=True)
 
     # Validate that Cartesian products using index and label scans succeed
+
+    """test01_cartesian_product_mixed_scans."""
     def test01_cartesian_product_mixed_scans(self):
         query = "MATCH ()-[f:friend]->(), ()-[k:knows]->() WHERE f.created_at >= 0 RETURN f.created_at, k.created_at ORDER BY f.created_at, k.created_at"
         plan = str(self.graph.explain(query))
@@ -65,6 +80,8 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
         self.env.assertEquals(indexed_result.result_set, unindexed_result.result_set)
 
     # Validate that Cartesian products using just index scans succeed
+
+    """test02_cartesian_product_index_scans_only."""
     def test02_cartesian_product_index_scans_only(self):
         query = "MATCH ()-[f:friend]->(), ()-[k:knows]->() WHERE f.created_at >= 0 AND k.created_at >= 0 RETURN f.created_at, k.created_at ORDER BY f.created_at, k.created_at"
         plan = str(self.graph.explain(query))
@@ -82,6 +99,8 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
         self.env.assertEquals(indexed_result.result_set, unindexed_result.result_set)
 
     # Validate that the appropriate bounds are respected when a Cartesian product uses the same index in two streams
+
+    """test03_cartesian_product_reused_index."""
     def test03_cartesian_product_reused_index(self):
         create_edge_range_index(self.graph, 'friend', 'updated_at', sync=True)
         query = """MATCH ()-[a:friend]->(), ()-[b:friend]->()
@@ -100,6 +119,8 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
         self.env.assertEquals(result.result_set, expected_result)
 
     # Validate index utilization when filtering on a numeric field with the `IN` keyword.
+
+    """test04_test_in_operator_numerics."""
     def test04_test_in_operator_numerics(self):
         # Validate the transformation of IN to multiple OR expressions.
         query = "MATCH ()-[f:friend]-() WHERE f.created_at IN [1,2,3] RETURN f"
@@ -156,6 +177,8 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
         result = self.graph.query(query)
         self.env.assertEquals(result.result_set, expected_result)
 
+
+    """test05_index_scan_and_id."""
     def test05_index_scan_and_id(self):
         query = """MATCH (n)-[f:friend]->()
                    WHERE id(f)>=10 AND f.created_at<15
@@ -171,6 +194,8 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
         self.env.assertEquals(expected_result, query_result.result_set)
 
     # Validate placement of index scans and filter ops when not all filters can be replaced.
+
+    """test06_index_scan_multiple_filters."""
     def test06_index_scan_multiple_filters(self):
         query = "MATCH (n)-[f:friend]->() WHERE f.created_at = 31 AND NOT EXISTS(f.fakeprop) RETURN n.name"
         plan = str(self.graph.explain(query))
@@ -188,6 +213,8 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
         self.env.assertNotIn('Conditional Traverse', plan)
         self.env.assertIn('Filter', plan)
 
+
+    """test07_index_scan_with_params."""
     def test07_index_scan_with_params(self):
         query = "MATCH (n)-[f:friend]->() WHERE f.created_at = $time RETURN n.name"
         params = {'time': 31}
@@ -197,6 +224,8 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
         expected_result = ["Ailon"]
         self.env.assertEquals(query_result.result_set[0], expected_result)
 
+
+    """test08_index_scan_with_param_array."""
     def test08_index_scan_with_param_array(self):
         query = "MATCH (n)-[f:friend]->() WHERE f.created_at in $times RETURN n.name"
         params = {'times': [31]}
@@ -206,6 +235,8 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
         expected_result = ["Ailon"]
         self.env.assertEquals(query_result.result_set[0], expected_result)
 
+
+    """test09_runtime_index_utilization."""
     def test09_runtime_index_utilization(self):
         # find all person nodes with age in the range 33-37
         # current age (x) should be resolved at runtime
@@ -285,6 +316,8 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
         expected_result = [["Ori"]]
         self.env.assertEquals(query_result.result_set, expected_result)
 
+
+    """test10_index_scan_and_label_filter."""
     def test10_index_scan_and_label_filter(self):
         query = "MATCH (n)-[f:friend]->(m) WHERE f.created_at = 1 RETURN n.name"
         plan = str(self.graph.explain(query))
@@ -374,6 +407,8 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
         expected_result = ["Alon"]
         self.env.assertEquals(query_result.result_set[0], expected_result)
 
+
+    """test11_index_scan_and_with."""
     def test11_index_scan_and_with(self):
         query = "MATCH (n)-[f:friend]->(m) WHERE f.created_at = 1 WITH n RETURN n.name"
         plan = str(self.graph.explain(query))
@@ -463,6 +498,8 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
         expected_result = ["Alon"]
         self.env.assertEquals(query_result.result_set[0], expected_result)
 
+
+    """test12_index_scan_numeric_accuracy."""
     def test12_index_scan_numeric_accuracy(self):
         create_edge_range_index(self.graph, 'R1', 'id', sync=True)
         create_edge_range_index(self.graph, 'R2', 'id1', 'id2', sync=True)
@@ -504,6 +541,8 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
         expected_result = [[990000000262240069, 990000000262240067]]
         self.env.assertEquals(result.result_set, expected_result)
 
+
+    """test13_create_index_multi_edge."""
     def test13_create_index_multi_edge(self):
         result = self.graph.query("CREATE (a:A), (b:B)")
         self.env.assertEquals(result.nodes_created, 2)
@@ -517,6 +556,8 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
         result = self.graph.query("MATCH (a:A)-[r:R]->(b:B) WHERE r.v > 0 RETURN count(r)")
         self.env.assertEquals(result.result_set[0][0], 500)
 
+
+    """test14_self_referencing_edge."""
     def test14_self_referencing_edge(self):
         self.graph.delete()
         # make sure edge connecting node 0 to itself is indexed
@@ -552,6 +593,8 @@ class testEdgeByIndexScanFlow(FlowTestsBase):
         # make sure the same edge is returned
         self.env.assertEquals(expected, actual)
 
+
+    """test15_chained_optional_match_indexed_edge."""
     def test15_chained_optional_match_indexed_edge(self):
         # test chained OPTIONAL MATCH feeds a NULL node into an Edge By Index Scan.
         # The first OPTIONAL MATCH produces a NULL node

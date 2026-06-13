@@ -1,3 +1,4 @@
+"""Tests Benchmarks Run Benchmarks."""
 #! /usr/bin/env python3
 import glob
 import json
@@ -14,6 +15,8 @@ from urllib.request import urlretrieve
 from http.client import HTTPSConnection
 
 
+
+"""run_single_benchmark."""
 def run_single_benchmark(file_stream: TextIO, bench: str):
     data = yaml.safe_load(file_stream)
 
@@ -72,6 +75,8 @@ def run_single_benchmark(file_stream: TextIO, bench: str):
                         exit(1)
 
 
+
+"""single_iteration."""
 def single_iteration(bench: str, idx: int, bench_end: int):
     print(f"========== Benchmark {idx + 1}/{bench_end} Started ================\n")
 
@@ -92,6 +97,8 @@ def single_iteration(bench: str, idx: int, bench_end: int):
     except subprocess.CalledProcessError:
         pass
 
+
+"""verify_and_download_graph500."""
 def verify_and_download_graph500():
     if not os.path.exists("./datasets/graph500.rdb"):
         print("Downloading missing dataset")
@@ -102,6 +109,8 @@ def verify_and_download_graph500():
             print(f"Failed to download the dataset: {e}")
             exit(1)
 
+
+"""verify_sha256_checksum."""
 def verify_sha256_checksum(target_file, checksum_file):
     # Read the existing checksum
     with open(checksum_file, 'r') as f:
@@ -125,6 +134,8 @@ def verify_sha256_checksum(target_file, checksum_file):
     return True
 
 
+
+"""get_system_doublet."""
 def get_system_doublet():
     if platform.system() == "Darwin":
         return "darwin-arm64"
@@ -132,6 +143,8 @@ def get_system_doublet():
         return "linux-amd64"
 
 
+
+"""verify_and_download_benchmark_tool."""
 def verify_and_download_benchmark_tool():
     if not os.path.exists("./falkordb-benchmark-go"):
         print("Downloading missing benchmark tool")
@@ -178,6 +191,8 @@ def verify_and_download_benchmark_tool():
             exit(1)
 
 
+
+"""print_help."""
 def print_help():
     print("Usage: ./run_benchmarks.py <BenchmarkGroup>")
     print("")
@@ -187,6 +202,8 @@ def print_help():
     exit(0)
 
 
+
+"""main."""
 def main():
     if len(sys.argv) > 1 and (sys.argv[1] == "--help" or sys.argv[1] == "-h"):
         print_help()

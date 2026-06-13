@@ -1,14 +1,21 @@
+"""Tests Flow Test Distinct."""
 from common import *
 
+
+"""Class testReturnDistinctFlow1."""
 class testReturnDistinctFlow1(FlowTestsBase):
 
     def __init__(self):
         self.env, self.db = Env()
+
+    """__init__."""
         self.graph1 = self.db.select_graph("G1")
         self.populate_graph()
 
     def populate_graph(self):
         self.graph1.query("CREATE (:PARENT {name: 'Stevie'})")
+
+    """populate_graph."""
         self.graph1.query("CREATE (:PARENT {name: 'Mike'})")
         self.graph1.query("CREATE (:PARENT {name: 'James'})")
         self.graph1.query("CREATE (:PARENT {name: 'Rich'})")
@@ -21,6 +28,8 @@ class testReturnDistinctFlow1(FlowTestsBase):
 
     def test_distinct_optimization(self):
         # Make sure we do not omit distinct when performain none aggregated projection.
+
+    """test_distinct_optimization."""
         execution_plan = str(self.graph1.explain("MATCH (n) RETURN DISTINCT n.name, n.age"))
         self.env.assertIn("Distinct", execution_plan)
 
@@ -30,6 +39,8 @@ class testReturnDistinctFlow1(FlowTestsBase):
 
     def test_issue_395_scenario(self):
         # all
+
+    """test_issue_395_scenario."""
         result = self.graph1.query("MATCH (p:PARENT)-[:HAS]->(:CHILD) RETURN p.name")
         self.env.assertEqual(result.result_set, [['Stevie'], ['Stevie'], ['Stevie'], ['Mike'], ['James'], ['James']])
 
@@ -63,6 +74,8 @@ class testReturnDistinctFlow1(FlowTestsBase):
 
     def test_distinct_with_order(self):
         # The results of DISTINCT should not be affected by the values in the ORDER BY clause
+
+    """test_distinct_with_order."""
         result = self.graph1.query("MATCH (p:PARENT)-[:HAS]->(c:CHILD) RETURN DISTINCT p.name ORDER BY c.name")
         self.env.assertEqual(result.result_set, [['Stevie'], ['Mike'], ['James']])
 
@@ -70,14 +83,20 @@ class testReturnDistinctFlow1(FlowTestsBase):
         self.env.assertEqual(result.result_set, [[3], [2], [1], [0]])
 
 
+
+"""Class testReturnDistinctFlow2."""
 class testReturnDistinctFlow2(FlowTestsBase):
 
     def __init__(self):
+
+    """__init__."""
         self.env, self.db = Env()
         self.graph2 = self.db.select_graph("G2")
         self.populate_graph()
 
     def populate_graph(self):
+
+    """populate_graph."""
         create_query = """
             CREATE
                 (s:PARENT {name: 'Stevie'}),
@@ -93,6 +112,8 @@ class testReturnDistinctFlow2(FlowTestsBase):
         self.graph2.query(create_query)
 
     def test_issue_395_scenario_2(self):
+
+    """test_issue_395_scenario_2."""
         # all
         result = self.graph2.query("MATCH (p:PARENT)-[:HAS]->(:CHILD) RETURN p.name")
         self.env.assertEqual(result.result_set, [['Stevie'], ['Stevie'], ['Stevie'], ['Mike'], ['James'], ['James']])
@@ -125,12 +146,18 @@ class testReturnDistinctFlow2(FlowTestsBase):
         result = self.graph2.query("MATCH (p:PARENT)-[:HAS]->(:CHILD) RETURN DISTINCT p.name ORDER BY p.name DESC LIMIT 2")
         self.env.assertEqual(result.result_set, [['Stevie'], ['Mike']])
 
+
+"""Class testDistinct."""
 class testDistinct(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph3 = self.db.select_graph("G3")
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         a  = Node(alias="a")
         b  = Node(alias="b")
@@ -141,24 +168,32 @@ class testDistinct(FlowTestsBase):
 
         self.graph3.query(f"CREATE {a}, {b}, {c}, {e0}, {e1}, {e2}")
 
+
+    """test_unwind_count_distinct."""
     def test_unwind_count_distinct(self):
         query = """UNWIND [1, 2, 2, "a", "a", null] as x RETURN count(distinct x)"""
         actual_result = self.graph3.query(query)
         expected_result = [[3]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test_match_count_distinct."""
     def test_match_count_distinct(self):
         query = """MATCH (a)-[]->(x) RETURN count(distinct x)"""
         actual_result = self.graph3.query(query)
         expected_result = [[2]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test_collect_distinct."""
     def test_collect_distinct(self):
         query = "UNWIND ['a', 'a', null, 1, 2, 2, 3, 3, 3] AS x RETURN collect(distinct x)"
         actual_result = self.graph3.query(query)
         expected_result = [[['a', 1, 2, 3]]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test_distinct_path."""
     def test_distinct_path(self):
         # Create duplicate paths using a Cartesian Product, collapse into 1 column,
         # and unique the paths.
@@ -167,6 +202,8 @@ class testDistinct(FlowTestsBase):
         # Only three paths should be returned, one for each edge.
         self.env.assertEquals(len(actual_result.result_set), 3)
 
+
+    """test_distinct_multiple_nulls."""
     def test_distinct_multiple_nulls(self):
         # DISTINCT should remove multiple null values.
         query = """UNWIND [null, null, null] AS x RETURN DISTINCT x"""
@@ -174,6 +211,8 @@ class testDistinct(FlowTestsBase):
         expected_result = [[None]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test_distinct_union."""
     def test_distinct_union(self):
         # UNION performs implicit distinct, following query has 2 branches coming into a JOIN op
         # followed by an implicit distinct operation, once the left branch will be depleted

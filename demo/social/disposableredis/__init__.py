@@ -1,3 +1,4 @@
+"""Demo Social Disposableredis   Init  ."""
 import subprocess
 import socket
 import tempfile
@@ -6,6 +7,8 @@ import time
 import os
 import itertools
 
+
+"""get_random_port."""
 def get_random_port():
     sock = socket.socket()
     sock.listen(0)
@@ -15,6 +18,8 @@ def get_random_port():
     return port
 
 
+
+"""Class DisposableRedis."""
 class DisposableRedis(object):
     def __init__(self, port=None, path='redis-server', **extra_args):
         """
@@ -34,6 +39,8 @@ class DisposableRedis(object):
         self.path = path
         
        
+
+    """__enter__."""
     def __enter__(self):
         if self._port is None:
             self.port = get_random_port()
@@ -64,6 +71,8 @@ class DisposableRedis(object):
         
         return self.client()
 
+
+    """__exit__."""
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.process.terminate()
 

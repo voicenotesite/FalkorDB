@@ -1,14 +1,21 @@
+"""Tests Flow Test Shortest Path."""
 from common import *
 
 nodes        =  []
 GRAPH_ID     =  "shortest_path"
 
+
+"""Class testShortestPath."""
 class testShortestPath(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         # Construct a graph with the form:
         # (a {v:1})-[:E]->(b {v:2})-[:E]->(c {v:3})-[:E]->(d {v:4}),
@@ -38,6 +45,8 @@ class testShortestPath(FlowTestsBase):
         nodes.append(res[0][3])
         nodes.append(res[0][4])
 
+
+    """test01_invalid_shortest_paths."""
     def test01_invalid_shortest_paths(self):
         query = """MATCH (a {v: 1}), (b {v: 4}), p = shortestPath((a)-[*]->(b)) RETURN p"""
         try:
@@ -74,6 +83,8 @@ class testShortestPath(FlowTestsBase):
         expected_result = [[None]]
         self.env.assertEqual(actual_result.result_set, expected_result)
 
+
+    """test02_simple_shortest_path."""
     def test02_simple_shortest_path(self):
         query = """MATCH (a {v: 1}), (d {v: 4})
                    WITH shortestPath((a)-[*]->(d)) AS p
@@ -93,6 +104,8 @@ class testShortestPath(FlowTestsBase):
                    RETURN n.v"""
         self.env.assertEqual(actual_result.result_set, expected_result)
 
+
+    """test03_shortest_path_multiple_results."""
     def test03_shortest_path_multiple_results(self):
         # Traverse from all source nodes to the destination node
         query = """MATCH (a), (b {v: 4}) WITH a, shortestPath((a)-[*]->(b)) AS p RETURN a, nodes(p) ORDER BY a"""
@@ -104,6 +117,8 @@ class testShortestPath(FlowTestsBase):
                            [nodes[4], [nodes[4], nodes[3]]]]
         self.env.assertEqual(actual_result.result_set, expected_result)
 
+
+    """test04_max_hops."""
     def test04_max_hops(self):
         # Traverse from all source nodes to the destination node if there is a single-hop path
         query = """MATCH (a), (b {v: 4})
@@ -117,6 +132,8 @@ class testShortestPath(FlowTestsBase):
                            [nodes[4], [nodes[4], nodes[3]]]]
         self.env.assertEqual(actual_result.result_set, expected_result)
 
+
+    """test05_min_hops."""
     def test05_min_hops(self):
         # Traverse from all source nodes to the destination node with a minimum hop value of 0.
         # This will produce the same results as the above query with the exception of
@@ -130,6 +147,8 @@ class testShortestPath(FlowTestsBase):
                            [nodes[4], [nodes[4], nodes[3]]]]
         self.env.assertEqual(actual_result.result_set, expected_result)
 
+
+    """test06_restricted_reltypes."""
     def test06_restricted_reltypes(self):
         # Traverse both relationship types
         query = """MATCH (a {v: 1}), (b {v: 4}) WITH shortestPath((a)-[:E|:E2*]->(b)) AS p UNWIND nodes(p) AS n RETURN n.v"""
@@ -145,6 +164,8 @@ class testShortestPath(FlowTestsBase):
         expected_result = [[1], [2], [3], [4]]
         self.env.assertEqual(actual_result.result_set, expected_result)
 
+
+    """test07_shortestPath_in_filter."""
     def test07_shortestPath_in_filter(self):
         # Traverse both relationship types
         query = """MATCH (a {v: 1}), (b {v: 4}) WHERE length(shortestPath((a)-[:E|:E2*]->(b))) > 0 RETURN a.v, b.v"""

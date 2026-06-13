@@ -1,17 +1,26 @@
+"""Tests Flow Test List."""
 from common import *
 
 GRAPH_ID = "graph_list"
 
 
 # tests the GRAPH.LIST command
+
+"""Class testGraphList."""
 class testGraphList(FlowTestsBase):
     def __init__(self):
+
+    """__init__."""
         self.env, self.db = Env()
 
     def create_graph(self, graph_name, con):
+
+    """create_graph."""
         con.execute_command("GRAPH.QUERY", graph_name, "RETURN 1")
 
     def test_graph_list(self):
+
+    """test_graph_list."""
         # no graphs, expecting an empty array
         con = self.env.getConnection()
         graphs = self.db.list_graphs()
@@ -50,11 +59,17 @@ class testGraphList(FlowTestsBase):
         self.env.assertEquals(graphs, [])
 
 # tests the list datatype
+
+"""Class testList."""
 class testList(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """test01_collect."""
     def test01_collect(self):
         self.graph.query("UNWIND range(0, 10) AS x CREATE ()")
 
@@ -64,6 +79,8 @@ class testList(FlowTestsBase):
         self.env.assertEquals(len(result_set), 1)
         self.env.assertTrue(all(isinstance(n, Node) for n in result_set[0][0]))
 
+
+    """test02_unwind."""
     def test02_unwind(self):
         query = """CREATE ()"""
         self.graph.query(query)
@@ -74,6 +91,8 @@ class testList(FlowTestsBase):
         self.env.assertEquals(result_set, expected_result)
 
     # List functions should handle null inputs appropriately.
+
+    """test03_null_list_function_inputs."""
     def test03_null_list_function_inputs(self):
         expected_result = [[None]]
 
@@ -143,6 +162,8 @@ class testList(FlowTestsBase):
         expected_result = [[False]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test04_head_function."""
     def test04_head_function(self):
         # Test empty list input
         query = """RETURN head([])"""
@@ -193,6 +214,8 @@ class testList(FlowTestsBase):
         except ResponseError as e:
             self.env.assertContains("Type mismatch: expected List or Null but was Boolean", str(e))
 
+
+    """test05_last_function."""
     def test05_last_function(self):
         # Test empty list input
         query = """RETURN last([])"""
@@ -243,6 +266,8 @@ class testList(FlowTestsBase):
         except ResponseError as e:
             self.env.assertContains("Type mismatch: expected List or Null but was Boolean", str(e))
 
+
+    """test06_toBooleanList."""
     def test06_toBooleanList(self):
         # NULL input should return NULL
         expected_result = [None]
@@ -382,6 +407,8 @@ class testList(FlowTestsBase):
         except ResponseError as e:
             self.env.assertContains("Received 0 arguments to function 'toBooleanList', expected at least 1", str(e)) 
 
+
+    """test07_toFloatList."""
     def test07_toFloatList(self):
         # NULL input should return NULL
         expected_result = [None]
@@ -528,6 +555,8 @@ class testList(FlowTestsBase):
         except ResponseError as e:
             self.env.assertContains("Received 0 arguments to function 'toFloatList', expected at least 1", str(e))
 
+
+    """test08_toIntegerList."""
     def test08_toIntegerList(self):
         # NULL input should return NULL
         expected_result = [None]
@@ -669,6 +698,8 @@ class testList(FlowTestsBase):
         except ResponseError as e:
             self.env.assertContains("Received 0 arguments to function 'toIntegerList', expected at least 1", str(e))
 
+
+    """test09_toStringList."""
     def test09_toStringList(self):
         # NULL input should return NULL
         expected_result = [None]
@@ -822,6 +853,8 @@ class testList(FlowTestsBase):
         except ResponseError as e:
             self.env.assertContains("Received 0 arguments to function 'toStringList', expected at least 1", str(e))
 
+
+    """test09_remove."""
     def test09_remove(self):
         # NULL input should return NULL
         expected_result = [None]
@@ -940,6 +973,8 @@ class testList(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set[0], expected_result)
 
 
+
+    """test10_sort."""
     def test10_sort(self):
         # NULL input should return NULL
         expected_result = [None]
@@ -1026,6 +1061,8 @@ class testList(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set[0][0][1], [2,1,3])
         self.env.assertEquals(actual_result.result_set[0][0][2], 1)
 
+
+    """test11_insert."""
     def test11_insert(self):
         # NULL input should return NULL
         expected_result = [None]
@@ -1159,6 +1196,8 @@ class testList(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set[0], expected_result)
 
+
+    """test12_insertListElements."""
     def test12_insertListElements(self):
         # NULL input should return NULL
         expected_result = [None]
@@ -1373,6 +1412,8 @@ class testList(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set[0], expected_result)
 
+
+    """test13_dedup."""
     def test13_dedup(self):
         # NULL input should return NULL
         expected_result = [None]

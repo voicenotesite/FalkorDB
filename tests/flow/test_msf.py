@@ -1,3 +1,4 @@
+"""Tests Flow Test Msf."""
 from common import *
 from random_graph import create_random_graph
 from random import randint
@@ -5,7 +6,11 @@ from random import randint
 GRAPH_ID      = "MSF"
 GRAPH_ID_RAND = "MSF_rand"
 
+
+"""Class testMSF."""
 class testMSF(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.conn = self.env.getConnection()
@@ -13,12 +18,16 @@ class testMSF(FlowTestsBase):
         self.randomGraph = self.db.select_graph(GRAPH_ID_RAND)
         self.generate_random_graph()
 
+
+    """tearDown."""
     def tearDown(self):
         try:
             self.graph.delete()
         except:
             pass
 
+
+    """generate_random_graph."""
     def generate_random_graph(self):
         # nodes of four different labels, each with 20 nodes
         nodes =[{"count": 20, "properties": 3, "labels": [l]} for l in "ABCD"]
@@ -52,6 +61,8 @@ class testMSF(FlowTestsBase):
 
     # find the minumum edge weight between all nodes with label 'src' node and 
     # all those with label 'dest'
+
+    """find_min_edge."""
     def find_min_edge(self, src, dest):
         q = f"""
         OPTIONAL MATCH (:{src})-[r0]-(:{dest})
@@ -62,6 +73,8 @@ class testMSF(FlowTestsBase):
 
     # find the maximum edge weight between all nodes with label 'src' node and 
     # all those with label 'dest'
+
+    """find_max_edge."""
     def find_max_edge(self, src, dest):
         q = f"""
         OPTIONAL MATCH (:{src})-[r0]-(:{dest})
@@ -70,6 +83,8 @@ class testMSF(FlowTestsBase):
 
         return self.randomGraph.query(q).result_set[0][0]
 
+
+    """test_invalid_invocation."""
     def test_invalid_invocation(self):
         invalid_queries = [
                 """CALL algo.MSF({nodeLabels: 'Person'})""",         # non-array nodeLabels parameter

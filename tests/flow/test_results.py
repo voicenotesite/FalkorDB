@@ -1,15 +1,22 @@
+"""Tests Flow Test Results."""
 from common import *
 
 people = ["Roi", "Alon", "Ailon", "Boaz"]
 GRAPH_ID = "G"
 
 
+
+"""Class testResultSetFlow."""
 class testResultSetFlow(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         nodes = {}
         # Create entities
@@ -30,6 +37,8 @@ class testResultSetFlow(FlowTestsBase):
 
 
     # Verify that scalar returns function properly
+
+    """test01_return_scalars."""
     def test01_return_scalars(self):
         query = """MATCH (a) RETURN a.name, a.val ORDER BY a.val"""
         result = self.graph.query(query)
@@ -44,6 +53,8 @@ class testResultSetFlow(FlowTestsBase):
         self.env.assertEquals(result.result_set, expected_result)
 
     # Verify that full node returns function properly
+
+    """test02_return_nodes."""
     def test02_return_nodes(self):
         query = """MATCH (a) RETURN a"""
         result = self.graph.query(query)
@@ -53,6 +64,8 @@ class testResultSetFlow(FlowTestsBase):
         self.env.assertEquals(len(result.header), 1) # 1 column in result set
 
     # Verify that full edge returns function properly
+
+    """test03_return_edges."""
     def test03_return_edges(self):
         query = """MATCH ()-[e]->() RETURN e"""
         result = self.graph.query(query)
@@ -61,6 +74,8 @@ class testResultSetFlow(FlowTestsBase):
         self.env.assertEquals(len(result.result_set), 12) # 12 relations (fully connected graph)
         self.env.assertEquals(len(result.header), 1) # 1 column in result set
 
+
+    """test04_mixed_returns."""
     def test04_mixed_returns(self):
         query = """MATCH (a)-[e]->() RETURN a.name, a, e ORDER BY a.val"""
         result = self.graph.query(query)
@@ -70,6 +85,8 @@ class testResultSetFlow(FlowTestsBase):
         self.env.assertEquals(len(result.header), 3) # 3 columns in result set
 
     # Verify that the DISTINCT operator works with full entity returns
+
+    """test05_distinct_full_entities."""
     def test05_distinct_full_entities(self):
         graph2 = self.db.select_graph("H")
         query = """CREATE (a)-[:e]->(), (a)-[:e]->()"""
@@ -86,6 +103,8 @@ class testResultSetFlow(FlowTestsBase):
         self.env.assertEquals(len(distinct.result_set), 1)
 
     # Verify that RETURN * projections include all user-defined aliases.
+
+    """test06_return_all."""
     def test06_return_all(self):
         query = """MATCH (a)-[e]->(b) RETURN *"""
         result = self.graph.query(query)
@@ -98,6 +117,8 @@ class testResultSetFlow(FlowTestsBase):
         self.env.assertEqual(len(result.result_set[0]), 3)
 
     # Tests for aggregation functions default values. Fix for issue 767.
+
+    """test07_agg_func_default_values."""
     def test07_agg_func_default_values(self):
         # Test for aggregation over non existing node properties.
         # Max default value is null.
@@ -141,6 +162,8 @@ class testResultSetFlow(FlowTestsBase):
         self.env.assertEqual(None, result.result_set[0][0])
 
     # Test returning multiple occurrence of an expression.
+
+    """test08_return_duplicate_expression."""
     def test08_return_duplicate_expression(self):
         query = """MATCH (a) return max(a.val) as x, max(a.val) as y"""
         result = self.graph.query(query)
@@ -155,6 +178,8 @@ class testResultSetFlow(FlowTestsBase):
         self.env.assertEqual(result.result_set[0][0], result.result_set[0][1])
 
     # Test implicit result-set size limit
+
+    """test09_implicit_resultset_limit."""
     def test09_implicit_resultset_limit(self):
         query = "MATCH (a) RETURN a"
 
@@ -180,6 +205,8 @@ class testResultSetFlow(FlowTestsBase):
         unlimited_record_count = len(result.result_set)
         assert(unlimited_record_count == record_count)
 
+
+    """test10_carriage_return_in_result."""
     def test10_carriage_return_in_result(self):
         query = """RETURN 'Foo\r\nBar'"""
         result = self.graph.query(query)
@@ -187,6 +214,8 @@ class testResultSetFlow(FlowTestsBase):
 
     # Test entity functions on a directly deleted node
     # the node is still in scope after DELETE, attributes are valid
+
+    """test11_entity_functions_on_deleted_node."""
     def test11_entity_functions_on_deleted_node(self):
         # id() on deleted node should return a valid integer
         query = """CREATE (n:Person {name: 'Alice', age: 30}) DELETE n RETURN id(n)"""
@@ -235,6 +264,8 @@ class testResultSetFlow(FlowTestsBase):
 
     # Test entity functions on a directly deleted edge
     # the edge is still in scope after DELETE, attributes are valid
+
+    """test12_entity_functions_on_deleted_edge."""
     def test12_entity_functions_on_deleted_edge(self):
         # id() on deleted edge should return a valid integer
         query = """CREATE (a)-[r:KNOWS {since: 2020}]->(b) DELETE r RETURN id(r)"""
@@ -269,6 +300,8 @@ class testResultSetFlow(FlowTestsBase):
     # Test returning deleted node via startNode/endNode
     # when endpoints are deleted and accessed via startNode/endNode,
     # the node has a NULL attribute-set so labels and properties are empty
+
+    """test13_deleted_node_via_startNode_endNode."""
     def test13_deleted_node_via_startNode_endNode(self):
         # startNode returns the deleted node with empty labels and properties
         query = """CREATE (a:Person {name: 'Alice', age: 30})-[r:KNOWS]->(a) WITH r, a DELETE a RETURN startNode(r)"""
@@ -298,6 +331,8 @@ class testResultSetFlow(FlowTestsBase):
         self.env.assertEquals(end_node.properties, {})
 
     # Test returning a deleted edge with properties
+
+    """test14_deleted_edge_reply."""
     def test14_deleted_edge_reply(self):
         # returning a deleted edge should include its relation type and properties
         query = """CREATE (a:Person {name: 'Alice'})-[r:KNOWS {since: 2020, weight: 0.5}]->(a) WITH r, a DELETE a RETURN r"""
@@ -309,6 +344,8 @@ class testResultSetFlow(FlowTestsBase):
 
     # Test entity functions on deleted node accessed via startNode
     # the node has a NULL attribute-set
+
+    """test15_entity_functions_on_deleted_start_node."""
     def test15_entity_functions_on_deleted_start_node(self):
         # properties() on deleted node via startNode should return empty map
         query = """CREATE (a:Person {name: 'Alice', age: 30})-[r:KNOWS]->(a) WITH r, a DELETE a RETURN properties(startNode(r))"""
@@ -352,6 +389,8 @@ class testResultSetFlow(FlowTestsBase):
 
     # Test entity functions on deleted node accessed via endNode
     # the node has a NULL attribute-set
+
+    """test16_entity_functions_on_deleted_end_node."""
     def test16_entity_functions_on_deleted_end_node(self):
         # properties() on deleted node via endNode should return empty map
         query = """CREATE (a:Person {name: 'Alice', age: 30})-[r:KNOWS]->(b:Person {name: 'Bob', age: 25}) WITH r, a, b DELETE a, b RETURN properties(endNode(r))"""
@@ -395,6 +434,8 @@ class testResultSetFlow(FlowTestsBase):
 
     # Test property access on deleted node via startNode/endNode
     # accessing a property on a node with NULL attribute-set should raise RuntimeError
+
+    """test17_property_access_on_deleted_node."""
     def test17_property_access_on_deleted_node(self):
         # accessing a property of a deleted node via startNode should raise RuntimeError
         query = """CREATE (a:Person {name: 'Alice', age: 30})-[r:KNOWS]->(a) WITH r, a DELETE a RETURN startNode(r).name"""
@@ -406,6 +447,8 @@ class testResultSetFlow(FlowTestsBase):
 
     # Test edge entity functions when endpoints are deleted
     # edge is still in scope but implicitly deleted via endpoint deletion
+
+    """test18_edge_functions_with_deleted_endpoints."""
     def test18_edge_functions_with_deleted_endpoints(self):
         # id() on edge with deleted endpoints
         query = """CREATE (a:Person {name: 'Alice', age: 30})-[r:KNOWS {since: 2020}]->(a) WITH r, a DELETE a RETURN id(r)"""

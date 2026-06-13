@@ -1,13 +1,20 @@
+"""Tests Flow Test Union."""
 from common import *
 
 GRAPH_ID = "union_test"
 
+
+"""Class testUnion."""
 class testUnion(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         # Construct a graph with the form:
         # (v1)-[:E1]->(v2)-[:E2]->(v3)
@@ -24,6 +31,8 @@ class testUnion(FlowTestsBase):
         nodes_str = [str(node) for node in nodes.values()]
         self.graph.query(f"CREATE {','.join(nodes_str)}, {e0}, {e1}")
 
+
+    """test01_union."""
     def test01_union(self):
         q = """RETURN 1 as one UNION ALL RETURN 1 as one"""
         result = self.graph.query(q)
@@ -45,6 +54,8 @@ class testUnion(FlowTestsBase):
         # 3 records from each sub-query, coresponding to each path matched.
         self.env.assertEquals(len(result.result_set), 6)
 
+
+    """test02_invalid_union."""
     def test02_invalid_union(self):
         try:
             # projection must be exactly the same.
@@ -57,6 +68,8 @@ class testUnion(FlowTestsBase):
 
     # Performing UNION with the same left and right side should
     # produce the same result as evaluating just one side.
+
+    """test03_union_deduplication."""
     def test03_union_deduplication(self):
         non_union_query = """MATCH (a)-[]->(b) RETURN a.v, b.v ORDER BY a.v, b.v"""
         non_union_result = self.graph.query(non_union_query)
@@ -68,6 +81,8 @@ class testUnion(FlowTestsBase):
         self.env.assertEquals(union_result.result_set, non_union_result.result_set)
 
     # A syntax error should be raised on edge alias reuse in one side of a union.
+
+    """test04_union_invalid_reused_edge."""
     def test04_union_invalid_reused_edge(self):
         try:
             query = """MATCH ()-[e]->()-[e]->() RETURN e
@@ -80,6 +95,8 @@ class testUnion(FlowTestsBase):
             pass
 
     # An edge alias appearing on both sides of a UNION is expected.
+
+    """test05_union_valid_reused_edge."""
     def test05_union_valid_reused_edge(self):
         query = """MATCH ()-[e]->() RETURN e.v ORDER BY e.v
                    UNION
@@ -93,6 +110,8 @@ class testUnion(FlowTestsBase):
         self.env.assertEquals(result.result_set, expected_result)
 
     # Union should be capable of collating nodes and edges in a single column.
+
+    """test06_union_nodes_with_edges."""
     def test06_union_nodes_with_edges(self):
         query = """MATCH ()-[e]->() RETURN e
                    UNION
@@ -112,6 +131,8 @@ class testUnion(FlowTestsBase):
 
     # Union should function properly when one of its subqueries is ordered
     # and the other is not.
+
+    """test07_union_with_partial_ordering."""
     def test07_union_with_partial_ordering(self):
         query = """UNWIND range(1, 2) AS v RETURN v ORDER BY v DESC
                    UNION
@@ -135,6 +156,8 @@ class testUnion(FlowTestsBase):
         result = self.graph.query(query)
         self.env.assertEquals(result.result_set, expected_result)
 
+
+    """test08_union_with_index_scan."""
     def test08_union_with_index_scan(self):
         query = """UNWIND range(10,20) AS i 
                    CREATE (n:N {v:tostring(i)})-[:R]->(m:M {v:tostring(i+1)})"""
@@ -160,6 +183,8 @@ class testUnion(FlowTestsBase):
         expected_result = [['10'],['12'],['15']]
         self.env.assertEquals(result.result_set, expected_result)
 
+
+    """test09_union_write_read."""
     def test09_union_write_read(self):
         # test when we have a read operation followed by a write operation
         # that checks we don't crash when iterating a matrix that was updated

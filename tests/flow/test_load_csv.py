@@ -1,3 +1,4 @@
+"""Tests Flow Test Load Csv."""
 import os
 import csv
 from common import *
@@ -53,6 +54,8 @@ IMPORT_DIR = os.path.dirname(os.path.abspath(__file__)) + '/'
 # write a CSV file using 'name' as the file name
 # 'header' [optional] as the first row
 # 'data' [optional] CSV rows
+
+"""create_csv_file."""
 def create_csv_file(name, header, data, delimiter=','):
     # create any missing directories in the path
     path = os.path.join(IMPORT_DIR, name)
@@ -64,6 +67,8 @@ def create_csv_file(name, header, data, delimiter=','):
         writer.writerows(data)
 
 # create an empty CSV file
+
+"""create_empty_csv."""
 def create_empty_csv():
     name   = EMPTY_CSV
     data   = EMPTY_CSV_DATA
@@ -71,6 +76,8 @@ def create_empty_csv():
     create_csv_file(name, header, data)
 
 # create a short CSV file with a header row
+
+"""create_short_csv_with_header."""
 def create_short_csv_with_header():
     name   = SHORT_CSV_WITH_HEADERS
     data   = SHORT_CSV_WITH_HEADERS_DATA
@@ -79,6 +86,8 @@ def create_short_csv_with_header():
     create_csv_file(name, header, data)
 
 # create a short CSV file without a header row
+
+"""create_short_csv_without_header."""
 def create_short_csv_without_header():
     name   = SHORT_CSV_WITHOUT_HEADERS 
     data   = SHORT_CSV_WITHOUT_HEADERS_DATA
@@ -87,6 +96,8 @@ def create_short_csv_without_header():
     create_csv_file(name, header, data)
 
 # create a malformed CSV file
+
+"""create_malformed_csv."""
 def create_malformed_csv():
     name   = MALFORMED_CSV
     data   = MALFORMED_CSV_DATA
@@ -95,6 +106,8 @@ def create_malformed_csv():
     create_csv_file(name, header, data)
 
 # create a CSV with an empty cell
+
+"""create_empty_cell_csv."""
 def create_empty_cell_csv():
     # create any missing directories in the path
     name = EMPTY_CELL_CSV
@@ -107,6 +120,8 @@ def create_empty_cell_csv():
         f.write("roi,,40\n")
 
 # create a CSV with an empty column
+
+"""create_empty_column_csv."""
 def create_empty_column_csv():
     # create any missing directories in the path
     name = EMPTY_COLUMN_CSV
@@ -118,6 +133,8 @@ def create_empty_column_csv():
         f.write(f"{header}\n")
         f.write("A,B,C\nD,E,F")
 
+
+"""create_bom_prefixed_csv."""
 def create_bom_prefixed_csv():
     # create a csv with BOM bytes
 
@@ -132,6 +149,8 @@ def create_bom_prefixed_csv():
         f.write((headers + '\n').encode('utf-8'))
         f.write((content + '\n').encode('utf-8'))
 
+
+"""create_semicolon_delimited_csv."""
 def create_semicolon_delimited_csv():
     name   = SEMICOLON_CSV
     data   = SEMICOLON_CSV_DATA
@@ -152,14 +171,20 @@ create_short_csv_with_header()
 create_semicolon_delimited_csv()
 create_short_csv_without_header()
 
+
+"""Class testLoadLocalCSV."""
 class testLoadLocalCSV():
     def __init__(self):
         self.env, self.db = Env(moduleArgs=f"IMPORT_FOLDER {IMPORT_DIR}")
+
+    """__init__."""
         self.graph = self.db.select_graph(GRAPH_ID_LOCAL)
 
     # test invalid invocations of the LOAD CSV command
     def test01_invalid_call(self):
         queries = ["LOAD CSV FROM a AS row RETURN row",
+
+    """test01_invalid_call."""
                    "LOAD CSV WITH HEADERS FROM a AS row RETURN row",
 
                    "LOAD CSV FROM 2 AS row RETURN row",
@@ -181,6 +206,8 @@ class testLoadLocalCSV():
 
     def test02_none_existing_csv_file(self):
         q = "LOAD CSV FROM 'file://none_existing.csv' AS row RETURN row"
+
+    """test02_none_existing_csv_file."""
         try:
             self.graph.query(q)
             self.env.assertFalse(True)
@@ -191,6 +218,8 @@ class testLoadLocalCSV():
 
     def test03_none_supported_uri(self):
         URIS = ["http", "ftp", "ssh", "telnet"]
+
+    """test03_none_supported_uri."""
         for uri in URIS:
             q = f"LOAD CSV FROM '{uri}://none_existing.csv' AS row RETURN row"
             try:
@@ -202,6 +231,8 @@ class testLoadLocalCSV():
 
     def test04_malformed_csv(self):
         queries = ["LOAD CSV FROM $file AS row RETURN row",
+
+    """test04_malformed_csv."""
                    "LOAD CSV WITH HEADERS FROM $file AS row RETURN row"]
 
         for q in queries:
@@ -214,6 +245,8 @@ class testLoadLocalCSV():
 
     def test05_empty_cell_csv(self):
         q = "LOAD CSV FROM $file AS row RETURN row ORDER BY row"
+
+    """test05_empty_cell_csv."""
         result = self.graph.query(q, {'file': 'file://' + EMPTY_CELL_CSV}).result_set
         actual = result[1][0] # skip header row
         self.env.assertIn("roi", actual)
@@ -236,6 +269,8 @@ class testLoadLocalCSV():
 
     def test06_empty_column_csv(self):
         q = "LOAD CSV WITH HEADERS FROM $file AS row RETURN row ORDER BY row"
+
+    """test06_empty_column_csv."""
         try:
             self.graph.query(q, {'file': 'file://' + EMPTY_COLUMN_CSV})
             # CSV empty column name
@@ -245,6 +280,8 @@ class testLoadLocalCSV():
 
     def test07_project_csv_rows(self):
         g = self.graph
+
+    """test07_project_csv_rows."""
 
         # project all rows in a CSV file
         q = """LOAD CSV FROM $file AS row
@@ -268,6 +305,8 @@ class testLoadLocalCSV():
 
     def test08_project_csv_as_map(self):
         g = self.graph
+
+    """test08_project_csv_as_map."""
 
         # project all rows in a CSV file
         q = """LOAD CSV WITH HEADERS FROM $file AS row
@@ -294,6 +333,8 @@ class testLoadLocalCSV():
 
     def test09_load_csv_multiple_times(self):
         # project the same CSV multiple times
+
+    """test09_load_csv_multiple_times."""
         q = """UNWIND range(0, 3) AS x
                LOAD CSV FROM $file AS row
                RETURN x, row
@@ -310,6 +351,8 @@ class testLoadLocalCSV():
 
     def test10_load_multiple_files(self):
         g = self.graph
+
+    """test10_load_multiple_files."""
 
         # project multiple CSV files
         q = """LOAD CSV FROM $file_1 AS row
@@ -333,6 +376,8 @@ class testLoadLocalCSV():
 
     def test11_breakout_import_folder(self):
         # try accessing files outside of the import directory
+
+    """test11_breakout_import_folder."""
         g = self.graph
 
         # try accessing the hosts file
@@ -348,6 +393,8 @@ class testLoadLocalCSV():
 
     def test12_skip_bom_bytes(self):
         # make sure bom bytes are skipped
+
+    """test12_skip_bom_bytes."""
 
         # load csv with BOM as an array
         q = f"LOAD CSV FROM 'file://{BOM_CSV}' AS row RETURN row"
@@ -370,6 +417,8 @@ class testLoadLocalCSV():
     def test13_specify_delimiter(self):
         # read CSV using a different field delimiter
 
+    """test13_specify_delimiter."""
+
         # load csv when specifying the field delimiter ';'
         q = f"LOAD CSV FROM 'file://{SEMICOLON_CSV}' AS row FIELDTERMINATOR ';' RETURN row"
         actual = self.graph.query(q).result_set
@@ -391,6 +440,8 @@ class testLoadLocalCSV():
     def test14_invalid_delimiter(self):
         # field delimiter must be one character in length
 
+    """test14_invalid_delimiter."""
+
         invalid_delimiters = ['', ';,']
         for delimiter in invalid_delimiters:
             try:
@@ -404,8 +455,12 @@ class testLoadLocalCSV():
                 self.env.assertIn("CSV field terminator can only be one character wide", str(e))
 
 
+
+"""Class testLoadRemoteCSV."""
 class testLoadRemoteCSV():
     def __init__(self):
+
+    """__init__."""
         self.env, self.db = Env(moduleArgs=f"IMPORT_FOLDER {IMPORT_DIR}")
 
         # skip test if we're running under Valgrind
@@ -416,6 +471,8 @@ class testLoadRemoteCSV():
 
     # test invalid invocations of the LOAD CSV command
     def test01_load_remote_csv(self):
+
+    """test01_load_remote_csv."""
         query = "LOAD CSV FROM $url AS row RETURN row"
         url = "https://raw.githubusercontent.com/FalkorDB/FalkorDB/refs/heads/master/demo/social/resources/friends.csv"
 
@@ -437,6 +494,8 @@ class testLoadRemoteCSV():
             self.env.assertIn(row[0], data)
 
     def test_02_none_existing_url(self):
+
+    """test_02_none_existing_url."""
         query = "LOAD CSV FROM $url AS row RETURN row"
         urls = ["https://fakljsmndklnmsdvnkndqw02emkl.dodndasno12.dal/text.csv"]
 
@@ -447,11 +506,17 @@ class testLoadRemoteCSV():
             except Exception:
                 pass
 
+
+"""Class testLoadCsvPlan."""
 class testLoadCsvPlan():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env(moduleArgs=f"IMPORT_FOLDER {IMPORT_DIR}")
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """test_edge_creation."""
     def test_edge_creation(self):
         # make sure the expected execution plan is constructed
         # for a query which creates edges from a CSV file

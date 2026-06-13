@@ -1,13 +1,20 @@
+"""Tests Flow Test Foreach."""
 from common import *
 from collections import Counter
 
 GRAPH_ID = "foreach"
 
+
+"""Class testForeachFlow."""
 class testForeachFlow():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """get_res_and_assertEquals."""
     def get_res_and_assertEquals(self, query, expected_result):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set, expected_result)
@@ -627,6 +634,8 @@ class testForeachFlow():
         except redis.exceptions.ResponseError as e:
             self.env.assertIn("'n' not defined", str(e))
 
+
+    """test15_foreach_and_index_scan."""
     def test15_foreach_and_index_scan(self):
         query = """UNWIND range(1,9) AS i 
                    CREATE (n:N {v:i})-[:R]->(m:M {v:(i+1)})"""

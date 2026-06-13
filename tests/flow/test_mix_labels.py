@@ -1,15 +1,22 @@
+"""Tests Flow Test Mix Labels."""
 from common import *
 
 male = ["Roi", "Alon", "Omri"]
 female = ["Hila", "Lucy"]
 
 
+
+"""Class testGraphMixLabelsFlow."""
 class testGraphMixLabelsFlow(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph("G")
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         nodes = {}
          # Create entities
@@ -33,46 +40,64 @@ class testGraphMixLabelsFlow(FlowTestsBase):
         self.graph.query(f"CREATE {','.join(nodes_str + edges_str)}")
 
     # Connect a single node to all other nodes.
+
+    """test_male_to_all."""
     def test_male_to_all(self):
         query = """MATCH (m:male)-[:knows]->(t) RETURN m,t ORDER BY m.name"""
         actual_result = self.graph.query(query)
         self.env.assertEquals(len(actual_result.result_set), (len(male) * (len(male + female)-1)))
     
+
+    """test_male_to_male."""
     def test_male_to_male(self):
         query = """MATCH (m:male)-[:knows]->(t:male) RETURN m,t ORDER BY m.name"""
         actual_result = self.graph.query(query)
         self.env.assertEquals(len(actual_result.result_set), (len(male) * (len(male)-1)))
     
+
+    """test_male_to_female."""
     def test_male_to_female(self):
         query = """MATCH (m:male)-[:knows]->(t:female) RETURN m,t ORDER BY m.name"""
         actual_result = self.graph.query(query)
         self.env.assertEquals(len(actual_result.result_set), (len(male) * len(female)))
     
+
+    """test_female_to_all."""
     def test_female_to_all(self):
         query = """MATCH (f:female)-[:knows]->(t) RETURN f,t ORDER BY f.name"""
         actual_result = self.graph.query(query)
         self.env.assertEquals(len(actual_result.result_set), (len(female) * (len(male + female)-1)))
 
+
+    """test_female_to_male."""
     def test_female_to_male(self):
         query = """MATCH (f:female)-[:knows]->(t:male) RETURN f,t ORDER BY f.name"""
         actual_result = self.graph.query(query)
         self.env.assertEquals(len(actual_result.result_set), (len(female) * len(male)))
     
+
+    """test_female_to_female."""
     def test_female_to_female(self):
         query = """MATCH (f:female)-[:knows]->(t:female) RETURN f,t ORDER BY f.name"""
         actual_result = self.graph.query(query)
         self.env.assertEquals(len(actual_result.result_set), (len(female) * (len(female)-1)))
     
+
+    """test_all_to_female."""
     def test_all_to_female(self):
         query = """MATCH (f)-[:knows]->(t:female) RETURN f,t ORDER BY f.name"""
         actual_result = self.graph.query(query)
         self.env.assertEquals(len(actual_result.result_set), (len(male) * len(female)) + (len(female) * (len(female)-1)))
 
+
+    """test_all_to_male."""
     def test_all_to_male(self):
         query = """MATCH (f)-[:knows]->(t:male) RETURN f,t ORDER BY f.name"""
         actual_result = self.graph.query(query)
         self.env.assertEquals(len(actual_result.result_set), (len(male) * (len(male)-1)) + len(female) * len(male))
     
+
+    """test_all_to_all."""
     def test_all_to_all(self):
         query = """MATCH (f)-[:knows]->(t) RETURN f,t ORDER BY f.name"""
         actual_result = self.graph.query(query)

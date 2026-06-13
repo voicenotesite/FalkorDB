@@ -1,15 +1,22 @@
+"""Tests Flow Test Path Projections."""
 from common import *
 
 nodes        =  {}
 GRAPH_ID     =  "path_projections"
 
 
+
+"""Class testPathProjections."""
 class testPathProjections():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         # Construct a graph with the form:
         # (v0)-[:E]->(v1)-[:E]->(v2)-[:E]->(v3), (v0)-[:E]->(v4)
@@ -30,6 +37,8 @@ class testPathProjections():
 
         self.graph.query(f"CREATE {','.join(nodes_str + edges_str)}")
 
+
+    """test01_single_source_projection."""
     def test01_single_source_projection(self):
         query = """MATCH (a {v: 0}) WITH (a)-[]->() AS paths
                    UNWIND paths as path
@@ -42,6 +51,8 @@ class testPathProjections():
                            [traversal04]]
         self.env.assertEqual(actual_result.result_set, expected_result)
 
+
+    """test02_multi_source_projection."""
     def test02_multi_source_projection(self):
         query = """MATCH (a) WITH (a)-[]->() AS paths WHERE a.v < 2
                    UNWIND paths as path
@@ -55,6 +66,8 @@ class testPathProjections():
                            [traversal12]]
         self.env.assertEqual(actual_result.result_set, expected_result)
 
+
+    """test03_multiple_projections."""
     def test03_multiple_projections(self):
         query = """MATCH (a {v: 1}) WITH (a)-[]->() AS p1, (a)<-[]-() AS p2
                    UNWIND p1 AS n1 UNWIND p2 AS n2
@@ -67,6 +80,8 @@ class testPathProjections():
         plan = str(self.graph.explain(query))
         self.env.assertEquals(2, plan.count("Apply"))
 
+
+    """test04_variable_length_projection."""
     def test04_variable_length_projection(self):
         query = """MATCH (a {v: 1}) WITH (a)-[*]->({v: 3}) AS paths
                    UNWIND paths as path
@@ -76,6 +91,8 @@ class testPathProjections():
         expected_result = [[traversal]]
         self.env.assertEqual(actual_result.result_set, expected_result)
 
+
+    """test05_no_bound_variables_projection."""
     def test05_no_bound_variables_projection(self):
         query = """MATCH (a {v: 1}) WITH a, ({v: 2})-[]->({v: 3}) AS paths
                    UNWIND paths as path
@@ -85,6 +102,8 @@ class testPathProjections():
         expected_result = [[nodes[1], traversal]]
         self.env.assertEqual(actual_result.result_set, expected_result)
 
+
+    """test06_nested_traversal."""
     def test06_nested_traversal(self):
         query = """MATCH (a {v: 1}) WITH a, [({v: 2})-[]->({v: 3})] AS path_arr
                    UNWIND path_arr as paths

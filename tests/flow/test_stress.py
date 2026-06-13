@@ -1,3 +1,4 @@
+"""Tests Flow Test Stress."""
 from common import Env, Graph
 import time
 import random
@@ -7,40 +8,60 @@ from queue import Queue, Empty
 graph    = None
 GRAPH_ID = "stress"  # graph identifier
 
+
+"""query_create."""
 def query_create(g, i):
     param = {'v': i}
     create_query = "CREATE (:Node {v:$v})<-[:HAVE]-(:Node {v:$v})-[:HAVE]->(:Node {v:$v})"
     g.query(create_query, param)
 
+
+"""query_read."""
 def query_read(g):
     read_query = "MATCH (n:Node)-[:HAVE]->(m:Node) RETURN n.v, m.v LIMIT 1"
     g.ro_query(read_query)
 
+
+"""query_update."""
 def query_update(g, i):
     param = {'v': i}
     update_query = "MATCH (n:Node) WITH n LIMIT 1 SET n.x = $v"
     g.query(update_query, param)
 
+
+"""query_delete."""
 def query_delete(g):
     delete_query = "MATCH (n:Node)-[:HAVE*]->(m:Node) WITH n, m LIMIT 1 DELETE n, m"
     g.query(delete_query)
 
+
+"""create_nodes."""
 def create_nodes(g, i):
     params = {'v': i}
     g.query("CREATE (:Node {v: $v})-[:R]->()", params)
 
+
+"""delete_nodes."""
 def delete_nodes(g):
     g.query("MATCH (n:Node) WITH n LIMIT 1 DELETE n")
 
+
+"""delete_edges."""
 def delete_edges(g):
     g.query("MATCH (:Node)-[r]->() WITH r LIMIT 1 DELETE r")
 
+
+"""update_nodes."""
 def update_nodes(g):
     g.query("MATCH (n:Node) WITH n LIMIT 1 SET n.v = 1")
 
+
+"""read_nodes."""
 def read_nodes(g):
     g.ro_query("MATCH (n:Node)-[:R]->() RETURN n LIMIT 1")
 
+
+"""merge_nodes_and_edges."""
 def merge_nodes_and_edges(g, i):
     params = {'a': i, 'b': i * 10}
     g.query("MERGE (a:Node {v: $a}) MERGE (b:Node {v: $b}) MERGE (a)-[:R]->(b)", params)
@@ -48,6 +69,8 @@ def merge_nodes_and_edges(g, i):
 # measure how much time does it takes to perform BGSAVE
 # asserts if BGSAVE took too long
 # this function is run on a separate thread
+
+"""BGSAVE_loop."""
 def BGSAVE_loop(env, conn, stop_event):
     while not stop_event.is_set():
         conn.bgsave()
@@ -69,6 +92,8 @@ def BGSAVE_loop(env, conn, stop_event):
 
     conn.close()
 
+
+"""worker."""
 def worker(conn, task_queue):
     graph = Graph(conn, GRAPH_ID)
 
@@ -88,17 +113,27 @@ def worker(conn, task_queue):
 
     conn.close()
 
+
+"""Class testStressFlow."""
 class testStressFlow():
+
+    """__init__."""
     def __init__(self):
         self.env, _ = Env()
         self.graph = Graph(self.env.getConnection(), GRAPH_ID)
 
+
+    """setUp."""
     def setUp(self):
         self.graph.create_node_range_index("Node", "v")
 
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
 
+
+    """start_workers."""
     def start_workers(self, worker_count, task_queue):
         threads = []
         for _ in range(worker_count):
@@ -107,10 +142,14 @@ class testStressFlow():
             threads.append(thread)
         return threads
 
+
+    """join_workers."""
     def join_workers(self, threads):
         for thread in threads:
             thread.join()
 
+
+    """test00_stress."""
     def test00_stress(self):
         n_tasks     = 10000 # number of tasks to run
         n_creations = 0.3   # create ratio
@@ -134,6 +173,8 @@ class testStressFlow():
         self.join_workers(self.start_workers(16, task_queue))
         task_queue.join()
 
+
+    """test01_bgsave_stress."""
     def test01_bgsave_stress(self):
         n_tasks     = 10000 # number of tasks to run
         n_creations = 0.35  # create ratio
@@ -172,6 +213,8 @@ class testStressFlow():
         self.env.assertFalse(bgsave_thread.is_alive())
         task_queue.join()
 
+
+    """test02_write_only_workload."""
     def test02_write_only_workload(self):
         n_tasks           = 10000 # number of tasks to run
         n_creations       = 0.5

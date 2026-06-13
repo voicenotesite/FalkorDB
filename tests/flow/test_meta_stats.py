@@ -1,13 +1,20 @@
+"""Tests Flow Test Meta Stats."""
 import random
 from common import *
 
 GRAPH_ID = "meta_stats"
 
+
+"""Class testMetaStats."""
 class testMetaStats():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """meta_stats."""
     def meta_stats(self, outputs=None):
         # Default outputs
         if outputs is None:

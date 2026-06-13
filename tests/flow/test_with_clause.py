@@ -1,15 +1,22 @@
+"""Tests Flow Test With Clause."""
 from common import *
 import re
 
 values = ["str1", "str2", False, True, 5, 10.5]
 GRAPH_ID = "with_caluse"
 
+
+"""Class testWithClause."""
 class testWithClause(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
  
+
+    """populate_graph."""
     def populate_graph(self):
         # Populate a graph with two labels, each containing the same property values but different keys.
         # Each node pair is connected by an edge from label_a to label_b
@@ -28,6 +35,8 @@ class testWithClause(FlowTestsBase):
         self.graph.query(f"CREATE {','.join(nodes_str + edges_str)}")
     
     # Verify that graph entities specified in a WITH clause are returned properly
+
+    """test01_with_scalar_read_queries."""
     def test01_with_scalar_read_queries(self):
         query = """MATCH (a:label_a) WITH a.a_val AS val RETURN val ORDER BY val"""
         actual_result = self.graph.query(query)
@@ -62,6 +71,8 @@ class testWithClause(FlowTestsBase):
 
         self.env.assertEqual(actual_result.result_set, expected)
 
+
+    """test02_with_arithmetic_op_read_queries."""
     def test02_with_arithmetic_op_read_queries(self):
         # Iterate over nodes
         query = """MATCH (a) WITH ID(a) AS id RETURN id ORDER BY id"""
@@ -100,6 +111,8 @@ class testWithClause(FlowTestsBase):
                     [31.5]]
         self.env.assertEqual(actual_result.result_set, expected)
 
+
+    """test03_with_aggregate_op_read_queries."""
     def test03_with_aggregate_op_read_queries(self):
         query = """MATCH (a)-[e]->() WITH COUNT(a.a_val) AS count_res, SUM(ID(e)) AS sum_res RETURN count_res, sum_res"""
         actual_result = self.graph.query(query)
@@ -107,6 +120,8 @@ class testWithClause(FlowTestsBase):
         self.env.assertEqual(actual_result.result_set, expected)
 
     # TODO UNWIND support needs to be extended for combinations like UNWIND...MATCH
+
+    """test04_with_unwind_expressions."""
     def test04_with_unwind_expressions(self):
         query = """UNWIND [1, 2, 3] AS x WITH x AS y RETURN y"""
         actual_result = self.graph.query(query)
@@ -138,6 +153,8 @@ class testWithClause(FlowTestsBase):
         expected = [[4]]
         self.env.assertEqual(actual_result.result_set, expected)
 
+
+    """test05_with_create_expressions."""
     def test05_with_create_expressions(self):
         query = """CREATE (c:c_label {c_val: 25}) WITH c AS c RETURN c.c_val AS val"""
         actual_result = self.graph.query(query)
@@ -161,6 +178,8 @@ class testWithClause(FlowTestsBase):
         expected = [['some_constant']]
         self.env.assertEqual(actual_result.result_set, expected)
 
+
+    """test06_update_expressions."""
     def test06_update_expressions(self):
         query = """MATCH (c:c_label) SET c.c_val = 50 WITH c.c_val AS val RETURN val"""
         actual_result = self.graph.query(query)
@@ -169,6 +188,8 @@ class testWithClause(FlowTestsBase):
         self.env.assertEqual(actual_result.properties_set, 1)
 
     # Verify that projected nodes, edges, and scalars can be returned properly
+
+    """test07_projected_graph_entities."""
     def test07_projected_graph_entities(self):
         query = """MATCH (a)-[e]->(b) WITH a, e, b.b_val AS b_val ORDER BY a.a_val LIMIT 2 RETURN *"""
         actual_result = self.graph.query(query)
@@ -183,6 +204,8 @@ class testWithClause(FlowTestsBase):
         self.env.assertEqual(len(actual_result.result_set), 2)
         self.env.assertEqual(len(actual_result.result_set[0]), 3)
 
+
+    """test08_filter_projected."""
     def test08_filter_projected(self):
         # If x is odd then ceil(x/2) > floor(x/2)
         # otherwise, x is even and ceil(x/2) == floor(x/2).
@@ -194,6 +217,8 @@ class testWithClause(FlowTestsBase):
         self.env.assertEqual(actual_result.result_set[0], [5])
 
     # Verify that filters can properly be placed in the scope up to WITH and the expressions projected by it.
+
+    """test09_filter_placement."""
     def test09_filter_placement(self):
         # Place a filter on a projected expression.
         query = """UNWIND [1,2,3] AS a WITH a WHERE a = 2 RETURN a"""
@@ -207,6 +232,8 @@ class testWithClause(FlowTestsBase):
         expected = [[2]]
         self.env.assertEqual(actual_result.result_set, expected)
 
+
+    """test10_filter_placement_validate_scopes."""
     def test10_filter_placement_validate_scopes(self):
         # Verify that filters cannot be placed in earlier scopes.
         query = """UNWIND ['scope1'] AS a
@@ -247,6 +274,8 @@ class testWithClause(FlowTestsBase):
         expected = [['projected']] # The projected string should be returned
         self.env.assertTrue(re.search('Filter\s+Project', plan))
 
+
+    """test11_valid_order_by_aliases."""
     def test11_valid_order_by_aliases(self):
         # Verify that ORDER BY aliases match previously defined references
         query = """UNWIND [1,2,3] AS a WITH a ORDER BY a RETURN a"""
@@ -267,6 +296,8 @@ class testWithClause(FlowTestsBase):
                 # Expecting an error.
                 self.env.assertIn("not defined", str(e))
 
+
+    """test12_cartesian_product_reset_single_response."""
     def test12_cartesian_product_reset_single_response(self):
         # Verify that WITH projections that with no children are reset
         # properly by CartesianProduct ops

@@ -1,3 +1,4 @@
+"""Demo Social Social Demo."""
 import os
 import sys
 import redis
@@ -14,6 +15,8 @@ con = None
 graph = None
 
 
+
+"""run_queries."""
 def run_queries():
     print("Querying...\n")
 
@@ -22,6 +25,8 @@ def run_queries():
                       query_info.description,
                       query_info.query)
 
+
+"""debug."""
 def debug(host, port):
     global con
     global graph
@@ -35,6 +40,8 @@ def debug(host, port):
     print("run_queries")
     run_queries()
 
+
+"""main."""
 def main(argv):
     global con
     global graph

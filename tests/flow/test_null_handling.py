@@ -1,18 +1,27 @@
+"""Tests Flow Test Null Handling."""
 from common import *
 
 GRAPH_ID = "null_handling"
 
+
+"""Class testNullHandlingFlow."""
 class testNullHandlingFlow(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         # Create a single node.
         self.graph.query("CREATE (:L {v: 'v1'})")
 
     # Error when attempting to create a relationship with a null endpoint.
+
+    """test01_create_null."""
     def test01_create_null(self):
         try:
             query = """MATCH (a) OPTIONAL MATCH (a)-[nonexistent_edge]->(nonexistent_node) CREATE (nonexistent_node)-[:E]->(a)"""
@@ -31,6 +40,8 @@ class testNullHandlingFlow(FlowTestsBase):
             pass
 
     # Error when attempting to merge a relationship with a null endpoint.
+
+    """test02_merge_null."""
     def test02_merge_null(self):
         try:
             query = """MATCH (a) OPTIONAL MATCH (a)-[nonexistent_edge]->(nonexistent_node) MERGE (nonexistent_node)-[:E]->(a)"""
@@ -49,6 +60,8 @@ class testNullHandlingFlow(FlowTestsBase):
             pass
 
     # SET should update attributes on non-null entities and ignore null entities.
+
+    """test03_set_null."""
     def test03_set_null(self):
         query = """MATCH (a) OPTIONAL MATCH (a)-[nonexistent_edge]->(nonexistent_node) SET a.v2 = true, nonexistent_node.v2 = true, a.v3 = nonexistent_node.v3 RETURN a.v2, nonexistent_node.v2, a.v3"""
         actual_result = self.graph.query(query)
@@ -58,12 +71,16 @@ class testNullHandlingFlow(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # DELETE should ignore null entities.
+
+    """test04_delete_null."""
     def test04_delete_null(self):
         query = """MATCH (a) OPTIONAL MATCH (a)-[nonexistent_edge]->(nonexistent_node) DELETE nonexistent_node"""
         actual_result = self.graph.query(query)
         assert(actual_result.nodes_deleted == 0)
 
     # Functions should handle null inputs appropriately.
+
+    """test05_null_function_inputs."""
     def test05_null_function_inputs(self):
         query = """MATCH (a) OPTIONAL MATCH (a)-[r]->(b) RETURN type(r), labels(b), b.v * 5"""
         actual_result = self.graph.query(query)
@@ -71,6 +88,8 @@ class testNullHandlingFlow(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Path functions should handle null inputs appropriately.
+
+    """test06_null_named_path_function_inputs."""
     def test06_null_named_path_function_inputs(self):
         query = """MATCH (a) OPTIONAL MATCH p = (a)-[r]->() RETURN p, length(p), collect(relationships(p))"""
         actual_result = self.graph.query(query)
@@ -79,6 +98,8 @@ class testNullHandlingFlow(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Scan and traversal operations should gracefully handle NULL inputs.
+
+    """test07_null_graph_entity_inputs."""
     def test07_null_graph_entity_inputs(self):
         query = """WITH NULL AS a MATCH (a) RETURN a"""
         actual_result = self.graph.query(query)
@@ -107,6 +128,8 @@ class testNullHandlingFlow(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # ValueHashJoin ops should not treat null values as equal.
+
+    """test08_null_value_hash_join."""
     def test08_null_value_hash_join(self):
         query = """MATCH (a), (b) WHERE a.fakeval = b.fakeval RETURN a, b"""
         plan = str(self.graph.explain(query))

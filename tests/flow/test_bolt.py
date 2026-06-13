@@ -1,3 +1,4 @@
+"""Tests Flow Test Bolt."""
 from common import *
 from neo4j import GraphDatabase
 from neo4j.spatial import WGS84Point
@@ -56,19 +57,29 @@ def _bolt_handshake_over_ws(ws):
     return response
 
 
+
+"""Class testBolt."""
 class testBolt():
+
+    """__init__."""
     def __init__(self):
         _bolt_setup(self)
 
+
+    """__del__."""
     def __del__(self):
         _bolt_teardown(self)
 
+
+    """test01_null."""
     def test01_null(self):
         with self.bolt_con.session() as session:
             result = session.run("RETURN null, $v", {"v": None})
             record = result.single()
             self.env.assertEquals(record[0], None)
 
+
+    """test02_boolean."""
     def test02_boolean(self):
         with self.bolt_con.session() as session:
             result = session.run("RETURN true, false, $v_true, $v_false", {"v_true": True, "v_false": False})
@@ -78,6 +89,8 @@ class testBolt():
             self.env.assertEquals(record[2], True)
             self.env.assertEquals(record[3], False)
 
+
+    """test03_integer."""
     def test03_integer(self):
         with self.bolt_con.session() as session:
             result = session.run("RETURN -1, 0, 1, 2, $v", {"v": 3})
@@ -114,6 +127,8 @@ class testBolt():
             self.env.assertEquals(record[0], 9223372036854775807)
             self.env.assertEquals(record[1], 9223372036854775807)
 
+
+    """test04_float."""
     def test04_float(self):
         with self.bolt_con.session() as session:
             result = session.run("RETURN 1.23, $v", {"v": 4.56})
@@ -121,6 +136,8 @@ class testBolt():
             self.env.assertEquals(record[0], 1.23)
             self.env.assertEquals(record[1], 4.56)
 
+
+    """test05_string."""
     def test05_string(self):
         with self.bolt_con.session() as session:
             result = session.run("RETURN '', 'Hello, World!', $v8, $v16", {"v8": 'A' * 255, "v16": 'A' * 256})
@@ -130,6 +147,8 @@ class testBolt():
             self.env.assertEquals(record[2], 'A' * 255)
             self.env.assertEquals(record[3], 'A' * 256)
 
+
+    """test06_list."""
     def test06_list(self):
         with self.bolt_con.session() as session:
             result = session.run("RETURN [], [1,2,3], $v8, $v16", {"v8": [1] * 255, "v16": [1] * 256})
@@ -139,6 +158,8 @@ class testBolt():
             self.env.assertEquals(record[2], [1] * 255)
             self.env.assertEquals(record[3], [1] * 256)
 
+
+    """test07_map."""
     def test07_map(self):
         with self.bolt_con.session() as session:
              result = session.run("RETURN {}, {foo:'bar'}, $v8", {"v8": {'foo':'bar'} })
@@ -147,12 +168,16 @@ class testBolt():
              self.env.assertEquals(record[1], {'foo':'bar'})
              self.env.assertEquals(record[2], {'foo':'bar'})
 
+
+    """test08_point."""
     def test08_point(self):
          with self.bolt_con.session() as session:
              result = session.run("RETURN POINT({longitude:1, latitude:2})")
              record = result.single()
              self.env.assertEquals(record[0], WGS84Point((1, 2)))
 
+
+    """test09_graph_entities_values."""
     def test09_graph_entities_values(self):
          with self.bolt_con.session() as session:
              result = session.run("""CREATE (a:A {v: 1})-[r1:R1]->(b:B)<-[r2:R2]-(c:C) RETURN a, r1, b, r2, c""")

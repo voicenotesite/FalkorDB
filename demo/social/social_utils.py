@@ -1,3 +1,4 @@
+"""Demo Social Social Utils."""
 import csv
 import os
 from falkordb import Graph, Node, Edge
@@ -5,6 +6,8 @@ from falkordb import Graph, Node, Edge
 graph_name = "social"
 
 
+
+"""populate_graph."""
 def populate_graph(con, graph):
     if con.exists(graph_name):
         return

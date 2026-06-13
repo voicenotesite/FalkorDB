@@ -1,15 +1,22 @@
+"""Tests Flow Test Ro Query."""
 from common import *
 import time
 
 slave_con = None
 master_con = None
 
+
+"""checkSlaveSynced."""
 def checkSlaveSynced(env, masterConn, slaveConn, graph_name):
     masterConn.execute_command("WAIT", "1", "0")
     res = slaveConn.execute_command("keys", graph_name)
     env.assertEqual(res, [graph_name])
 
+
+"""Class test_read_only_query."""
 class test_read_only_query(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         if VALGRIND or SANITIZER:
             Environment.skip(None) # valgrind is not working correctly with replication
@@ -20,6 +27,8 @@ class test_read_only_query(FlowTestsBase):
         master_con = self.env.getConnection()
         slave_con = self.env.getSlaveConnection()
 
+
+    """test01_test_simple_read_only_command."""
     def test01_test_simple_read_only_command(self):
         # This test check graph.RO_QUERY to execute read only commands with success.
         graph_name = "Test_RO_QUERY_command"
@@ -36,6 +45,8 @@ class test_read_only_query(FlowTestsBase):
             self.env.assertContains(str(e), "graph.RO_QUERY is to be executed only on read-only queries")
             pass
     
+
+    """test02_test_RO_QUERY_fail_on_write_operations."""
     def test02_test_RO_QUERY_fail_on_write_operations(self):
         # This test check graph.RO_QUERY to execute read only commands with success.
         graph_name = "Test_RO_QUERY_fail_on_write_command"
@@ -61,6 +72,8 @@ class test_read_only_query(FlowTestsBase):
                 self.env.assertContains(str(e), "graph.RO_QUERY is to be executed only on read-only queries")
                 pass
 
+
+    """test03_test_replica_read_only."""
     def test03_test_replica_read_only(self):
         # This test checks that only RO_QUERY is valid on replicas.
         graph_name = "Test_RO_QUERY_command_on_replica"
@@ -80,6 +93,8 @@ class test_read_only_query(FlowTestsBase):
             self.env.assertContains(str(e), "You can't write against a read only replica.")
             pass
 
+
+    """test04_read_only_should_not_create_graph."""
     def test04_read_only_should_not_create_graph(self):
         graph_name = "Test_RO_QUERY_should_not_create_graph"
         graph = Graph(master_con, graph_name)

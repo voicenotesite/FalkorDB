@@ -1,12 +1,19 @@
+"""Tests Flow Test Bfs."""
 from common import *
 
 
+
+"""Class testBFS."""
 class testBFS(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph("proc_bfs")
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         # Construct a graph with the form:
         # (a)-[:E1]->(b:B)-[:E1]->(c), (b)-[:E2]->(d)-[:E1]->(e)
@@ -26,12 +33,16 @@ class testBFS(FlowTestsBase):
         res = self.graph.query(q).result_set
 
     # Verify that the contents of two arrays are equal without respect to order.
+
+    """compare_unsorted_arrays."""
     def compare_unsorted_arrays(self, a, b):
         self.env.assertEquals(len(a), len(b))
         for elem in a:
             # Each element in a should appear in b exactly once.
             self.env.assertEquals(b.count(elem), 1)
 
+
+    """test_invalid_invocation."""
     def test_invalid_invocation(self):
         invalid_queries = [
 
@@ -63,6 +74,8 @@ class testBFS(FlowTestsBase):
             except:
                 pass
     # Test BFS from a single source without specifying a relationship type.
+
+    """test01_bfs_single_source_all_reltypes."""
     def test01_bfs_single_source_all_reltypes(self):
         # Test BFS algorithm for node collection.
         # The results array must be sorted, since the order is non-deterministic (due to creations occurring in any order).
@@ -104,6 +117,8 @@ class testBFS(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set[0][0], actual_result.result_set[0][1])
 
     # Test BFS from a single source traversing a single relationship type.
+
+    """test02_bfs_single_source_restricted_reltype."""
     def test02_bfs_single_source_restricted_reltype(self):
         # Test BFS algorithm for node collection.
         query = """MATCH (a {v: 'a'})
@@ -123,6 +138,8 @@ class testBFS(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set[0][0], actual_result.result_set[0][1])
 
     # Test BFS from all sources traversing a single relationship type, ignoring 0-hop paths.
+
+    """test03_bfs_all_sources_restricted_reltype."""
     def test03_bfs_all_sources_restricted_reltype(self):
         # We only expect to see 'd' as a source node, as it is connected as a destination by an 'E2' edge.
         query = """MATCH (a)
@@ -154,6 +171,8 @@ class testBFS(FlowTestsBase):
             self.compare_unsorted_arrays(row[2], expected_result[idx][2])
 
     # Test BFS from a single source with a maximum depth.
+
+    """test04_bfs_single_source_max_depth."""
     def test04_bfs_single_source_max_depth(self):
         query = """MATCH (a {v: 'a'})
                    CALL algo.BFS(a, 1, NULL) YIELD nodes
@@ -169,6 +188,8 @@ class testBFS(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test BFS from all sources with a maximum depeth.
+
+    """test05_bfs_all_sources_max_depth."""
     def test05_bfs_all_sources_max_depth(self):
         query = """MATCH (a)
                    CALL algo.BFS(a, 1, NULL) YIELD nodes
@@ -197,6 +218,8 @@ class testBFS(FlowTestsBase):
             self.compare_unsorted_arrays(row[1], expected_result[idx][1])
             self.compare_unsorted_arrays(row[2], expected_result[idx][2])
 
+
+    """test06_bfs_no_results."""
     def test06_bfs_no_results(self):
         empty_result_set = []
         # Missing relationship type
@@ -221,6 +244,8 @@ class testBFS(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, empty_result_set)
 
     # test a query which calls BFS multiple times in the same scope
+
+    """test07_multiple_bfs_calls."""
     def test07_multiple_bfs_calls(self):
         query = """MATCH (a {v: 'a'})
                    CALL algo.BFS(a, 1, NULL) YIELD nodes as n1

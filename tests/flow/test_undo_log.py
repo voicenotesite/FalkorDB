@@ -1,17 +1,26 @@
+"""Tests Flow Test Undo Log."""
 from common import *
 from index_utils import *
 
 GRAPH_ID = "undo-log"
 
+
+"""Class testUndoLog."""
 class testUndoLog():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.conn = self.env.getConnection()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
 
+
+    """test00_undo_schema."""
     def test00_undo_schema(self):
         try:
             self.graph.query("""CREATE (s:N {v: 1}), (t:N {v: 2})
@@ -32,6 +41,8 @@ class testUndoLog():
         result = self.graph.query("CALL db.relationshipTypes")
         self.env.assertEquals(len(result.result_set), 0)
 
+
+    """test01_undo_create_node."""
     def test01_undo_create_node(self):
         # test undo create node only by creating a node first so the schema is created
         self.graph.query("CREATE (n:N)")
@@ -48,6 +59,8 @@ class testUndoLog():
         self.env.assertEquals(len(result.result_set), 1)
 
 
+
+    """test02_undo_create_edge."""
     def test02_undo_create_edge(self):
         # test undo create edge only by creating a node first so the schema is created
         self.graph.query("CREATE (:N {v: 1})-[:R]->(:N {v: 2})")
@@ -65,6 +78,8 @@ class testUndoLog():
         result = self.graph.query("MATCH ()-[r:R]->() RETURN r")
         self.env.assertEquals(len(result.result_set), 1)
 
+
+    """test03_undo_delete_node."""
     def test03_undo_delete_node(self):
         self.graph.query("CREATE (:N)")
         try:
@@ -81,6 +96,8 @@ class testUndoLog():
         result = self.graph.query("MATCH (n:N) RETURN n")
         self.env.assertEquals(len(result.result_set), 1)
 
+
+    """test04_undo_delete_edge."""
     def test04_undo_delete_edge(self):
         self.graph.query("CREATE (:N)-[:R]->(:N)")
         try:
@@ -97,6 +114,8 @@ class testUndoLog():
         result = self.graph.query("MATCH ()-[r:R]->() RETURN r")
         self.env.assertEquals(len(result.result_set), 1)
 
+
+    """test05_undo_update_node."""
     def test05_undo_update_node(self):
         # create a node with various attributes
         res = self.graph.query("""CREATE (n:N {
@@ -209,6 +228,8 @@ class testUndoLog():
         property_keys_v4 = self.graph.query("CALL db.propertyKeys").result_set
         self.env.assertEquals(property_keys_v0, property_keys_v4)
 
+
+    """test06_undo_update_edge."""
     def test06_undo_update_edge(self):
         self.graph.query("CREATE (:N)-[:R {v: 1}]->(:N)")
         property_keys = self.graph.query("CALL db.propertyKeys").result_set
@@ -246,6 +267,8 @@ class testUndoLog():
         new_property_keys = self.graph.query("CALL db.propertyKeys").result_set
         self.env.assertEquals(property_keys, new_property_keys)
 
+
+    """test07_undo_create_indexed_node."""
     def test07_undo_create_indexed_node(self):
         create_node_range_index(self.graph, "N", "v", sync=True)
         property_keys = self.graph.query("CALL db.propertyKeys").result_set
@@ -277,6 +300,8 @@ class testUndoLog():
         new_property_keys = self.graph.query("CALL db.propertyKeys").result_set
         self.env.assertEquals(property_keys, new_property_keys)
 
+
+    """test08_undo_create_indexed_edge."""
     def test08_undo_create_indexed_edge(self):
         create_edge_range_index(self.graph, "R", "v", sync=True)
         self.graph.query("CREATE (:N {v: 1}), (:N {v: 2})")
@@ -315,6 +340,8 @@ class testUndoLog():
         new_property_keys = self.graph.query("CALL db.propertyKeys").result_set
         self.env.assertEquals(property_keys, new_property_keys)
 
+
+    """test09_undo_delete_indexed_node."""
     def test09_undo_delete_indexed_node(self):
         create_node_range_index(self.graph, "N", "v", sync=True)
         self.graph.query("CREATE (:N {v: 0})")
@@ -335,6 +362,8 @@ class testUndoLog():
         result = self.graph.query(query)
         self.env.assertEquals(len(result.result_set), 1)
 
+
+    """test10_undo_delete_indexed_edge."""
     def test10_undo_delete_indexed_edge(self):
         create_edge_range_index(self.graph, "R", "v", sync=True)
         self.graph.query("CREATE (:N)-[:R {v: 0}]->(:N)")
@@ -355,6 +384,8 @@ class testUndoLog():
         result = self.graph.query(query)
         self.env.assertEquals(len(result.result_set), 1)
 
+
+    """test11_undo_update_indexed_node."""
     def test11_undo_update_indexed_node(self):
         create_node_range_index(self.graph, "N", "v", sync=True)
         self.graph.query("CREATE (:N {v: 1})")
@@ -375,6 +406,8 @@ class testUndoLog():
         result = self.graph.query(query)
         self.env.assertEquals(result.result_set[0][0], 1)
     
+
+    """test12_undo_update_indexed_edge."""
     def test12_undo_update_indexed_edge(self):
         create_edge_range_index(self.graph, "R", "v", sync=True)
         self.graph.query("CREATE (:N)-[:R {v: 1}]->(:N)")
@@ -395,6 +428,8 @@ class testUndoLog():
         result = self.graph.query(query)
         self.env.assertEquals(result.result_set[0][0], 1)
 
+
+    """test13_undo_implicit_edge_delete."""
     def test13_undo_implicit_edge_delete(self):
         self.graph.query("CREATE (n:N), (m:N), (n)-[:R]->(m), (n)-[:R]->(m)")
         try:
@@ -413,6 +448,8 @@ class testUndoLog():
         result = self.graph.query("MATCH ()-[r:R]->() RETURN r")
         self.env.assertEquals(len(result.result_set), 2)
 
+
+    """test14_undo_timeout."""
     def test14_undo_timeout(self):
         # Change timeout value from default
         response = self.db.config_set("TIMEOUT_DEFAULT", 1)
@@ -434,6 +471,8 @@ class testUndoLog():
         self.env.assertEquals(len(result.result_set), 0)
 
 
+
+    """test15_complex_undo."""
     def test15_complex_undo(self):
         # create a graph
         self.graph.query("UNWIND range(1, 3) AS x CREATE (:N {v:x})-[:R{v:x}]->(:N {v:x})")
@@ -451,6 +490,8 @@ class testUndoLog():
         self.env.assertEquals(result.result_set, expected_result)
 
 
+
+    """test16_undo_remove_label."""
     def test16_undo_remove_label(self):
         create_node_range_index(self.graph, "L2", "v", sync=True)
         self.graph.query("CREATE (n:L2 {v:1})")
@@ -472,6 +513,8 @@ class testUndoLog():
         result = self.graph.query(query)
         self.env.assertEquals(result.result_set[0][0], 1)
 
+
+    """test17_undo_set_remove_label."""
     def test17_undo_set_remove_label(self):
         self.graph.query("CREATE (n:L3)")
         try:
@@ -486,6 +529,8 @@ class testUndoLog():
         self.env.assertEquals(len(result.result_set), 1)
         self.env.assertEquals(["L3"], result.result_set[0][0])
 
+
+    """test18_undo_remove_set_label."""
     def test18_undo_remove_set_label(self):
         self.graph.query("CREATE (n:L4)")
         try:
@@ -500,6 +545,8 @@ class testUndoLog():
         self.env.assertEquals(len(result.result_set), 1)
         self.env.assertEquals(["L4"], result.result_set[0][0])
 
+
+    """test_19_index_rollback."""
     def test_19_index_rollback(self):
         # make sure graph rollsback to its previous state if index creation fails
 

@@ -1,16 +1,25 @@
+"""Tests Flow Test Pagerank."""
 from common import *
 
 GRAPH_ID = "pagerank"
 
 
+
+"""Class testPagerank."""
 class testPagerank(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
 
+
+    """test_invalid_invocation."""
     def test_invalid_invocation(self):
         invalid_queries = [
 

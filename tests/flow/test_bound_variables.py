@@ -1,3 +1,4 @@
+"""Tests Flow Test Bound Variables."""
 from common import *
 from index_utils import *
 
@@ -5,12 +6,18 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 GRAPH_ID = "bound_variables"
 
+
+"""Class testBoundVariables."""
 class testBoundVariables(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         # Construct a graph with the form:
         # (v1)-[:E]->(v2)-[:E]->(v3)
@@ -27,6 +34,8 @@ class testBoundVariables(FlowTestsBase):
 
         self.graph.query(f"CREATE {','.join(nodes_str)}, {e0}, {e1}")
 
+
+    """test01_with_projected_entity."""
     def test01_with_projected_entity(self):
         query = """MATCH (a:L {val: 'v1'}) WITH a MATCH (a)-[e]->(b) RETURN b.val"""
         actual_result = self.graph.query(query)
@@ -39,6 +48,8 @@ class testBoundVariables(FlowTestsBase):
         expected_result = [['v2']]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test02_match_create_bound_variable."""
     def test02_match_create_bound_variable(self):
         # Extend the graph such that the new form is:
         # (v1)-[:E]->(v2)-[:E]->(v3)-[:e]->(v4)
@@ -49,6 +60,8 @@ class testBoundVariables(FlowTestsBase):
         self.env.assertEquals(actual_result.relationships_created, 1)
         self.env.assertEquals(actual_result.nodes_created, 1)
 
+
+    """test03_procedure_match_bound_variable."""
     def test03_procedure_match_bound_variable(self):
         # Create a full-text index.
         create_node_fulltext_index(self.graph, "L", "val", sync=True)
@@ -68,6 +81,8 @@ class testBoundVariables(FlowTestsBase):
         expected_result = [['v2']]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test04_projected_scanned_entity."""
     def test04_projected_scanned_entity(self):
         query = """MATCH (a:L {val: 'v1'}) WITH a MATCH (a), (b {val: 'v2'}) RETURN a.val, b.val"""
         actual_result = self.graph.query(query)
@@ -80,6 +95,8 @@ class testBoundVariables(FlowTestsBase):
         expected_result = [['v1', 'v2']]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test05_unwind_reference_entities."""
     def test05_unwind_reference_entities(self):
         query = """MATCH ()-[a]->() UNWIND a as x RETURN id(x)"""
         actual_result = self.graph.query(query)

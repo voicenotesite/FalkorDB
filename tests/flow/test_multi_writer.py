@@ -1,3 +1,4 @@
+"""Tests Flow Test Multi Writer."""
 from common import *
 import time
 import threading
@@ -7,6 +8,8 @@ WORKER_COUNT = 16
 
 task_queue = Queue()
 
+
+"""worker."""
 def worker(thread_id, db):
     while True:
         try:
@@ -22,16 +25,24 @@ def worker(thread_id, db):
 
         task_queue.task_done()
 
+
+"""Class testMultiWriter."""
 class testMultiWriter():
 
+
+    """__init__."""
     def __init__(self):
         # Make sure DB utilizes multiple threads
         self.env, self.db = Env(moduleArgs="THREAD_COUNT 4")
         self.conn = self.env.getConnection()
 
+
+    """tearDown."""
     def tearDown(self):
         self.conn.flushall()
 
+
+    """test_orphan_writes."""
     def test_orphan_writes(self):
         # make sure no writes are left unattended
         GRAPHS = ['A', 'B', 'C', 'D', 'E', 'F']
@@ -75,6 +86,8 @@ class testMultiWriter():
             node_count = g.query("MATCH (n) RETURN count(n)").result_set[0][0]
             self.env.assertEquals(node_count, 200)
 
+
+    """test_non_sequential."""
     def test_non_sequential(self):
         # Validate writes to different graph aren't held back
         # issue multiple slow writes against graph A

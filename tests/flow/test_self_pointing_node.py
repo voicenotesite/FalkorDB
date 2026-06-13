@@ -1,19 +1,28 @@
+"""Tests Flow Test Self Pointing Node."""
 from common import *
 
 GRAPH_ID = "self_pointing_node"
 
+
+"""Class testSelfPointingNode."""
 class testSelfPointingNode(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
    
+
+    """populate_graph."""
     def populate_graph(self):
         # Construct a graph with the form:
         # (v1)-[:e]->(v1)
         self.graph.query("CREATE (n:L), (n)-[:e]->(n)")
 
     # Test patterns that traverse 1 edge.
+
+    """test_self_pointing_node."""
     def test_self_pointing_node(self):
         # Conditional traversal with label
         query = """MATCH (a)-[:e]->(a) RETURN a"""

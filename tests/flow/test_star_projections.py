@@ -1,14 +1,21 @@
+"""Tests Flow Test Star Projections."""
 from common import *
 
 GRAPH_ID = "starProjection"
 
+
+"""Class testStarProjections."""
 class testStarProjections():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
     # verify that star projections in RETURN clauses perform as
     # expected with all clause modifiers
+
+    """test01_return_star."""
     def test01_return_star(self):
         query = """UNWIND range(1, 2) AS x UNWIND range(3, 4) AS y RETURN *"""
         actual_result = self.graph.query(query)
@@ -47,6 +54,8 @@ class testStarProjections():
             self.env.assertContains("RETURN * is not allowed when there are no variables in scope", str(e))
 
     # verify that star projections combined with explicit aliases function properly
+
+    """test02_return_star_and_projections."""
     def test02_return_star_and_projections(self):
         # duplicate column names should not result in multiple columns
         query = """UNWIND range(1, 3) AS x RETURN *, x"""
@@ -89,6 +98,8 @@ class testStarProjections():
 
     # verify that star projections in WITH clauses perform as
     # expected with all clause modifiers
+
+    """test03_with_star."""
     def test03_with_star(self):
         query = """UNWIND range(1, 2) AS x UNWIND range(3, 4) AS y WITH * RETURN *"""
         actual_result = self.graph.query(query)
@@ -147,6 +158,8 @@ class testStarProjections():
         self.env.assertEqual(actual_result.result_set, expected)
 
     # verify that duplicate aliases only result in a single column
+
+    """test04_duplicate_removal."""
     def test04_duplicate_removal(self):
         # create a single node connected to itself
         n = Node(alias='n', node_id=0, labels="L", properties={"v": 1})
@@ -164,6 +177,8 @@ class testStarProjections():
 
     # verify that explicitly returning children that can have predicates
     # alongside a star projection does not result in errors
+
+    """test05_star_and_nonpredicate_children."""
     def test05_star_and_nonpredicate_children(self):
         # create a single node
         self.graph.delete()

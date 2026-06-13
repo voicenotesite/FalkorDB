@@ -1,3 +1,4 @@
+"""Tests Flow Test Query Mem Limit."""
 from common import *
 import random
 import asyncio
@@ -22,16 +23,24 @@ GRAPH_ID          = "max_query_mem"
 MEM_HOG_QUERY     = """UNWIND range(0, 100000) AS x RETURN x, count(x)"""
 MEM_THRIFTY_QUERY = """RETURN 1"""
 
+
+"""Class testQueryMemoryLimit."""
 class testQueryMemoryLimit():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
 
+
+    """stress_server."""
     def stress_server(self, queries):
         async def run(self, queries):
             qs           = []  # queries
             should_fails = []  # should query i fail
             thread_count = int(self.db.config_get("THREAD_COUNT"))
 
+
+        """run."""
             # connection pool blocking when there's no available connections 
             pool = BlockingConnectionPool(max_connections=thread_count, timeout=None, port=self.env.port, decode_responses=True)
             db = FalkorDB(connection_pool=pool)
@@ -61,6 +70,8 @@ class testQueryMemoryLimit():
 
         asyncio.run(run(self, queries))
 
+
+    """test_01_read_memory_limit_config."""
     def test_01_read_memory_limit_config(self):
         # read configuration, test default value, expecting unlimited memory cap
         query_mem_capacity = int(self.db.config_get("QUERY_MEM_CAPACITY"))
@@ -74,6 +85,8 @@ class testQueryMemoryLimit():
         query_mem_capacity = int(self.db.config_get("QUERY_MEM_CAPACITY"))
         self.env.assertEquals(query_mem_capacity, MB)
 
+
+    """test_02_overflow_no_limit."""
     def test_02_overflow_no_limit(self):
         # execute query on each one of the threads
         n_queries_to_execute = int(self.db.config_get("THREAD_COUNT"))
@@ -84,6 +97,8 @@ class testQueryMemoryLimit():
 
         self.stress_server([(MEM_HOG_QUERY, False)] * n_queries_to_execute)
 
+
+    """test_03_no_overflow_with_limit."""
     def test_03_no_overflow_with_limit(self):
         # execute query on each one of the threads
         n_queries_to_execute = int(self.db.config_get("THREAD_COUNT"))
@@ -94,6 +109,8 @@ class testQueryMemoryLimit():
 
         self.stress_server([(MEM_HOG_QUERY, False)] * n_queries_to_execute)
 
+
+    """test_04_overflow_with_limit."""
     def test_04_overflow_with_limit(self):
         # execute query on each one of the threads
         n_queries_to_execute = int(self.db.config_get("THREAD_COUNT"))
@@ -104,6 +121,8 @@ class testQueryMemoryLimit():
 
         self.stress_server([(MEM_HOG_QUERY, True)] * n_queries_to_execute)
 
+
+    """test_05_test_mixed_queries."""
     def test_05_test_mixed_queries(self):
         queries = []
         total_query_count = 100

@@ -1,17 +1,26 @@
+"""Tests Flow Test Maxflow."""
 from common import *
 
 GRAPH_ID = "max_flow"
 
+
+"""Class testMaxFlow."""
 class testMaxFlow(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
         # re-create the graph object to get a fresh client-side schema cache
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """max_flow."""
     def max_flow(self, sourceNodes, targetNodes, capacityProperty=None,
                  nodeLabels=[], relationshipTypes=None):
         config = {

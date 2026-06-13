@@ -1,20 +1,29 @@
+"""Tests Flow Test Query Validation."""
 from common import *
 
 GRAPH_ID = "query_validation"
 
+
+"""Class testQueryValidationFlow."""
 class testQueryValidationFlow(FlowTestsBase):
 
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.redis_con = self.env.getConnection()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
     
+
+    """populate_graph."""
     def populate_graph(self):
         # Create a single graph.
         self.graph.query("CREATE ({age:34})")
 
     # Expect an error when trying to use a function which does not exists.
+
+    """test01_none_existing_function."""
     def test01_none_existing_function(self):
         query = """MATCH (n) RETURN noneExistingFunc(n.age) AS cast"""
         try:
@@ -25,6 +34,8 @@ class testQueryValidationFlow(FlowTestsBase):
             pass
 
     # Make sure function validation is type case insensitive.
+
+    """test02_case_insensitive_function_name."""
     def test02_case_insensitive_function_name(self):
         try:
             query = """MATCH (n) RETURN mAx(n.age)"""
@@ -33,6 +44,8 @@ class testQueryValidationFlow(FlowTestsBase):
             # function validation should be case insensitive.
             self.env.assertTrue(False)
     
+
+    """test03_edge_missing_relation_type."""
     def test03_edge_missing_relation_type(self):
         try:
             query = """CREATE (n:Person {age:32})-[]->(:person {age:30})"""
@@ -42,6 +55,8 @@ class testQueryValidationFlow(FlowTestsBase):
             # Expecting an error.
             pass
 
+
+    """test04_escaped_quotes."""
     def test04_escaped_quotes(self):
        query = r"CREATE (:escaped{prop1:'single \' char', prop2: 'double \" char', prop3: 'mixed \' and \" chars'})"
        actual_result = self.graph.query(query)
@@ -53,6 +68,8 @@ class testQueryValidationFlow(FlowTestsBase):
        expected_result = [["single ' char", 'double " char', 'mixed \' and " chars']]
        self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test05_invalid_entity_references."""
     def test05_invalid_entity_references(self):
         try:
             query = """MATCH (a) RETURN e"""
@@ -78,6 +95,8 @@ class testQueryValidationFlow(FlowTestsBase):
             # Expecting an error.
             pass
 
+
+    """test06_where_references."""
     def test06_where_references(self):
         try:
             query = """MATCH (a) WHERE fake = true RETURN a"""
@@ -87,6 +106,8 @@ class testQueryValidationFlow(FlowTestsBase):
             # Expecting an error.
             pass
 
+
+    """test07_with_references."""
     def test07_with_references(self):
         try:
             query = """MATCH (a) WITH e RETURN e"""
@@ -96,6 +117,8 @@ class testQueryValidationFlow(FlowTestsBase):
             # Expecting an error.
             pass
 
+
+    """test08_count_distinct_star."""
     def test08_count_distinct_star(self):
         try:
             query = """MATCH (a) RETURN COUNT(DISTINCT *)"""
@@ -105,6 +128,8 @@ class testQueryValidationFlow(FlowTestsBase):
             # Expecting an error.
             pass
 
+
+    """test09_invalid_apply_all."""
     def test09_invalid_apply_all(self):
         try:
             query = """MATCH (a) RETURN SUM(*)"""
@@ -114,6 +139,8 @@ class testQueryValidationFlow(FlowTestsBase):
             # Expecting an error.
             pass
 
+
+    """test10_missing_params."""
     def test10_missing_params(self):
         try:
             query = """MATCH (a {name:$name}) RETURN a"""
@@ -123,6 +150,8 @@ class testQueryValidationFlow(FlowTestsBase):
             # Expecting an error.
             pass
     
+
+    """test11_param_error."""
     def test11_param_error(self):
         try:
             query = """CYPHER name=({name:'a'}) MATCH (a {name:$name}) RETURN a"""
@@ -132,6 +161,8 @@ class testQueryValidationFlow(FlowTestsBase):
             # Expecting an error.
             pass
 
+
+    """test12_invalid_query_order."""
     def test12_invalid_query_order(self):
         try:
             query = """MERGE (a) MATCH (a)-[]->(b) RETURN b"""
@@ -141,6 +172,8 @@ class testQueryValidationFlow(FlowTestsBase):
             # Expecting an error.
             pass
 
+
+    """test13_create_bound_variables."""
     def test13_create_bound_variables(self):
         try:
             query = """MATCH (a)-[e]->(b) CREATE (a)-[e]->(b)"""
@@ -150,6 +183,8 @@ class testQueryValidationFlow(FlowTestsBase):
             # Expecting an error.
             pass
 
+
+    """test14_treat_path_as_entity."""
     def test14_treat_path_as_entity(self):
         self.graph.query("CREATE ()-[:R]->()")
         try:
@@ -160,6 +195,8 @@ class testQueryValidationFlow(FlowTestsBase):
             # Expecting an error.
             pass
 
+
+    """test15_dont_crash_on_multiple_errors."""
     def test15_dont_crash_on_multiple_errors(self):
         try:
             query = """MATCH (a) where id(a) IN range(0) OR id(a) in range(1)"""
@@ -170,6 +207,8 @@ class testQueryValidationFlow(FlowTestsBase):
             pass
 
     # Run a query in which a parsed parameter introduces a type in an unsupported context.
+
+    """test16_param_introduces_unhandled_type."""
     def test16_param_introduces_unhandled_type(self):
         try:
             query = """CYPHER props={a:1,b:2} CREATE (a:A $props)"""
@@ -181,6 +220,8 @@ class testQueryValidationFlow(FlowTestsBase):
             pass
 
     # Validate that the module fails properly with incorrect argument counts.
+
+    """test17_query_arity."""
     def test17_query_arity(self):
         # Call GRAPH.QUERY with a missing query argument.
         try:
@@ -192,6 +233,8 @@ class testQueryValidationFlow(FlowTestsBase):
             pass
 
     # Run queries in which compile-time variables are accessed but not defined.
+
+    """test18_undefined_variable_access."""
     def test18_undefined_variable_access(self):
         try:
             query = """CREATE (:person{name:bar[1]})"""
@@ -220,6 +263,8 @@ class testQueryValidationFlow(FlowTestsBase):
             assert("not defined" in str(e))
             pass
 
+
+    """test19_invalid_cypher_options."""
     def test19_invalid_cypher_options(self):
         query = "EXPLAIN MATCH (p:president)-[:born]->(:state {name:'Hawaii'}) RETURN p"
         try:
@@ -254,6 +299,8 @@ class testQueryValidationFlow(FlowTestsBase):
             pass
 
     # Undirected edges are not allowed in CREATE clauses.
+
+    """test20_undirected_edge_creation."""
     def test20_undirected_edge_creation(self):
         try:
             query = """CREATE (:Endpoint)-[:R]-(:Endpoint)"""
@@ -265,6 +312,8 @@ class testQueryValidationFlow(FlowTestsBase):
             pass
 
     # Applying a filter for non existing entity.
+
+    """test20_non_existing_graph_entity."""
     def test20_non_existing_graph_entity(self):
         try:
             query = """MATCH p=() WHERE p.name='value' RETURN p"""
@@ -276,6 +325,8 @@ class testQueryValidationFlow(FlowTestsBase):
             pass
 
     # Comments should not affect query functionality.
+
+    """test21_ignore_query_comments."""
     def test21_ignore_query_comments(self):
         query = """MATCH (n)  // This is a comment
                    /* This is a block comment */
@@ -309,6 +360,8 @@ class testQueryValidationFlow(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Validate procedure call refrences and definitions
+
+    """test22_procedure_validations."""
     def test22_procedure_validations(self):
         try:
             # procedure call refering to a none existing alias 'n'
@@ -339,6 +392,8 @@ class testQueryValidationFlow(FlowTestsBase):
         self.graph.query(query)
 
     # Referencing a variable before defining it should raise a compile-time error.
+
+    """test24_reference_before_definition."""
     def test24_reference_before_definition(self):
         try:
             query = """MATCH ({prop: reference}) MATCH (reference) RETURN *"""
@@ -350,6 +405,8 @@ class testQueryValidationFlow(FlowTestsBase):
             pass
 
     # Invalid filters in cartesian products should raise errors.
+
+    """test25_cartesian_product_invalid_filter."""
     def test25_cartesian_product_invalid_filter(self):
         try:
             query = """MATCH p1=(), (n), ({prop: p1.path_val}) RETURN *"""
@@ -361,6 +418,8 @@ class testQueryValidationFlow(FlowTestsBase):
             pass
 
     # invalid predicates should raise errors.
+
+    """test26_invalid_filter_predicate."""
     def test26_invalid_filter_predicate(self):
         queries = [
             """WITH 1 AS a WHERE '' RETURN a""",
@@ -382,6 +441,8 @@ class testQueryValidationFlow(FlowTestsBase):
                 pass
 
     # The NOT operator does not compare left and right side expressions.
+
+    """test28_invalid_filter_binary_not."""
     def test28_invalid_filter_binary_not(self):
         try:
             # Query should have been:
@@ -394,6 +455,8 @@ class testQueryValidationFlow(FlowTestsBase):
             assert("Invalid usage of 'NOT' filter" in str(e))
             pass
 
+
+    """test29_invalid_filter_non_boolean_constant."""
     def test29_invalid_filter_non_boolean_constant(self):
         try:
             query = """MATCH (a) WHERE a RETURN a"""
@@ -428,6 +491,8 @@ class testQueryValidationFlow(FlowTestsBase):
         self.graph.query(query)
 
     # Encountering traversals as property values should raise compile-time errors.
+
+    """test30_unexpected_traversals."""
     def test30_unexpected_traversals(self):
         query = """MATCH (a {prop: ()-[]->()}) RETURN a"""
         try:
@@ -437,6 +502,8 @@ class testQueryValidationFlow(FlowTestsBase):
             # Expecting an error.
             assert("Encountered unhandled type" in str(e))
 
+
+    """test31_set_invalid_property_type."""
     def test31_set_invalid_property_type(self):
         queries = ["""MATCH (a) CREATE (:L {v: a})""",
                    """MATCH (a), (b) WHERE b.age IS NOT NULL SET b.age = a""",
@@ -450,6 +517,8 @@ class testQueryValidationFlow(FlowTestsBase):
                 assert("Property values can only be of primitive types" in str(e))
                 pass
 
+
+    """test32_return_following_clauses."""
     def test32_return_following_clauses(self):
         # After a RETURN clause we're expecting only the following clauses:
         # SKIP, LIMIT, ORDER-BY and UNION, given that SKIP and LIMIT are
@@ -475,6 +544,8 @@ class testQueryValidationFlow(FlowTestsBase):
                 pass
 
     # Parameters cannot reference aliases.
+
+    """test33_alias_reference_in_param."""
     def test33_alias_reference_in_param(self):
         try:
             query = """CYPHER A=[a] RETURN 5"""
@@ -484,6 +555,8 @@ class testQueryValidationFlow(FlowTestsBase):
             # expecting an error
             pass
 
+
+    """test34_self_referential_properties."""
     def test34_self_referential_properties(self):
         try:
             # The server should emit an error on trying to create a node with a self-referential property.
@@ -501,12 +574,16 @@ class testQueryValidationFlow(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test a query that allocates a large buffer.
+
+    """test35_large_query."""
     def test35_large_query(self):
         retval = "abcdef" * 1_000
         query = "RETURN " + "\"" + retval + "\""
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set[0][0], retval)
 
+
+    """test36_multiple_proc_calls."""
     def test36_multiple_proc_calls(self):
         query = """MATCH (a)
                    CALL algo.BFS(a, 3, NULL) YIELD nodes as ns1
@@ -516,6 +593,8 @@ class testQueryValidationFlow(FlowTestsBase):
         plan = str(self.graph.explain(query))
         self.env.assertTrue(plan.count("ProcedureCall") == 2)
 
+
+    """test37_list_comprehension_missuse."""
     def test37_list_comprehension_missuse(self):
         # all expect list comprehension,
         # unfortunately this isn't enforced by the parser
@@ -534,6 +613,8 @@ class testQueryValidationFlow(FlowTestsBase):
             except redis.exceptions.ResponseError as e:
                 pass
 
+
+    """test38_return_star_union."""
     def test38_return_star_union(self):
         # queries of the form [...] RETURN * UNION [...] should have
         # all relevant validations on their column names enforced
@@ -547,6 +628,8 @@ class testQueryValidationFlow(FlowTestsBase):
             except redis.exceptions.ResponseError as e:
                 self.env.assertContains("All sub queries in a UNION must have the same column names", str(e))
 
+
+    """test39_non_single_statement_query."""
     def test39_non_single_statement_query(self):
         queries = [";",      # Error: could not parse query
                    " ;",     # Error: query with more than one statement is not supported.
@@ -576,6 +659,8 @@ class testQueryValidationFlow(FlowTestsBase):
             res = self.graph.query(q)
             self.env.assertEquals(res.result_set, [[1]])
 
+
+    """test40_compile_time_errors_in_star_projections."""
     def test40_compile_time_errors_in_star_projections(self):
         # validate that parser errors are handled correctly
         # in queries containing star projections
@@ -604,6 +689,8 @@ class testQueryValidationFlow(FlowTestsBase):
                 pass
 
     # Test returning multiple occurrence of an expression.
+
+    """test41_return_duplicate_expression."""
     def test41_return_duplicate_expression(self):
         queries = ["""MATCH (a) RETURN max(a.val), max(a.val)""",
                 """MATCH (a) return max(a.val) as x, max(a.val) as x""",
@@ -620,6 +707,8 @@ class testQueryValidationFlow(FlowTestsBase):
                 self.env.assertContains("Multiple result columns with the same name are not supported", str(e))
 
     # Test fail with unknown function.
+
+    """test42_unknown_function."""
     def test42_unknown_function(self):
         queries = ["""MATCH (a { v: x()}) RETURN a""",
                 """MERGE (a { v: x()}) RETURN a""",
@@ -637,6 +726,8 @@ class testQueryValidationFlow(FlowTestsBase):
                 self.env.assertContains("Unknown function", str(e))
     
     # Variable length edges are not allowed in CREATE or MERGE clauses.
+
+    """test43_invalid_variable_length_edge_use."""
     def test43_invalid_variable_length_edge_use(self):
         queries = [
             """CREATE (a:A)-[e:E1*]->(b:B)""",
@@ -651,6 +742,8 @@ class testQueryValidationFlow(FlowTestsBase):
             except redis.exceptions.ResponseError as e:
                 self.env.assertContains("Variable length relationships cannot be used in", str(e))
 
+
+    """test44_undefined_variables."""
     def test44_undefined_variables(self):
         # invalid usage of undefined variables in a `WITH` clause
         invalid_queries = [
@@ -691,6 +784,8 @@ class testQueryValidationFlow(FlowTestsBase):
                 # Expecting an error.
                 self.env.assertIn("'a' not defined", str(e))
 
+
+    """test45_union_scope."""
     def test45_union_scope(self):
         # make sure OPTIONAL MATCH followed by a MATCH clause in a different
         # UNION scope do not effect one another

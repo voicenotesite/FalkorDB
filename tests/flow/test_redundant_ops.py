@@ -1,13 +1,20 @@
+"""Tests Flow Test Redundant Ops."""
 from common import *
 
 GRAPH_ID = "redundant_ops"
 
 
+
+"""Class testRedundantOps."""
 class testRedundantOps(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """tearDown."""
     def tearDown(self):
         # Delete the graph after every test so each test starts with a clean slate.
         self.graph.delete()
@@ -29,6 +36,8 @@ class testRedundantOps(FlowTestsBase):
         for child, exp_child in zip(op.children, exp_children):
             self._assert_plan_shape(child, exp_child)
 
+
+    """test01_redundant_optional_bare_node."""
     def test01_redundant_optional_bare_node(self):
         # OPTIONAL MATCH (a)
         # 'a' is already bound; the clause adds no new variables → redundant.
@@ -56,6 +65,8 @@ class testRedundantOps(FlowTestsBase):
         res = self.graph.query(query).result_set
         self.env.assertEquals(res[0][0], 1)
 
+
+    """test02_redundant_optional_node_with_label."""
     def test02_redundant_optional_node_with_label(self):
         # OPTIONAL MATCH (a:L)
         # 'a' is already bound; the extra label constraint on an already-bound
@@ -83,6 +94,8 @@ class testRedundantOps(FlowTestsBase):
         res = self.graph.query(query).result_set
         self.env.assertEquals(res[0][0], 1)
 
+
+    """test03_redundant_optional_node_with_property."""
     def test03_redundant_optional_node_with_property(self):
         # OPTIONAL MATCH (a {v:1})
         # 'a' is already bound; the property predicate on a bound variable
@@ -110,6 +123,8 @@ class testRedundantOps(FlowTestsBase):
         res = self.graph.query(query).result_set
         self.env.assertEquals(res[0][0], 1)
 
+
+    """test04_redundant_optional_node_with_label_and_property."""
     def test04_redundant_optional_node_with_label_and_property(self):
         # OPTIONAL MATCH (a:L {v:1})
         # 'a' is already bound; combining a label and a property on a bound
@@ -137,6 +152,8 @@ class testRedundantOps(FlowTestsBase):
         res = self.graph.query(query).result_set
         self.env.assertEquals(res[0][0], 1)
 
+
+    """test05_redundant_optional_same_node_twice_bare."""
     def test05_redundant_optional_same_node_twice_bare(self):
         # OPTIONAL MATCH (a), (a)
         # Referencing the same already-bound variable twice in a single
@@ -164,6 +181,8 @@ class testRedundantOps(FlowTestsBase):
         res = self.graph.query(query).result_set
         self.env.assertEquals(res[0][0], 1)
 
+
+    """test06_redundant_optional_same_node_bare_and_labeled."""
     def test06_redundant_optional_same_node_bare_and_labeled(self):
         # OPTIONAL MATCH (a), (a:L)
         # One pattern is bare, the other adds a label — both reference only
@@ -191,6 +210,8 @@ class testRedundantOps(FlowTestsBase):
         res = self.graph.query(query).result_set
         self.env.assertEquals(res[0][0], 1)
 
+
+    """test07_redundant_optional_same_node_property_and_labeled."""
     def test07_redundant_optional_same_node_property_and_labeled(self):
         # OPTIONAL MATCH (a {v:1}), (a:L)
         # One pattern carries a property filter, the other a label — both still
@@ -218,6 +239,8 @@ class testRedundantOps(FlowTestsBase):
         res = self.graph.query(query).result_set
         self.env.assertEquals(res[0][0], 1)
 
+
+    """test08_redundant_optional_same_node_all_constraints."""
     def test08_redundant_optional_same_node_all_constraints(self):
         # OPTIONAL MATCH (a:L {v:1}), (a:L), (a {v:1})
         # Multiple patterns, all with different combinations of label /
@@ -246,6 +269,8 @@ class testRedundantOps(FlowTestsBase):
         res = self.graph.query(query).result_set
         self.env.assertEquals(res[0][0], 1)
 
+
+    """test09_redundant_optional_two_distinct_bound_nodes."""
     def test09_redundant_optional_two_distinct_bound_nodes(self):
         # OPTIONAL MATCH (a), (b)
         # Two different already-bound variables — both are bound before the
@@ -280,6 +305,8 @@ class testRedundantOps(FlowTestsBase):
         res = self.graph.query(query).result_set
         self.env.assertEquals(res[0][0], 1)
 
+
+    """test10_call_redundant_optional_bare_node."""
     def test10_call_redundant_optional_bare_node(self):
         # CALL { WITH a  OPTIONAL MATCH (a)  RETURN 1 AS x }
         # 'a' is imported via WITH and re-used bare in OPTIONAL MATCH.
@@ -323,6 +350,8 @@ class testRedundantOps(FlowTestsBase):
         res = self.graph.query(query).result_set
         self.env.assertEquals(res[0][0], 1)
 
+
+    """test11_call_redundant_optional_node_with_label."""
     def test11_call_redundant_optional_node_with_label(self):
         # CALL { WITH a  OPTIONAL MATCH (a:L)  RETURN 1 AS x }
         # Adding a label constraint on the already-imported 'a' does not
@@ -364,6 +393,8 @@ class testRedundantOps(FlowTestsBase):
         res = self.graph.query(query).result_set
         self.env.assertEquals(res[0][0], 1)
 
+
+    """test12_call_redundant_optional_node_with_property."""
     def test12_call_redundant_optional_node_with_property(self):
         # CALL { WITH a  OPTIONAL MATCH (a {v:1})  RETURN 1 AS x }
         # A property predicate on the already-imported 'a' introduces no new
@@ -405,6 +436,8 @@ class testRedundantOps(FlowTestsBase):
         res = self.graph.query(query).result_set
         self.env.assertEquals(res[0][0], 1)
 
+
+    """test13_call_redundant_optional_node_with_label_and_property."""
     def test13_call_redundant_optional_node_with_label_and_property(self):
         # CALL { WITH a  OPTIONAL MATCH (a:L {v:1})  RETURN 1 AS x }
         # Combining a label and a property on the already-imported 'a' still
@@ -446,6 +479,8 @@ class testRedundantOps(FlowTestsBase):
         res = self.graph.query(query).result_set
         self.env.assertEquals(res[0][0], 1)
 
+
+    """test14_call_redundant_optional_same_node_bare_and_labeled."""
     def test14_call_redundant_optional_same_node_bare_and_labeled(self):
         # CALL { WITH a  OPTIONAL MATCH (a), (a:L)  RETURN 1 AS x }
         # Two patterns in one OPTIONAL MATCH, both referencing only the
@@ -487,6 +522,8 @@ class testRedundantOps(FlowTestsBase):
         res = self.graph.query(query).result_set
         self.env.assertEquals(res[0][0], 1)
 
+
+    """test15_call_redundant_optional_same_node_property_and_labeled."""
     def test15_call_redundant_optional_same_node_property_and_labeled(self):
         # CALL { WITH a  OPTIONAL MATCH (a {v:1}), (a:L)  RETURN 1 AS x }
         # Property filter on one pattern, label on the other — all variables

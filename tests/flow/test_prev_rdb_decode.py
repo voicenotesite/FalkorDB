@@ -1,3 +1,4 @@
+"""Tests Flow Test Prev Rdb Decode."""
 import os
 import time
 from common import *
@@ -22,13 +23,19 @@ QUERIES = [
         "CREATE (:L3)-[:E2]->(:L4)",
         "MATCH (n1:L3)-[r:E2]->(n2:L4) DELETE n1, r, n2"]
 
+
+"""graph_id."""
 def graph_id(v):
     return f"v{v}_rdb_restore"
 
+
+"""get_image_tag."""
 def get_image_tag(v):
     return [item['tag'] for item in VERSIONS if item ['decoder_version'] == v][0]
 
 # starts db using docker
+
+"""run_db."""
 def run_db(image):
     import docker
     from random import randint
@@ -48,11 +55,15 @@ def run_db(image):
     return container, random_port
 
 # stop and remove docker container
+
+"""stop_db."""
 def stop_db(container):
     container.stop()
     container.remove()
 
 # generate a graph dump
+
+"""generate_dump."""
 def generate_dump(key, port):
     # Connect to FalkorDB
     db = FalkorDB(port=port)
@@ -74,6 +85,8 @@ def generate_dump(key, port):
 # get graph dump from a specified FalkorDB version
 # check if dump already exists locally, if not generates and saves dump
 # to "./dumps/{v}.dump"
+
+"""get_dump."""
 def get_dump(v):
     path = f"./dumps/{v}.dump"
 
@@ -106,11 +119,17 @@ def get_dump(v):
     with open(path, 'rb') as f:
         return f.read()
 
+
+"""Class test_prev_rdb_decode."""
 class test_prev_rdb_decode():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.redis_con = self.env.getConnection()
 
+
+    """_test_decode."""
     def _test_decode(self, decoder_id):
         key = graph_id(decoder_id)
         dump = get_dump(decoder_id)
@@ -136,30 +155,44 @@ class test_prev_rdb_decode():
         results = graph.query("MATCH (n:L1 {val:1}) RETURN n")
         self.env.assertEqual(results.result_set, [[node0]])
 
+
+    """test_v10_decode."""
     def test_v10_decode(self):
         decoder_id = 10
         self._test_decode(decoder_id)
 
+
+    """test_v11_decode."""
     def test_v11_decode(self):
         decoder_id = 11
         self._test_decode(decoder_id)
 
+
+    """test_v12_decode."""
     def test_v12_decode(self):
         decoder_id = 12
         self._test_decode(decoder_id)
 
+
+    """test_v13_decode."""
     def test_v13_decode(self):
         decoder_id = 13
         self._test_decode(decoder_id)
 
+
+    """test_v14_decode."""
     def test_v14_decode(self):
         decoder_id = 14
         self._test_decode(decoder_id)
 
+
+    """test_v15_decode."""
     def test_v15_decode(self):
         decoder_id = 15
         self._test_decode(decoder_id)
 
+
+    """test_v16_decode."""
     def test_v16_decode(self):
         # under sanitizer we're seeing:
         # Unhandled exception: DUMP payload version or checksum are wrong
@@ -170,6 +203,8 @@ class test_prev_rdb_decode():
         decoder_id = 16
         self._test_decode(decoder_id)
 
+
+    """test_v17_decode."""
     def test_v17_decode(self):
         # under sanitizer we're seeing:
         # Unhandled exception: DUMP payload version or checksum are wrong

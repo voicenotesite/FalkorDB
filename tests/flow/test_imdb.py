@@ -1,3 +1,4 @@
+"""Tests Flow Test Imdb."""
 from common import *
 
 from index_utils import *
@@ -9,19 +10,29 @@ import imdb_utils
 
 GRAPH_ID = imdb_utils.graph_name
 
+
+"""Class testImdbFlow."""
 class testImdbFlow(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
 
+
+    """setUp."""
     def setUp(self):
         self.graph     = self.db.select_graph(GRAPH_ID)
         actors, movies = imdb_utils.populate_graph(self.db, self.graph)
         self.imdb      = imdb_queries.IMDBQueries(actors, movies)
         self.queries   = self.imdb.queries()
 
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
 
+
+    """assert_reversed_pattern."""
     def assert_reversed_pattern(self, query, resultset):
         # Test reversed pattern query.
         reversed_query = ReversePattern().reverse_query_pattern(query)
@@ -31,6 +42,8 @@ class testImdbFlow(FlowTestsBase):
         # assert result set
         self.env.assertEqual(resultset.result_set, actual_result.result_set)
 
+
+    """test_imdb."""
     def test_imdb(self):
         for q in self.queries:
             query = q.query
@@ -43,6 +56,8 @@ class testImdbFlow(FlowTestsBase):
                 # assert reversed pattern.
                 self.assert_reversed_pattern(query, actual_result)
 
+
+    """test_index_scan_actors_over_85."""
     def test_index_scan_actors_over_85(self):
         # skip test if we're running under Valgrind
         # drop index is an async operation which can cause Valgraind
@@ -70,6 +85,8 @@ class testImdbFlow(FlowTestsBase):
         # assert reversed pattern.
         self.assert_reversed_pattern(q, actual_result)
 
+
+    """test_index_scan_eighties_movies."""
     def test_index_scan_eighties_movies(self):
         # skip test if we're running under Valgrind
         # drop index is an async operation which can cause Valgraind

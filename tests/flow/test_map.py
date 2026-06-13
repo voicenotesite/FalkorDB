@@ -1,14 +1,21 @@
+"""Tests Flow Test Map."""
 from common import *
 
 GRAPH_ID = "map_test"
 
 
+
+"""Class testMap."""
 class testMap(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         # Construct a graph with the form:
         # (v1)-[:E]->(v2)-[:E]->(v3)
@@ -16,6 +23,8 @@ class testMap(FlowTestsBase):
         self.graph.query(q)
 
     # Validate basic map lookup operations
+
+    """test01_basic_map_accesses."""
     def test01_basic_map_accesses(self):
         # Return a full map
         query = """WITH {val: 5} AS map RETURN map"""
@@ -36,6 +45,8 @@ class testMap(FlowTestsBase):
         self.env.assertEquals(query_result.result_set, expected_result)
 
     # Validate map projection behavior
+
+    """test02_map_projections."""
     def test02_map_projections(self):
         query = """MATCH (a) RETURN a {.val} ORDER BY a.val"""
         query_result = self.graph.query(query)
@@ -138,6 +149,8 @@ class testMap(FlowTestsBase):
                 self.env.assertContains("Invalid input '{': expected ':', ',' or '}'", str(e))
 
     # Validate behaviors of nested maps
+
+    """test03_nested_maps."""
     def test03_nested_maps(self):
         # Return a map with nesting
         query = """WITH {val: 5, nested: {nested_val: 'nested_str'}} AS map RETURN map"""
@@ -164,6 +177,8 @@ class testMap(FlowTestsBase):
         self.env.assertEquals(query_result.result_set, expected_result)
 
     # Validate map sorting logic (first by keys, then by values)
+
+    """test04_map_sorting."""
     def test04_map_sorting(self):
         query = """UNWIND[{b: 1}, {a: 2}] AS map RETURN map ORDER BY map"""
         query_result = self.graph.query(query)
@@ -184,6 +199,8 @@ class testMap(FlowTestsBase):
         self.env.assertEquals(query_result.result_set, expected_result)
 
     # Validate map comparison logic (first by keys, then by values)
+
+    """test05_map_comparison."""
     def test05_map_comparison(self):
         query = """WITH {b: 2} AS map_1, {a: 1} AS map_2 RETURN map_1 > map_2, map_1 < map_2, map_1 = map_2, map_1 <> map_2"""
         query_result = self.graph.query(query)
@@ -202,6 +219,8 @@ class testMap(FlowTestsBase):
         self.env.assertEquals(query_result.result_set, expected_result)
 
     # Validate that maps are handled correctly by the DISTINCT operator.
+
+    """test05_map_distinct."""
     def test05_map_distinct(self):
         # Map uniqueness is not predicated on key order.
         query = """UNWIND[{b: 2, a: 1}, {b: 2, a: 1}, {a: 1, b: 2}] AS map RETURN DISTINCT map"""
@@ -210,6 +229,8 @@ class testMap(FlowTestsBase):
         self.env.assertEquals(query_result.result_set, expected_result)
 
     # Validate that trying to access a map with a non-string key errors gracefully.
+
+    """test06_map_invalid_key_lookup."""
     def test06_map_invalid_key_lookup(self):
         try:
             query = """WITH {val: 5} AS map RETURN map[0]"""
@@ -219,6 +240,8 @@ class testMap(FlowTestsBase):
             self.env.assertIn("Type mismatch", str(e))
 
     # Validate that map projections with invalid identifiers error gracefully.
+
+    """test07_map_invalid_identifier."""
     def test07_map_invalid_identifier(self):
         try:
             query = """RETURN 5 {v: 'b'}"""
@@ -228,6 +251,8 @@ class testMap(FlowTestsBase):
             self.env.assertIn("Encountered unhandled type", str(e))
 
     # validate that function accesses of scalar-reducible maps do not access invalid memory
+
+    """test08_map_safe_return_value."""
     def test08_map_safe_return_value(self):
         query = """RETURN {a: 5, b: 'xx'}.b"""
         query_result = self.graph.query(query)
@@ -239,6 +264,8 @@ class testMap(FlowTestsBase):
         expected_result = [['XX']]
         self.env.assertEquals(query_result.result_set, expected_result)
 
+
+    """test09_merge_map."""
     def test09_merge_map(self):
         query = """RETURN {name: 'John', age: 30} + {age: 40, city: 'New York'}"""
         actual_result = self.graph.query(query)
@@ -250,6 +277,8 @@ class testMap(FlowTestsBase):
         except redis.exceptions.ResponseError as e:
             self.env.assertIn("Cannot merge a map with a non-map value", str(e))
 
+
+    """test10_map_merge_null."""
     def test10_map_merge_null(self):
         # merge maps where one of the maps is null
         q = "CREATE (n:N {name:'John', age:30})"

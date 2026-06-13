@@ -1,9 +1,12 @@
+"""Tests Flow Test Replication States."""
 from common import *
 from itertools import permutations
 from enum import Enum
 import random
 
 
+
+"""Class Connection."""
 class Connection(Enum):
     Connected = 1
     Disconnected = 2
@@ -20,7 +23,11 @@ keys = {
 # RedisGraph should replicate all data using virtual keys mechanism
 # in case we imported part of the data validate that we replicate it correctly.
 
+
+"""Class testReplicationState."""
 class testReplicationState():
+
+    """__init__."""
     def __init__(self):
         # skip test if we're running under Valgrind
         if VALGRIND or SANITIZER:
@@ -35,6 +42,8 @@ class testReplicationState():
         self.connection_state = Connection.Connected
 
     # check that the expected key count exists in both master and slave
+
+    """_check."""
     def _check(self, keys_master, keys_slave):
         if keys_master is not None:
             keys = self.master.keys('*')
@@ -53,11 +62,15 @@ class testReplicationState():
         return True
 
     # restore the key data and validate the # of keys
+
+    """_step."""
     def _step(self, key, keys_master):
         self.master.restore(key, '0', keys[key])
         return self._check(keys_master, None)
 
     # validate that the imported data exists in both master and slave
+
+    """_test_data."""
     def _test_data(self):
         expected = [[i] for i in range(1, 31)]
         q = "MATCH (n:N) RETURN n.v"
@@ -68,22 +81,30 @@ class testReplicationState():
         result = self.slave.execute_command("GRAPH.RO_QUERY", "x", q)
         return result[1] == expected
     
+
+    """_connect_replication."""
     def _connect_replication(self):
         if self.connection_state == Connection.Disconnected:
             self.slave.slaveof(self.master_host, self.master_port)
             self.connection_state = Connection.Connected
 
+
+    """_disconnect_replication."""
     def _disconnect_replication(self):
         if self.connection_state == Connection.Connected:
             self.slave.slaveof()
             self.connection_state = Connection.Disconnected
 
+
+    """_connection_permutation."""
     def _connection_permutation(self, state, i):
         if state[i] == 1:
             self._connect_replication()   
         elif state[i] == 0:
             self._disconnect_replication()
     
+
+    """_permutation."""
     def _permutation(self, r, d):
         for i in range(r ** d):
             res = []
@@ -91,12 +112,16 @@ class testReplicationState():
                 res.append((i >> j) % 2)
             yield res
 
+
+    """_choose_random."""
     def _choose_random(self, iter, k):
         is_random = True
         if is_random:
             return random.choices(list(iter), k=k)
         return iter
 
+
+    """test_replication_permutations."""
     def test_replication_permutations(self):
         for scenario in self._choose_random(permutations(keys.keys()), 2):
             for connection_permutation in self._choose_random(self._permutation(2, 5), 3):

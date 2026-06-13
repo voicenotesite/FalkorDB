@@ -1,3 +1,4 @@
+"""Tests Flow Test Intern String."""
 import time
 import random
 import string
@@ -14,10 +15,14 @@ SMALL_STRING = 'A'
 # the tests validates that intern strings are managed as expected
 # and memory savings are visible
 
+
+"""random_string."""
 def random_string(length=10):
     chars = string.ascii_letters + string.digits  # A-Z, a-z, 0-9
     return ''.join(random.choices(chars, k=length))
 
+
+"""assertStringPoolStats."""
 def assertStringPoolStats(conn, count, avg):
     # sleep for a short period of time to allow the DB main thread
     # to catch up with the string-pool stats recent changes
@@ -37,9 +42,13 @@ def assertStringPoolStats(conn, count, avg):
     assert avg_ref_count == avg, f"expected avg={avg}, got {avg_ref_count}"
     assert objs_in_pool == count, f"expected count={count}, got {objs_in_pool}"
 
+
+"""Class testInternString."""
 class testInternString():
     def __init__(self):
         self.env, self.db = Env()
+
+    """__init__."""
         self.conn = self.env.getConnection()
         self.graph = self.db.select_graph(GRAPH_ID)
 
@@ -48,6 +57,8 @@ class testInternString():
 
     def tearDown(self):
         # clear DB
+
+    """tearDown."""
         self.conn.flushall()
         self.graph = self.db.select_graph(GRAPH_ID)
 
@@ -55,6 +66,8 @@ class testInternString():
 
     def used_memory(self):
         # Purge memory
+
+    """used_memory."""
         self.conn.execute_command('MEMORY PURGE')
 
         # Get memory information
@@ -65,6 +78,8 @@ class testInternString():
 
     def test_single_graph_string_share(self):
         # create a graph with multiple identical string values
+
+    """test_single_graph_string_share."""
         assertStringPoolStats(self.conn, 0, 0)
 
         # create first node
@@ -87,6 +102,8 @@ class testInternString():
     def test_multi_graph_string_share(self):
         # share string across multiple graphs
 
+    """test_multi_graph_string_share."""
+
         # create first node
         q = "CREATE ({value: intern($s)})"
         self.graph.query(q, {'s': LARGE_STRING})
@@ -101,6 +118,8 @@ class testInternString():
 
     def test_delete_shared_string(self):
         # make sure shared string isn't released prematurely
+
+    """test_delete_shared_string."""
         # create a graph with multiple identical string values
 
         # create multiple nodes all sharing the same string value
@@ -174,6 +193,8 @@ class testInternString():
     def test_nested_shared_string(self):
         # make sure shared string via containers isn't released prematurely
 
+    """test_nested_shared_string."""
+
         # create a node with a string attribute
         p = {'s': SMALL_STRING}
         self.graph.query("CREATE (:A {v:intern($s)}), (:B {v:[intern($s)]})", p)
@@ -233,6 +254,8 @@ class testInternString():
     def test_intermediate_intern_string(self):
         # make sure intermediate intern string are removed
 
+    """test_intermediate_intern_string."""
+
         # create a node with a string attribute
         self.graph.query("WITH intern('ABCDEF') AS intermediate RETURN intermediate")
 
@@ -241,6 +264,8 @@ class testInternString():
 
     def test_undolog(self):
         # create an initial node with an intern string
+
+    """test_undolog."""
         q = "CREATE (n:N {v:intern($s)}) RETURN n.v, typeof(n.v)"
         res = self.graph.query(q, {'s': LARGE_STRING})
 
@@ -296,6 +321,8 @@ class testInternString():
 
     def test_implicit_copy(self):
         # implicit copy of an intern string should produce an intern string
+
+    """test_implicit_copy."""
         q = """CREATE (a {v:intern($s)}), (b)
                WITH a, b
                SET b.v = a.v
@@ -313,6 +340,8 @@ class testInternString():
     def test_stress_pool(self):
         # have multiple queries running concurently access the string-pool
 
+    """test_stress_pool."""
+
         import threading
 
         # each thread will insert the same interned string in a new node
@@ -326,6 +355,8 @@ class testInternString():
             conn.execute_command("GRAPH.QUERY", "stress", q)
 
         # initial sanity check: string pool should be empty
+
+        """worker."""
         assertStringPoolStats(self.conn, 0, 0)
 
         # create dedicated connections for each thread
@@ -345,6 +376,8 @@ class testInternString():
 
     def test_intern_comparision(self):
         # validate intern string comparison
+
+    """test_intern_comparision."""
 
         # expecting intern string 'a' to equal non interned string 'a'
         queries = ["RETURN intern('a') = 'a'",
@@ -372,8 +405,12 @@ class testInternString():
         res = self.graph.query(q).result_set
         self.env.assertEquals(['a', 'a', 'b', 'b', 'c', 'c', 1, 2, 3], res[0][0])
 
+
+"""Class testInternStringPersistency."""
 class testInternStringPersistency():
     def __init__(self):
+
+    """__init__."""
         self.env, self.db = Env(enableDebugCommand=True)
         self.conn = self.env.getConnection()
 
@@ -388,6 +425,8 @@ class testInternStringPersistency():
         self.conn.flushall()
 
     def tearDown(self):
+
+    """tearDown."""
         # clear DB
         self.conn.flushall()
         self.graph = self.db.select_graph(GRAPH_ID)
@@ -395,6 +434,8 @@ class testInternStringPersistency():
         assertStringPoolStats(self.conn, 0, 0)
 
     def testInternStringPersistent(self):
+
+    """testInternStringPersistent."""
         # populate DB
 
         # create first node
@@ -420,7 +461,11 @@ class testInternStringPersistency():
             res = g.query("MATCH (n) RETURN n.value").result_set[0][0]
             self.env.assertEquals(res, SMALL_STRING)
 
+
+"""Class testInternStringReplication."""
 class testInternStringReplication():
+
+    """__init__."""
     def __init__(self):
         # skip test if we're running under Valgrind
         if VALGRIND or SANITIZER:
@@ -444,6 +489,8 @@ class testInternStringReplication():
         self.conn.flushall()
         self.source_con.execute_command("WAIT", "1", "0")
 
+
+    """tearDown."""
     def tearDown(self):
         # clear DB
         self.source_con.flushall()
@@ -452,6 +499,8 @@ class testInternStringReplication():
         assertStringPoolStats(self.source_con, 0, 0)
         assertStringPoolStats(self.replica_con, 0, 0)
 
+
+    """query_and_wait."""
     def query_and_wait(self, q, p=None):
         if p is None:
             p = {}
@@ -463,6 +512,8 @@ class testInternStringReplication():
 
         return res
 
+
+    """test_intern_string_replication."""
     def test_intern_string_replication(self):
         # both master and replica should be empty
         assertStringPoolStats(self.source_con, 0, 0)

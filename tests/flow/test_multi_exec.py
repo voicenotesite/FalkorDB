@@ -1,3 +1,4 @@
+"""Tests Flow Test Multi Exec."""
 from common import *
 
 GRAPH_ID = "multiexec-graph"
@@ -19,11 +20,17 @@ DEL_QUERY = """MATCH (al:person {name:'Al'})-[e:knows]->(b:person {name:'Betty'}
 UPDATE_QUERY = "MATCH (al:person {name:'Al'}) SET al.name = 'Steve'"
 
 
+
+"""Class testMultiExecFlow."""
 class testMultiExecFlow(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.redis_con = self.env.getConnection()
 
+
+    """test_graph_entities."""
     def test_graph_entities(self):
         # Delete previous graph if exists.
         self.redis_con.execute_command("DEL", GRAPH_ID)
@@ -77,6 +84,8 @@ class testMultiExecFlow(FlowTestsBase):
         no_edges = no_edges[1]
         self.env.assertEquals(len(no_edges), 0)
 
+
+    """test_transaction_failure."""
     def test_transaction_failure(self):
         redis_con_a = self.env.getConnection()
         redis_con_b = self.env.getConnection()

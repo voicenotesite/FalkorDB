@@ -1,15 +1,24 @@
+"""Tests Flow Test Betweenness."""
 from common import *
 
 GRAPH_ID = "betweenness"
 
+
+"""Class testBetweenness."""
 class testBetweenness(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
 
+
+    """betweenness_centrality."""
     def betweenness_centrality(self, nodeLabels=None, relationshipTypes=None, seed=10, samplingSize=16):
         config = { 'samplingSeed': seed, 'samplingSize': samplingSize }
 
@@ -24,6 +33,8 @@ class testBetweenness(FlowTestsBase):
                                    RETURN node.name, score
                                    ORDER BY score DESC""", {'config': config})
 
+
+    """test_invalid_invocation."""
     def test_invalid_invocation(self):
         invalid_queries = [
                 # non-array nodeLabels parameter

@@ -1,3 +1,4 @@
+"""Tests Flow Test Commands Registration."""
 from common import *
 
 GRAPH_ID = "cmd_reg"
@@ -17,7 +18,11 @@ local result
 return result
 """
 
+
+"""Class testCmdReg."""
 class testCmdReg(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.conn = self.env.getConnection()
@@ -39,7 +44,11 @@ class testCmdReg(FlowTestsBase):
             except ResponseError as e:
                 self.env.assertContains("This Redis command is not allowed from script", str(e))
 
+
+    """test_command_metadata_flags."""
     def test_command_metadata_flags(self):
+
+        """_command_flags."""
         def _command_flags(command):
             info = self.conn.execute_command("COMMAND", "INFO", command)
             if isinstance(info, dict):

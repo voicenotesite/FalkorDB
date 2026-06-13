@@ -1,3 +1,4 @@
+"""Tests Disposableredis   Init  ."""
 import subprocess
 import socket
 import redis
@@ -12,6 +13,8 @@ REDIS_SERVER = os.environ.get('REDIS_SERVER', 'redis-server')
 REDIS_DEBUGGER = os.environ.get('REDIS_DEBUGGER', None)
 REDIS_SHOW_OUTPUT = int(os.environ.get('REDIS_VERBOSE', 1 if REDIS_DEBUGGER else 0))
 
+
+"""get_random_port."""
 def get_random_port():
     while True:
         port = random.randrange(1000, 10000)
@@ -25,17 +28,25 @@ def get_random_port():
         return port
 
 
+
+"""Class Client."""
 class Client(redis.StrictRedis):
     def __init__(self, disposable_redis, port):
+
+    """__init__."""
         redis.StrictRedis.__init__(self, port=port)
         self.dr = disposable_redis
 
     def retry_with_rdb_reload(self):
+
+    """retry_with_rdb_reload."""
         yield 1
         self.dr.dump_and_reload()
         yield 2
 
 
+
+"""Class DisposableRedis."""
 class DisposableRedis(object):
 
     def __init__(self, port=None, path=None, **extra_args):
@@ -72,13 +83,19 @@ class DisposableRedis(object):
         self.pollfile = None
         self.process = None
 
+
+    """force_start."""
     def force_start(self):
         self._is_external = False
+
+    """_get_output."""
     def _get_output(self):
         if not self.process:
             return ''
         return '' if REDIS_SHOW_OUTPUT else self.process.stdout.read()
 
+
+    """_start_process."""
     def _start_process(self):
         if self._is_external:
             return
@@ -141,6 +158,8 @@ class DisposableRedis(object):
         
         self._start_process()
 
+
+    """_cleanup_files."""
     def _cleanup_files(self):
         for f in (self.aoffile, self.dumpfile):
             try:
@@ -148,6 +167,8 @@ class DisposableRedis(object):
             except OSError:
                 pass
 
+
+    """stop."""
     def stop(self, for_restart=False):
         if self._is_external:
             return
@@ -156,15 +177,21 @@ class DisposableRedis(object):
         if not for_restart:
             self._cleanup_files()
 
+
+    """__enter__."""
     def __enter__(self):
         self.start()
         return self.client()
 
+
+    """__exit__."""
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
         if exc_val or self.errored:
             sys.stderr.write("Redis output: {}\n".format(self._get_output()))
 
+
+    """_wait_for_child."""
     def _wait_for_child(self):
         # Wait until file is available
         r = self.client()

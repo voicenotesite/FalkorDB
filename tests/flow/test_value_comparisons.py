@@ -1,15 +1,22 @@
+"""Tests Flow Test Value Comparisons."""
 from common import *
 
 GRAPH_ID = "value_comparison"
 values = ["str1", "str2", False, True, 5, 10.5]
 
 
+
+"""Class testValueComparison."""
 class testValueComparison(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         nodes = []
         for idx, v in enumerate(values):
@@ -22,6 +29,8 @@ class testValueComparison(FlowTestsBase):
         self.graph.query(f"CREATE {','.join(nodes_str)}")
 
     # Verify the ordering of values that can and cannot be directly compared
+
+    """test_orderability."""
     def test_orderability(self):
         query = """MATCH (v:value) RETURN v.val ORDER BY v.val"""
         actual_result = self.graph.query(query)
@@ -41,17 +50,23 @@ class testValueComparison(FlowTestsBase):
 
     # From the Cypher specification:
     # "In a mixed set, any numeric value is always considered to be higher than any string value"
+
+    """test_mixed_type_min."""
     def test_mixed_type_min(self):
         query = """MATCH (v:value) RETURN MIN(v.val)"""
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set[0][0], 'str1')
 
+
+    """test_mixed_type_max."""
     def test_mixed_type_max(self):
         query = """MATCH (v:value) RETURN MAX(v.val)"""
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set[0][0], 10.5)
 
     # Verify that disjoint types pass <> filters
+
+    """test_disjoint_comparisons."""
     def test_disjoint_comparisons(self):
         # Compare all node pairs under a Cartesian product
         query = """MATCH (v:value), (w:value) WHERE ID(v) <> ID(w) AND v.val = w.val RETURN v"""
@@ -70,6 +85,8 @@ class testValueComparison(FlowTestsBase):
             len(actual_result.result_set), expected_result_count)
 
     # Verify that comparisons between very small and very large values are ordered properly.
+
+    """test_large_comparisons."""
     def test_large_comparisons(self):
         query = """UNWIND [933, 1099511628237] AS val RETURN val ORDER BY val"""
         actual_result = self.graph.query(query)
@@ -77,6 +94,8 @@ class testValueComparison(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected)
 
     # Verify that AND conditions on true, false, and NULL values evaluate appropriately
+
+    """test_AND_truth_tables."""
     def test_AND_truth_tables(self):
         # Test two non-NULL values
         query = """RETURN true AND true, true AND false, false AND true, false AND false"""
@@ -101,6 +120,8 @@ class testValueComparison(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set[0][0], None)
 
     # Verify that OR conditions on true, false, and NULL values evaluate appropriately
+
+    """test_OR_truth_tables."""
     def test_OR_truth_tables(self):
         # Test two non-NULL values
         query = """RETURN true OR true, true OR false, false OR true, false OR false"""
@@ -124,6 +145,8 @@ class testValueComparison(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set[0][0], None)
 
     # Verify that XOR conditions on true, false, and NULL values evaluate appropriately
+
+    """test_XOR_truth_tables."""
     def test_XOR_truth_tables(self):
         # Test two non-NULL values
         query = """RETURN true XOR true, true XOR false, false XOR true, false XOR false"""
@@ -145,6 +168,8 @@ class testValueComparison(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set[0][0], None)
 
     # Verify that NOT conditions on true, false, and NULL values evaluate appropriately
+
+    """test_NOT_truth_tables."""
     def test_NOT_truth_tables(self):
         # Test non-NULL values
         query = """RETURN NOT true, NOT false"""
@@ -157,6 +182,8 @@ class testValueComparison(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set[0][0], None)
 
+
+    """test_coalesce."""
     def test_coalesce(self):
         query = """MATCH (n) RETURN COALESCE(n.a, n.b, n.c)"""
         actual_result = self.graph.query(query)
@@ -176,6 +203,8 @@ class testValueComparison(FlowTestsBase):
         self.env.assertEquals([[1.1], [1.1], [1.1], [1.1], [1.1], [1.1], [1.1]], actual_result.result_set)
 
     # Verify string concatenation in comparison expressions
+
+    """test_string_concat_comparison."""
     def test_string_concat_comparison(self):
         # Test additional string concatenation comparison cases
         query = """RETURN 'abc' <= ('def' + 'ghi')"""

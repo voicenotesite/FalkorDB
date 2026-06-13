@@ -1,3 +1,4 @@
+"""Tests Tck Features Steps Steps."""
 import sys
 import os
 import ast
@@ -14,28 +15,40 @@ resultset = None
 exception = None
 params = None
 
+
+"""before_feature."""
 def before_feature(context):
     global params
     params = None
 
 @given(u'the binary-tree-1 graph')
+
+"""step_impl."""
 def step_impl(context):
     graphs.binary_tree_graph1()
 
 @given(u'the binary-tree-2 graph')
+
+"""step_impl."""
 def step_impl(context):
     graphs.binary_tree_graph2()
 
 @given(u'any graph')
+
+"""step_impl."""
 def step_impl(context):
     graphs.any_graph()
 
 @given(u'an empty graph')
+
+"""step_impl."""
 def step_impl(context):
     graphs.any_graph()
 
 @then(u'parameters are:')
 @given(u'parameters are:')
+
+"""set_params."""
 def set_params(context):
     global params
 
@@ -53,6 +66,8 @@ def set_params(context):
 @then(u'having executed:')
 @when(u'executing control query:')
 @when(u'executing query:')
+
+"""step_impl."""
 def step_impl(context):
     global resultset
     global exception
@@ -83,10 +98,14 @@ def step_impl(context):
     params = None
 
 @then(u'the result should be empty')
+
+"""step_impl."""
 def step_impl(context):
     assertions.assert_empty_resultset(resultset)
 
 @then(u'the side effects should be:')
+
+"""step_impl."""
 def step_impl(context):
     labels_added = (getattr(context, 'post_label_count', 0) or 0) \
                  - (getattr(context, 'pre_label_count', 0) or 0)
@@ -101,10 +120,14 @@ def step_impl(context):
         assertions.assert_statistics(resultset, stat, value, labels_added=labels_added)
 
 @then(u'no side effects')
+
+"""step_impl."""
 def step_impl(context):
     assertions.assert_no_modifications(resultset)
 
 @then(u'the result should be, in any order:')
+
+"""step_impl."""
 def step_impl(context):
     if exception:
         raise exception
@@ -115,6 +138,8 @@ def step_impl(context):
 
 @then(u'the result should be:')
 @then(u'the result should be, in order:')
+
+"""step_impl."""
 def step_impl(context):
     if exception:
         raise exception
@@ -123,30 +148,40 @@ def step_impl(context):
     assertions.assert_resultsets_equals_in_order(resultset, context.table)
 
 @then(u'a SyntaxError should be raised at compile time: NoSingleRelationshipType')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Exactly one relationship type" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: InvalidParameterUse')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Encountered unhandled type" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: VariableTypeConflict')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert ("The alias" in str(exception)) or ("return of variable-length" in str(exception))
 
 @then(u'a SyntaxError should be raised at compile time: InvalidRelationshipPattern')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Invalid input" in str(exception)
 
 @then(u'a SemanticError should be raised at runtime: MergeReadOwnWrites')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
@@ -154,48 +189,64 @@ def step_impl(context):
 
 @then(u'a SyntaxError should be raised at compile time: NegativeIntegerArgument')
 @then(u'a SyntaxError should be raised at runtime: NegativeIntegerArgument')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "must be a positive integer" in str(exception)
 
 @then(u'a TypeError should be raised at compile time: InvalidArgumentType')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Type mismatch" in str(exception)
 
 @then(u'a TypeError should be raised at runtime: MapElementAccessByNonString')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Type mismatch" in str(exception)
 
 @then(u'a TypeError should be raised at runtime: InvalidElementAccess')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Type mismatch" in str(exception)
 
 @then(u'a ArgumentError should be raised at runtime: NumberOutOfRange')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "ArgumentError" in str(exception) or "Invalid input" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: InvalidAggregation')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Invalid use of aggregating function" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: UndefinedVariable')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "not defined" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: VariableAlreadyBound')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
@@ -204,12 +255,16 @@ def step_impl(context):
 @then(u'a TypeError should be raised at any time: InvalidArgumentType')
 @then(u'a TypeError should be raised at compile time: ListElementAccessByNonInteger')
 @then(u'a SyntaxError should be raised at compile time: ListElementAccessByNonInteger')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Type mismatch" in str(exception)
 
 @then(u'a TypeError should be raised at any time: *')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
@@ -218,120 +273,160 @@ def step_impl(context):
 @then(u'a SyntaxError should be raised at runtime: InvalidArgumentType')
 @then(u'a ArgumentError should be raised at runtime: InvalidArgumentType')
 @then(u'a SyntaxError should be raised at compile time: InvalidArgumentType')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Type mismatch" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: UnexpectedSyntax')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Invalid input" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: InvalidUnicodeCharacter')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Invalid input" in str(exception)
 
 @then(u'a TypeError should be raised at runtime: InvalidArgumentValue')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Type mismatch" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: DifferentColumnsInUnion')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "must have the same column names." in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: InvalidClauseComposition')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Invalid combination" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: NestedAggregation')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Can't use aggregate functions inside of aggregate functions" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: UnknownFunction')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Unknown function" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: NonConstantExpression')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "invalid type" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: NoExpressionAlias')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "must be aliased" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: InvalidNumberLiteral')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Invalid numeric value" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: RequiresDirectedRelationship')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Only directed relationships" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: RelationshipUniquenessViolation')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Cannot use the same relationship variable" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: NoVariablesInScope')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "RETURN * is not allowed when there are no variables in scope" in str(exception)
 
 @then(u'a TypeError should be raised at runtime: InvalidPropertyType')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Property values can only be of primitive types or arrays of primitive types" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: IntegerOverflow')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Integer overflow" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: FloatingPointOverflow')
+
+"""step_impl."""
 def step_impl(context):
     global exception
     assert exception != None
     assert "Float overflow" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: InvalidDelete')
+
+"""step_imp."""
 def step_imp(context):
     global exception
     assert exception != None
     assert "DELETE can only be called on nodes, paths and relationships" in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: ColumnNameConflict')
+
+"""step_imp."""
 def step_imp(context):
     global exception
     assert exception != None
     assert "Multiple result columns with the same name are not supported." in str(exception)
 
 @then(u'a SyntaxError should be raised at compile time: AmbiguousAggregationExpression')
+
+"""step_imp."""
 def step_imp(context):
     global exception
     assert exception != None

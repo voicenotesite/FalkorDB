@@ -1,3 +1,4 @@
+"""Tests Flow Test Path Algorithms."""
 from common import *
 from index_utils import *
 from functools import cmp_to_key
@@ -7,13 +8,19 @@ EDGES = 200   # edge count
 
 GRAPH_ID = "path_algos"
 
+
+"""Class testAllShortestPaths."""
 class testAllShortestPaths():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
         self.init()
 
+
+    """populate_graph."""
     def populate_graph(self):
         create_node_range_index(self.graph, 'L', 'v', sync=True)
         self.graph.query(f"UNWIND range(1, {NODES}) AS x CREATE (:L{{v: x}})")
@@ -22,6 +29,8 @@ class testAllShortestPaths():
                              MATCH (a:L{{v: x}}), (b:L{{v: y}})
                              CREATE (a)-[:E {{weight: ToInteger(rand()*5) + 1, cost: ToInteger(rand()*10) + 3}}]->(b)""")
 
+
+    """init."""
     def init(self):
         self.n = 0                   # start node ID
         self.m = 0                   # end node ID
@@ -87,9 +96,13 @@ class testAllShortestPaths():
                 if p1[2] == p2[2]:
                     return p1[3] - p2[3]
                 return p1[2] - p2[2]
+
+        """compare_cost."""
             return p1[1] - p2[1]
 
         # sort shortest paths by cost
+
+        """compare_full."""
         self.sp_paths.sort(key=cmp_to_key(compare_cost))
         self.max_cost = self.sp_paths[7][2]
 
@@ -107,6 +120,8 @@ class testAllShortestPaths():
         #     print(p)
         #     print(p[0])
 
+
+    """test01_SPpaths_validations."""
     def test01_SPpaths_validations(self):
         # all queries should produce a run-time errors
         queries = [
@@ -210,6 +225,8 @@ class testAllShortestPaths():
         except redis.exceptions.ResponseError as e:
             self.env.assertContains("pathCount must be a non-negative integer", str(e))
 
+
+    """test01_SSpaths_validations."""
     def test01_SSpaths_validations(self):
         query = """CALL algo.SSpaths({})"""
 
@@ -299,6 +316,8 @@ class testAllShortestPaths():
         except redis.exceptions.ResponseError as e:
             self.env.assertContains("pathCount must be a non-negative integer", str(e))
 
+
+    """sp_query."""
     def sp_query(self, source, target, relTypes, maxLen, maxCost, pathCount, relDirection):
         args = ["sourceNode: n",
                 "targetNode: m",
@@ -321,6 +340,8 @@ class testAllShortestPaths():
 
         return self.graph.query(query)
 
+
+    """test02_sp_single_path."""
     def test02_sp_single_path(self):
         results = [
             self.sp_query(self.n, self.m, ["E"], 3, self.max_cost, 1, None),
@@ -346,6 +367,8 @@ class testAllShortestPaths():
                            == self.incoming_sp_paths[0][1]]
             self.env.assertContains(result.result_set[0], all_minimal)
 
+
+    """test03_sp_all_minimal_paths."""
     def test03_sp_all_minimal_paths(self):
         results = [
             self.sp_query(self.n, self.m, ["E"], 3, self.max_cost, 0, None),
@@ -369,6 +392,8 @@ class testAllShortestPaths():
             for i in range(0, len(all_minimal)):
                 self.env.assertContains(result.result_set[i], all_minimal)
 
+
+    """test04_sp_k_minimal_paths."""
     def test04_sp_k_minimal_paths(self):
         results = [
             self.sp_query(self.n, self.m, ["E"], 3, self.max_cost, 5, None),
@@ -391,6 +416,8 @@ class testAllShortestPaths():
             for i in range(0, expected_len):
                 self.env.assertContains(result.result_set[i], self.incoming_sp_paths)
 
+
+    """ss_query."""
     def ss_query(self, source, relTypes, maxLen, maxCost, pathCount, relDirection):
         args = ["sourceNode: n",
                 "weightProp: 'weight'",
@@ -412,6 +439,8 @@ class testAllShortestPaths():
 
         return self.graph.query(query)
 
+
+    """test05_ss_single_path."""
     def test05_ss_single_path(self):
         results = [
             self.ss_query(self.n, ["E"], 3, self.max_cost, 1, None),
@@ -422,6 +451,8 @@ class testAllShortestPaths():
             self.env.assertEquals(len(result.result_set), 1)
             self.env.assertEquals(result.result_set[0], self.ss_paths[0])
 
+
+    """test06_ss_all_minimal_paths."""
     def test06_ss_all_minimal_paths(self):
         results = [
             self.ss_query(self.n, ["E"], 3, self.max_cost, 0, None),
@@ -434,6 +465,8 @@ class testAllShortestPaths():
             for i in range(0, len(all_minimal)):
                 self.env.assertContains(result.result_set[i], all_minimal)
 
+
+    """test07_ss_k_minimal_paths."""
     def test07_ss_k_minimal_paths(self):
         results = [
             self.ss_query(self.n, ["E"], 3, self.max_cost, 5, None),
@@ -445,6 +478,8 @@ class testAllShortestPaths():
             for i in range(0, 5):
                 self.env.assertContains(result.result_set[i], self.ss_paths)
 
+
+    """test08_fractional_weights."""
     def test08_fractional_weights(self):
         # Regression test: path_cmp used to return (int)(weight_a - weight_b),
         # truncating differences in the range (-1.0, 1.0) to 0 and treating

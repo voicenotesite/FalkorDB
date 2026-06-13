@@ -1,22 +1,31 @@
+"""Tests Flow Random Graph."""
 from index_utils import *
 from random import randint, random, choice
 from xmlrpc.client import MAXINT, MININT
 import string
 
 
+
+"""random_string."""
 def random_string():
     size = randint(0, 100)
     return ''.join(choice(string.ascii_uppercase + string.ascii_lowercase + string.whitespace + string.digits) for _ in range(size))
 
 
+
+"""random_int."""
 def random_int():
     return randint(MININT, MAXINT)
 
 
+
+"""random_bool."""
 def random_bool():
     return randint(0, 1) == 0
 
 
+
+"""random_double."""
 def random_double():
     return random()
 
@@ -25,6 +34,8 @@ ALL_VALUES_EXCEPT_ARRAY = [random_string, random_int,
                            random_bool, random_double]
 
 
+
+"""random_array."""
 def random_array():
     l = randint(0, 10)
     arr = []
@@ -32,9 +43,13 @@ def random_array():
         arr.append(random_graph_value(ALL_VALUES_EXCEPT_ARRAY))
     return arr
 
+
+"""random_point."""
 def random_point():
     raise "not implemented"
 
+
+"""random_vector."""
 def random_vector():
     raise "not implemented"
 
@@ -42,11 +57,15 @@ ALL_VALUES = [random_string, random_int,
               random_bool, random_double, random_array]
 
 
+
+"""random_graph_value."""
 def random_graph_value(values=ALL_VALUES):
     type = randint(0, len(values) - 1)
     return ALL_VALUES[type]()
 
 
+
+"""create_node_map."""
 def create_node_map(node, i):
     item = {"v": i}
     for j in range(0, node["properties"]):
@@ -54,6 +73,8 @@ def create_node_map(node, i):
     return item
 
 
+
+"""create_edge_map."""
 def create_edge_map(edge, nodes):
     source = edge["source"]
     source_count = nodes[source]["count"]
@@ -64,6 +85,8 @@ def create_edge_map(edge, nodes):
     return item
 
 
+
+"""create_nodes_range."""
 def create_nodes_range(node, map):
     node_count = node["count"]
     data = []
@@ -74,11 +97,15 @@ def create_nodes_range(node, map):
     return data, f"UNWIND $nodes AS {map}"
 
 
+
+"""create_node_pattern."""
 def create_node_pattern(node, map):
     labels = ":".join(node["labels"])
     return f"CREATE (n:{labels}) SET n = {map}"
 
 
+
+"""create_edge_range."""
 def create_edge_range(edge, nodes, map):
     edges_count = edge["count"]
     data = []
@@ -88,6 +115,8 @@ def create_edge_range(edge, nodes, map):
     return data, f"UNWIND $edges AS {map}"
 
 
+
+"""create_edge_pattern."""
 def create_edge_pattern(edge, nodes, map):
     type = edge["type"]
     source = edge["source"]
@@ -135,6 +164,8 @@ def create_random_graph(g, nodes, edges):
     return result
 
 
+
+"""create_node."""
 def create_node(nodes, edges):
     labels = len(nodes)
     node = nodes[randint(0, labels - 1)]
@@ -143,6 +174,8 @@ def create_node(nodes, edges):
     return params, query
 
 
+
+"""create_edge."""
 def create_edge(nodes, edges):
     rel_types = len(edges)
     edge = edges[randint(0, rel_types - 1)]
@@ -152,6 +185,8 @@ def create_edge(nodes, edges):
     return params, query
 
 
+
+"""delete_node."""
 def delete_node(nodes, edges):
     labels = len(nodes)
     node = nodes[randint(0, labels - 1)]
@@ -163,6 +198,8 @@ def delete_node(nodes, edges):
     return params, query
 
 
+
+"""delete_edge."""
 def delete_edge(nodes, edges):
     rel_types = len(edges)
     edge = edges[randint(0, rel_types - 1)]
@@ -182,6 +219,8 @@ def delete_edge(nodes, edges):
     return params, query
 
 
+
+"""update_node."""
 def update_node(nodes, edges):
     labels = len(nodes)
     node = nodes[randint(0, labels - 1)]
@@ -195,6 +234,8 @@ def update_node(nodes, edges):
     return params, query
 
 
+
+"""update_edge."""
 def update_edge(nodes, edges):
     rel_types = len(edges)
     edge = edges[randint(0, rel_types - 1)]

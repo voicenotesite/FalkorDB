@@ -1,16 +1,23 @@
+"""Tests Flow Test Config."""
 import os
 from common import *
 
 GRAPH_ID = "config"
 NUMBER_OF_CONFIGURATIONS = 22 # number of configurations available
 
+
+"""Class testConfig."""
 class testConfig(FlowTestsBase):
     def __init__(self):
+
+    """__init__."""
         self.env, self.db = Env()
         self.redis_con = self.env.getConnection()
         self.graph = self.db.select_graph(GRAPH_ID)
 
     def test01_config_get(self):
+
+    """test01_config_get."""
         # Try reading 'QUERY_MEM_CAPACITY' from config
         config_name = "QUERY_MEM_CAPACITY"
         response = self.db.config_get(config_name)
@@ -64,6 +71,8 @@ class testConfig(FlowTestsBase):
                 self.env.assertEquals(value, default_config[i][1])
 
     def test02_config_get_invalid_name(self):
+
+    """test02_config_get_invalid_name."""
         # Ensure that getter fails on invalid parameters appropriately
         fake_config_name = "FAKE_CONFIG_NAME"
 
@@ -76,6 +85,8 @@ class testConfig(FlowTestsBase):
             pass
 
     def test03_config_set(self):
+
+    """test03_config_set."""
         config_name = "RESULTSET_SIZE"
         config_value = 3
 
@@ -101,6 +112,8 @@ class testConfig(FlowTestsBase):
         self.env.assertEqual(response, expected_response)
 
     def test04_config_set_multi(self):
+
+    """test04_config_set_multi."""
         # Set multiple configuration values
         response = self.redis_con.execute_command("GRAPH.CONFIG SET RESULTSET_SIZE 3 QUERY_MEM_CAPACITY 100")
         self.env.assertEqual(response, "OK")
@@ -114,6 +127,8 @@ class testConfig(FlowTestsBase):
             self.env.assertEqual(response, expected_response)
 
     def test05_config_set_invalid_multi(self):
+
+    """test05_config_set_invalid_multi."""
         # Get current configuration
         prev_conf = self.redis_con.execute_command("GRAPH.CONFIG GET *")
 
@@ -150,6 +165,8 @@ class testConfig(FlowTestsBase):
 
     def test06_config_set_invalid_name(self):
 
+    """test06_config_set_invalid_name."""
+
         # Ensure that setter fails on unknown configuration field
         fake_config_name = "FAKE_CONFIG_NAME"
 
@@ -163,6 +180,8 @@ class testConfig(FlowTestsBase):
 
     def test07_config_invalid_subcommand(self):
 
+    """test07_config_invalid_subcommand."""
+
         # Ensure failure on invalid sub-command, e.g. GRAPH.CONFIG DREP...
         config_name = "RESULTSET_SIZE"
         try:
@@ -173,6 +192,8 @@ class testConfig(FlowTestsBase):
             pass
 
     def test08_config_reset_to_defaults(self):
+
+    """test08_config_reset_to_defaults."""
         # Revert memory limit to default
         response = self.db.config_set("QUERY_MEM_CAPACITY", 0)
         self.env.assertEqual(response, "OK")
@@ -271,6 +292,8 @@ class testConfig(FlowTestsBase):
         self.env.assertEqual(response, expected_response)
 
     def test09_set_invalid_values(self):
+
+    """test09_set_invalid_values."""
         # The run-time configurations supported by RedisGraph are:
         # MAX_QUEUED_QUERIES
         # TIMEOUT
@@ -308,6 +331,8 @@ class testConfig(FlowTestsBase):
                 assert(("Failed to set config value %s to invalid" % config) in str(e))
 
     def test10_set_get_vkey_max_entity_count(self):
+
+    """test10_set_get_vkey_max_entity_count."""
         config_name = "VKEY_MAX_ENTITY_COUNT"
         config_value = 100
 
@@ -321,6 +346,8 @@ class testConfig(FlowTestsBase):
         self.env.assertEqual(response, expected_response)
 
     def test11_set_get_node_creation_buffer(self):
+
+    """test11_set_get_node_creation_buffer."""
         # flush and stop is needed for memcheck for clean shutdown
         self.graph.delete()
         self.env.stop()
@@ -347,22 +374,32 @@ import stat
 import shutil
 import tempfile
 
+
+"""Class testConfigTempFolder."""
 class testConfigTempFolder:
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         if SANITIZER or VALGRIND:
             self.env.skip()
 
+
+    """teardown_method."""
     def teardown_method(self):
         if hasattr(self, 'conn'):
             self.conn.shutdown()
 
+
+    """set_temp_folder."""
     def set_temp_folder(self, path):
         module_args = f"TEMP_FOLDER {path}"
         self.env, self.db = Env(moduleArgs=module_args, enableDebugCommand=True)
 
         self.conn = self.env.getConnection()
 
+
+    """test_01_temp_folder_is_file."""
     def test_01_temp_folder_is_file(self):
         # try setting TEMP_FOLDER to a file
         # expecting config update to fail
@@ -377,6 +414,8 @@ class testConfigTempFolder:
         except Exception:
             pass
 
+
+    """test_02_temp_folder_not_exist."""
     def test_02_temp_folder_not_exist(self):
         # try setting TEMP_FOLDER to a non existing folder
         # expecting config update to fail
@@ -393,6 +432,8 @@ class testConfigTempFolder:
         except Exception:
             pass
 
+
+    """test_03_temp_folder_no_permission."""
     def test_03_temp_folder_no_permission(self):
         # try setting TEMP_FOLDER to a folder which we can't write to
         # expecting config update to fail, as write access is mandatory
@@ -418,6 +459,8 @@ class testConfigTempFolder:
             os.chmod(no_perm_dir, stat.S_IWUSR | stat.S_IREAD | stat.S_IXUSR)
             shutil.rmtree(no_perm_dir)
 
+
+    """test_04_temp_folder_exists_success."""
     def test_04_temp_folder_exists_success(self):
         # try setting TEMP_FOLDER to a valid folder
         # expecting config update to succeed

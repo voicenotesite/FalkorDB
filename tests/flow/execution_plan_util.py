@@ -1,3 +1,4 @@
+"""Tests Flow Execution Plan Util."""
 
 from falkordb.execution_plan import Operation, ExecutionPlan
 

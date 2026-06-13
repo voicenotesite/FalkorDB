@@ -1,13 +1,20 @@
+"""Tests Flow Test Point."""
 from common import *
 from index_utils import *
 
 GRAPH_ID = "point"
 
+
+"""Class testPath."""
 class testPath():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """assert_distance."""
     def assert_distance(self, a, b, expected_distance):
         # A is 18.07 km away from B
         q = """WITH point({latitude:%f, longitude:%f}) AS a,
@@ -18,6 +25,8 @@ class testPath():
         error_rate = 0.1 * expected_distance
         self.env.assertAlmostEqual(distance, expected_distance, error_rate)
 
+
+    """test_point_distance."""
     def test_point_distance(self):
         # 0 m apart
         a = {'lat': 32.070794860, 'lon': 34.820751118}
@@ -36,6 +45,8 @@ class testPath():
         expected_distance = 11352120
         self.assert_distance(a, b, expected_distance)
 
+
+    """test_point_values."""
     def test_point_values(self):
         try:
             # latitude > 90
@@ -73,6 +84,8 @@ class testPath():
             # Expecting an error.
             self.env.assertIn('longitude should be within', str(e))
 
+
+    """test_point_index_lookup."""
     def test_point_index_lookup(self):
         home = {'lat': 32.070794860, 'lon': 34.820751118}
         univ = {'lat': 30.621734079, 'lon': -96.33775507}
@@ -142,6 +155,8 @@ class testPath():
         self.env.assertEquals(len(res), 2)
         self.env.assertEquals(res, [['home'], ['univ']])
 
+
+    """test_nested_point."""
     def test_nested_point(self):
         expected_value = [{'latitude':32, 'longitude':34}]
         # point as an array element
@@ -186,6 +201,8 @@ class testPath():
         res = self.graph.query(q)
         self.env.assertEquals(res.result_set[0][0], expected_value)
 
+
+    """test_point_coordinates."""
     def test_point_coordinates(self):
         # read latitude
         expected_value = 32.070794860

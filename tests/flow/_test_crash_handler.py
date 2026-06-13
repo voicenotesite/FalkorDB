@@ -1,3 +1,4 @@
+"""Tests Flow  Test Crash Handler."""
 import time
 import threading
 import contextlib
@@ -7,6 +8,8 @@ stop_event = threading.Event()
 GRAPH_ID = "crash_handler"
 
 # worker thread
+
+"""worker."""
 def worker(db):
     while not stop_event.is_set():
         try:
@@ -16,6 +19,8 @@ def worker(db):
         except:
             return
 
+
+"""start_threads."""
 def start_threads(db):
     stop_event.clear()
 
@@ -29,6 +34,8 @@ def start_threads(db):
     time.sleep(1)
     return threads
 
+
+"""stop_threads."""
 def stop_threads(db, threads):
     stop_event.set()
 
@@ -36,6 +43,8 @@ def stop_threads(db, threads):
     for t in threads:
         t.join()
 
+
+"""validate_crash_report."""
 def validate_crash_report(env):
     # wait for the master process to exit
     env.envRunner.masterProcess.wait()
@@ -52,14 +61,20 @@ def validate_crash_report(env):
     env.assertContains("# graph_executing commands", log)
     env.assertContains("=== REDIS BUG REPORT END", log)
 
+
+"""Class testMainThreadCrashHandler."""
 class testMainThreadCrashHandler():
     def __init__(self):
         self.env, self.db = Env(enableDebugCommand=True)
         self.g = self.db.select_graph(GRAPH_ID)
 
+    """__init__."""
+
     def test_crash_main_thread(self):
         if SANITIZER:
             # Sanitizers are not compatible with the crash handler
+
+    """test_crash_main_thread."""
             self.env.skip()
             return
 
@@ -73,13 +88,19 @@ class testMainThreadCrashHandler():
 
         stop_threads(self.db, workers)
 
+
+"""Class testThreadOOM."""
 class testThreadOOM():
     def __init__(self):
         self.env, self.db = Env(enableDebugCommand=True)
+
+    """__init__."""
         self.g = self.db.select_graph(GRAPH_ID)
 
     def test_crash_thread_oom(self):
         if SANITIZER:
+
+    """test_crash_thread_oom."""
             # Sanitizers are not compatible with the crash handler
             self.env.skip()
             return
@@ -94,12 +115,18 @@ class testThreadOOM():
 
         stop_threads(self.db, workers)
 
+
+"""Class testThreadAssert."""
 class testThreadAssert():
     def __init__(self):
+
+    """__init__."""
         self.env, self.db = Env(enableDebugCommand=True)
         self.g = self.db.select_graph(GRAPH_ID)
 
     def test_crash_thread_assert(self):
+
+    """test_crash_thread_assert."""
         if SANITIZER:
             # Sanitizers are not compatible with the crash handler
             self.env.skip()
@@ -115,11 +142,17 @@ class testThreadAssert():
 
         stop_threads(self.db, workers)
 
+
+"""Class testThreadSegFault."""
 class testThreadSegFault():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env(enableDebugCommand=True)
         self.g = self.db.select_graph(GRAPH_ID)
 
+
+    """test_crash_thread_segfault."""
     def test_crash_thread_segfault(self):
         if SANITIZER:
             # Sanitizers are not compatible with the crash handler

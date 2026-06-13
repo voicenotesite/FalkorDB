@@ -1,3 +1,4 @@
+"""Tests Flow Test Path Filter."""
 import re
 from common import *
 from index_utils import *
@@ -9,15 +10,23 @@ from demo import QueryInfo
 GRAPH_ID = "path_filters"
 
 
+
+"""Class testPathFilter."""
 class testPathFilter(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.conn = self.env.getConnection()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """setUp."""
     def setUp(self):
         self.conn.delete(GRAPH_ID)
 
+
+    """test00_simple_path_filter."""
     def test00_simple_path_filter(self):
         node0 = Node(alias="n0", node_id=0, labels="L")
         node1 = Node(alias="n1", node_id=1, labels="L", properties={'x':1})
@@ -30,6 +39,8 @@ class testPathFilter(FlowTestsBase):
         query_info = QueryInfo(query = query, description="Tests simple path filter", expected_result = expected_results)
         self._assert_resultset_equals_expected(result_set, query_info)
 
+
+    """test01_negated_simple_path_filter."""
     def test01_negated_simple_path_filter(self):
         node0 = Node(alias="n0", node_id=0, labels="L")
         node1 = Node(alias="n1", node_id=1, labels="L", properties={'x':1})
@@ -42,6 +53,8 @@ class testPathFilter(FlowTestsBase):
         query_info = QueryInfo(query = query, description="Tests simple negated path filter", expected_result = expected_results)
         self._assert_resultset_equals_expected(result_set, query_info)
 
+
+    """test02_test_path_filter_or_property_filter."""
     def test02_test_path_filter_or_property_filter(self):
         node0  = Node(alias="n0", node_id=0, labels="L")
         node1  = Node(alias="n1", node_id=1, labels="L", properties={'x':1})
@@ -54,6 +67,8 @@ class testPathFilter(FlowTestsBase):
         query_info = QueryInfo(query = query, description="Tests OR condition with simple filter and path filter", expected_result = expected_results)
         self._assert_resultset_and_expected_mutually_included(result_set, query_info)
 
+
+    """test03_path_filter_or_negated_path_filter."""
     def test03_path_filter_or_negated_path_filter(self):
         node0  = Node(alias="n0", node_id=0, labels="L")
         node1  = Node(alias="n1", node_id=1, labels="L", properties={'x':1})
@@ -66,6 +81,8 @@ class testPathFilter(FlowTestsBase):
         query_info = QueryInfo(query = query, description="Tests OR condition with path and negated path filters", expected_result = expected_results)
         self._assert_resultset_and_expected_mutually_included(result_set, query_info)
 
+
+    """test04_test_level_1_nesting_logical_operators_over_path_and_property_filters."""
     def test04_test_level_1_nesting_logical_operators_over_path_and_property_filters(self):
         node0  = Node(alias="n0", node_id=0, labels="L")
         node1  = Node(alias="n1", node_id=1, labels="L", properties={'x':1})
@@ -78,6 +95,8 @@ class testPathFilter(FlowTestsBase):
         query_info = QueryInfo(query = query, description="Tests AND condition with simple filter and negated path filter", expected_result = expected_results)
         self._assert_resultset_and_expected_mutually_included(result_set, query_info)
 
+
+    """test05_test_level_2_nesting_logical_operators_over_path_and_property_filters."""
     def test05_test_level_2_nesting_logical_operators_over_path_and_property_filters(self):
         node0  = Node(alias="n0", node_id=0, labels="L")
         node1  = Node(alias="n1", node_id=1, labels="L", properties={'x':1})
@@ -90,6 +109,8 @@ class testPathFilter(FlowTestsBase):
         query_info = QueryInfo(query = query, description="Tests AND condition with simple filter and nested OR", expected_result = expected_results)
         self._assert_resultset_and_expected_mutually_included(result_set, query_info)
 
+
+    """test06_test_level_2_nesting_logical_operators_over_path_filters."""
     def test06_test_level_2_nesting_logical_operators_over_path_filters(self):
         node0  = Node(alias="n0", node_id=0, labels="L")
         node1  = Node(alias="n1", node_id=1, labels="L", properties={'x':1})
@@ -104,6 +125,8 @@ class testPathFilter(FlowTestsBase):
         query_info = QueryInfo(query = query, description="Tests AND condition with simple filter and nested OR", expected_result = expected_results)
         self._assert_resultset_and_expected_mutually_included(result_set, query_info)
 
+
+    """test07_test_edge_filters."""
     def test07_test_edge_filters(self):
         node0  = Node(alias="n0", node_id=0, labels="L", properties={'x': 'a'})
         node1  = Node(alias="n1", node_id=1, labels="L", properties={'x': 'b'})
@@ -118,6 +141,8 @@ class testPathFilter(FlowTestsBase):
         query_info = QueryInfo(query = query, description="Tests pattern filter edge conditions", expected_result = expected_results)
         self._assert_resultset_and_expected_mutually_included(result_set, query_info)
 
+
+    """test08_indexed_child_stream_resolution."""
     def test08_indexed_child_stream_resolution(self):
         node0  = Node(alias="n0", node_id=0, labels="L", properties={'x': 'a'})
         node1  = Node(alias="n1", node_id=1, labels="L", properties={'x': 'b'})
@@ -136,6 +161,8 @@ class testPathFilter(FlowTestsBase):
         expected_results = [['b']]
         self.env.assertEquals(result_set.result_set, expected_results)
 
+
+    """test09_no_invalid_expand_into."""
     def test09_no_invalid_expand_into(self):
         node0  = Node(alias="n0", node_id=0, labels="L", properties={'x': 'a'})
         node1  = Node(alias="n1", node_id=1, labels="L", properties={'x': 'b'})
@@ -155,6 +182,8 @@ class testPathFilter(FlowTestsBase):
         expected_results = [['b']]
         self.env.assertEquals(result_set.result_set, expected_results)
 
+
+    """test10_verify_apply_results."""
     def test10_verify_apply_results(self):
         # Build a graph with 3 nodes and 3 edges, 2 of which have the same source.
         node0  = Node(alias="n0", node_id=0, labels="L", properties={'x': 'a'})
@@ -171,6 +200,8 @@ class testPathFilter(FlowTestsBase):
         expected_results = [['a'], ['b']]
         self.env.assertEquals(result_set.result_set, expected_results)
 
+
+    """test11_unbound_path_filters."""
     def test11_unbound_path_filters(self):
         # Build a graph with 2 nodes connected by 1 edge.
         node0  = Node(alias="n0", node_id=0, labels="L", properties={'x': 'a'})
@@ -193,6 +224,8 @@ class testPathFilter(FlowTestsBase):
                            ['b']]
         self.env.assertEquals(result_set.result_set, expected_result)
 
+
+    """test12_label_introduced_in_path_filter."""
     def test12_label_introduced_in_path_filter(self):
         # Build a graph with 2 nodes connected by 1 edge.
         node0  = Node(alias="n0", node_id=0, labels="L", properties={'x': 'a'})
@@ -206,6 +239,8 @@ class testPathFilter(FlowTestsBase):
         expected_result = [['a', 'b']]
         self.env.assertEquals(result_set.result_set, expected_result)
 
+
+    """test13_path_filter_in_different_scope."""
     def test13_path_filter_in_different_scope(self):
         # Create a graph of the form:
         # (c)-[]->(a)-[]->(b)
@@ -223,6 +258,8 @@ class testPathFilter(FlowTestsBase):
                            ['b']]
         self.env.assertEquals(result_set.result_set, expected_result)
 
+
+    """test14_path_and_predicate_filters."""
     def test14_path_and_predicate_filters(self):
         # Build a graph with 2 nodes connected by 1 edge.
         self.graph.query("CREATE (:L {x:'a'})-[:R]->(:L {x:'b'})")
@@ -242,6 +279,8 @@ class testPathFilter(FlowTestsBase):
         # The plan should be identical to the one constructed previously.
         self.env.assertEqual(plan_1, plan_2)
 
+
+    """test15_named_path_filter_position."""
     def test15_named_path_filter_position(self):
         # make sure the named path filter are positioned correctly
         # named paths are a bit different than ordinary aliases e.g. 'n'
@@ -279,6 +318,8 @@ class testPathFilter(FlowTestsBase):
         res = self.graph.query(q).result_set
         self.env.assertEqual(res[0][0], 1)
 
+
+    """test16_bidirectional_filter_path."""
     def test16_bidirectional_filter_path(self):
         # check bidirectional filter
         # create a graph where
@@ -312,6 +353,8 @@ class testPathFilter(FlowTestsBase):
         # clean up
         self.graph.query ("MATCH (s:Service) DELETE s")
 
+
+    """test17_filter_count."""
     def test17_filter_count(self):
         # filter paths should hit multiple times for tensors
         # create a graph where

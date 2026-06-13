@@ -1,11 +1,18 @@
+"""Tests Flow Test Bidirectional Traversals."""
 from common import *
 
+
+"""Class testBidirectionalTraversals."""
 class testBidirectionalTraversals(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.populate_acyclic_graph()
         self.populate_cyclic_graph()
 
+
+    """populate_acyclic_graph."""
     def populate_acyclic_graph(self):
         self.acyclic_graph = self.db.select_graph("G")
         # Construct a graph with the form:
@@ -24,6 +31,8 @@ class testBidirectionalTraversals(FlowTestsBase):
         query = f"CREATE {','.join(nodes_str)}, {e0}, {e1}"
         self.acyclic_graph.query(query)
 
+
+    """populate_cyclic_graph."""
     def populate_cyclic_graph(self):
         self.graph_with_cycle = self.db.select_graph("H")
         # Construct a graph with the form:
@@ -43,6 +52,8 @@ class testBidirectionalTraversals(FlowTestsBase):
         self.graph_with_cycle.query(query)
 
     # Test traversals that don't specify an edge direction.
+
+    """test01_bidirectional_traversals."""
     def test01_bidirectional_traversals(self):
         query = """MATCH (a)-[:E]-(b) RETURN a.val, b.val ORDER BY a.val, b.val"""
         actual_result = self.acyclic_graph.query(query)
@@ -63,6 +74,8 @@ class testBidirectionalTraversals(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test 0-hop undirected traversals.
+
+    """test02_bidirectional_zero_hop_traversals."""
     def test02_bidirectional_zero_hop_traversals(self):
         query = """MATCH (a)-[*0]-(b) RETURN a.val, b.val ORDER BY a.val, b.val"""
         actual_result = self.acyclic_graph.query(query)
@@ -87,6 +100,8 @@ class testBidirectionalTraversals(FlowTestsBase):
         #  self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test variable-length traversals that don't specify an edge direction.
+
+    """test03_bidirectional_variable_length_traversals."""
     def test03_bidirectional_variable_length_traversals(self):
         query = """MATCH (a)-[*]-(b) RETURN a.val, b.val ORDER BY a.val, b.val"""
         actual_result = self.acyclic_graph.query(query)
@@ -105,6 +120,8 @@ class testBidirectionalTraversals(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test collecting self and all direct neighbors.
+
+    """test04_bidirectional_variable_bounded_length_traversals."""
     def test04_bidirectional_variable_bounded_length_traversals(self):
         query = """MATCH (a)-[*0..1]-(b) RETURN a.val, b.val ORDER BY a.val, b.val"""
         actual_result = self.acyclic_graph.query(query)
@@ -119,6 +136,8 @@ class testBidirectionalTraversals(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test bidirectional query on nonexistent edge.
+
+    """test05_bidirectional_variable_length_traversals_over_nonexistent_type."""
     def test05_bidirectional_variable_length_traversals_over_nonexistent_type(self):
         query = """MATCH (a)-[:NONEXISTENT*]-(b) RETURN a.val, b.val ORDER BY a.val, b.val"""
         actual_result = self.acyclic_graph.query(query)
@@ -126,6 +145,8 @@ class testBidirectionalTraversals(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test bidirectional query on real edge or nonexistent edge.
+
+    """test06_bidirectional_variable_length_traversals_over_partial_existing_types."""
     def test06_bidirectional_variable_length_traversals_over_partial_existing_types(self):
         query = """MATCH (a)-[:NONEXISTENT|:E*]-(b) RETURN a.val, b.val ORDER BY a.val, b.val"""
         actual_result = self.acyclic_graph.query(query)
@@ -170,6 +191,8 @@ class testBidirectionalTraversals(FlowTestsBase):
         #  self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test bidirectional query on two real edge types.
+
+    """test08_bidirectional_variable_bounded_length_traversals_over_multiple_existing_types."""
     def test08_bidirectional_variable_bounded_length_traversals_over_multiple_existing_types(self):
         # Generate one new edge between v1 and v2.
         query = """MATCH (a {val: 'v1'})-[e]->(b {val: 'v2'}) CREATE (a)-[:CLONE]->(b)"""
@@ -200,6 +223,8 @@ class testBidirectionalTraversals(FlowTestsBase):
         self.env.assertEquals(actual_result.relationships_deleted, 1)
 
     # Test traversals that don't specify an edge direction in a graph with a cycle.
+
+    """test09_bidirectional_traversals_with_cycle."""
     def test09_bidirectional_traversals_with_cycle(self):
         # Test undirected traversals with a referenced edge.
         # TODO The variant query in which the edge is not referenced does not work:
@@ -216,6 +241,8 @@ class testBidirectionalTraversals(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test variable-length traversals that don't specify an edge direction.
+
+    """test10_bidirectional_variable_length_traversals_with_cycle."""
     def test10_bidirectional_variable_length_traversals_with_cycle(self):
         # TODO returns 16 rows; 18 rows expected.
         # The missing two rows are both `['v2', 'v3']
@@ -255,6 +282,8 @@ class testBidirectionalTraversals(FlowTestsBase):
                            ['v3', 'v3']]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test11_bidirectional_multiple_edge_type."""
     def test11_bidirectional_multiple_edge_type(self):
         # Construct a simple graph:
         # (a)-[E1]->(b), (c)-[E2]->(d)
@@ -281,6 +310,8 @@ class testBidirectionalTraversals(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Test bidirectional traversals resolved by an ExpandInto op.
+
+    """test12_bidirectional_expand_into."""
     def test12_bidirectional_expand_into(self):
         query = """MATCH (a), (b) WITH a, b MATCH (a)-[e:E]-(b) RETURN a.val, b.val ORDER BY a.val, b.val"""
         actual_result = self.acyclic_graph.query(query)
@@ -310,6 +341,8 @@ class testBidirectionalTraversals(FlowTestsBase):
         traverse_result = self.acyclic_graph.query(query)
         self.env.assertEquals(actual_result.result_set, traverse_result.result_set)
 
+
+    """test13_multiple_bidirectional_edges."""
     def test13_multiple_bidirectional_edges(self):
         # Traverse over 2 bidirectional edges.
         query = """MATCH (a)-[]-()-[]-(c) RETURN a.val, c.val ORDER BY a.val, c.val"""

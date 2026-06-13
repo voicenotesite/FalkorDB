@@ -1,19 +1,28 @@
+"""Tests Flow Test Unwind Clause."""
 from common import *
 import re
 
 GRAPH_ID = "unwind"
 
+
+"""Class testUnwindClause."""
 class testUnwindClause():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
  
+
+    """test01_unwind_null."""
     def test01_unwind_null(self):
         query = """UNWIND null AS x RETURN x"""
         actual_result = self.graph.query(query)
         expected = []
         self.env.assertEqual(actual_result.result_set, expected)
 
+
+    """test02_unwind_input_types."""
     def test02_unwind_input_types(self):
         # map list input
         query = """UNWIND ([{x:3, y:5}]) AS q RETURN q"""
@@ -87,6 +96,8 @@ class testUnwindClause():
         expected = [[None], [1], [2]]
         self.env.assertEqual(actual_result.result_set, expected)
 
+
+    """test03_unwind_heap_allocated_value."""
     def test03_unwind_heap_allocated_value(self):
         # make sure access to unwinded heap allocated values is safe
         # the second UNWIND will free its internal list every time it pulls
@@ -102,6 +113,8 @@ class testUnwindClause():
         expected_result = [[['1','2']], [['2','3']], [['3','4']]]
         self.env.assertEqual(res.result_set, expected_result)
 
+
+    """test04_unwind_set."""
     def test04_unwind_set(self):
         # delete property
         query = """CREATE (n:N {x:3})"""
@@ -110,6 +123,8 @@ class testUnwindClause():
         actual_result = self.graph.query(query)
         self.env.assertEqual(actual_result.properties_removed, 1)
 
+
+    """test05_overwrite_var."""
     def test05_overwrite_var(self):
         queries = ["UNWIND [0, 1] AS i UNWIND [2, 3] AS i RETURN i",
                    "MATCH (i) UNWIND [0, 1] as i RETURN i"]
@@ -122,6 +137,8 @@ class testUnwindClause():
             except Exception as e:
                 self.env.assertTrue("Variable `i` already declared" in str(e))
 
+
+    """test06_access_undefined_var."""
     def test06_access_undefined_var(self):
         query = "UNWIND [0, i, 1] AS i RETURN i"
         try:
@@ -131,6 +148,8 @@ class testUnwindClause():
         except Exception as e:
             self.env.assertTrue("'i' not defined" in str(e))
 
+
+    """test07_nested_unwind."""
     def test07_nested_unwind(self):
         # n0 is a heap allocated array
         # which gets free on the third call to consume of the nested UNWIND

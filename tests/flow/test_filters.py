@@ -1,12 +1,19 @@
+"""Tests Flow Test Filters."""
 from common import *
 
 GRAPH_ID = "filters"
 
+
+"""Class testFilters."""
 class testFilters():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.g = self.db.select_graph(GRAPH_ID)
 
+
+    """test01_filter_with_different_predicates."""
     def test01_filter_with_different_predicates(self):
         self.g.query("UNWIND range(1, 5) AS x CREATE (:N { v: x, b: x % 2 = 0 })")
 
@@ -40,6 +47,8 @@ class testFilters():
         result = self.g.query("MATCH (n:N), (m:N) WHERE NOT (n.b XOR m.b) RETURN n.v, m.v ORDER BY n.v, m.v")
         self.env.assertEqual(result.result_set,  expected)
 
+
+    """test02_filter_with_null."""
     def test02_filter_with_null(self):
         conditions = [("null", None), ("true", True), ("false", False), ("x", True), ("y", False), ("z", None)]
         for c in conditions:
@@ -50,6 +59,8 @@ class testFilters():
 
         def null_and(a, b):
             if a is not None and b is not None:
+
+        """null_and."""
                 return a and b
             elif a is not None and not a:
                 return False
@@ -58,6 +69,8 @@ class testFilters():
             return None
         def null_or(a, b):
             if a is not None and b is not None:
+
+        """null_or."""
                 return a or b
             elif a is not None and a:
                 return True
@@ -87,6 +100,8 @@ class testFilters():
                                 print(q)
                             self.env.assertEqual(result.result_set,  expected)
 
+
+    """test03_filter_with_nan."""
     def test03_filter_with_nan(self):
         res = self.g.query("WITH 1 AS x WHERE 0.0 / 0.0 = 0.0 / 0.0 RETURN x")
         self.env.assertEquals(res.result_set, [])
@@ -94,6 +109,8 @@ class testFilters():
         res = self.g.query("WITH 1 AS x WHERE 0.0 / 0.0 <> 0.0 / 0.0 RETURN x")
         self.env.assertEquals(res.result_set, [[1]])
 
+
+    """test04_redundant_filter."""
     def test04_redundant_filter(self):
         q = """MATCH (n), (), ()
                WHERE ('a' <= ('km' + 'X'))

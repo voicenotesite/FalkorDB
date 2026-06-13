@@ -1,9 +1,14 @@
+"""Tests Flow Test Traversal Construction."""
 from common import *
 from index_utils import *
 
 GRAPH_ID = "TraversalConstruction"
 
+
+"""Class testTraversalConstruction."""
 class testTraversalConstruction():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         redis_con = self.env.getConnection()
@@ -12,6 +17,8 @@ class testTraversalConstruction():
         self.graph.query("RETURN 1")
 
     # Test differing starting points for the same search pattern
+
+    """test_starting_point."""
     def test_starting_point(self):
         # Neither the source nor the destination are labeled
         # perform an AllNodeScan from the source node.
@@ -45,6 +52,8 @@ class testTraversalConstruction():
         self.env.assertIn("Node By Label Scan | (b:B)", plan)
 
     # make sure traversal begins with labeled entity
+
+    """test_start_with_label."""
     def test_start_with_label(self):
         queries = ["MATCH (A:L)-->(B)-->(C) RETURN 1",
                    # "MATCH (A)-->(B:L)-->(C) RETURN 1", # improve on this case
@@ -57,6 +66,8 @@ class testTraversalConstruction():
             self.env.assertTrue("Node By Label Scan" in ops[0])
 
     # make sure traversal begins with filtered entity
+
+    """test_start_with_filter."""
     def test_start_with_filter(self):
         # MATCH (A)-->(B)-->(C) WHERE A.val = 1 RETURN *
         # MATCH (A)-->(B)-->(C) WHERE B.val = 1 RETURN *
@@ -72,6 +83,8 @@ class testTraversalConstruction():
             self.env.assertTrue("Filter" in ops[1])
 
     # make sure traversal begins with bound entity
+
+    """test_start_with_bound."""
     def test_start_with_bound(self):
         # MATCH (X) WITH X as A MATCH (A)-->(B)-->(C) RETURN *
         # MATCH (X) WITH X as B MATCH (A)-->(B)-->(C) RETURN *
@@ -85,6 +98,8 @@ class testTraversalConstruction():
             self.env.assertTrue("Conditional Traverse | ({}".format(e) in ops[2])
 
     # make sure traversal begins with bound entity and follows with filter
+
+    """test_start_with_bound_follows_with_filter."""
     def test_start_with_bound_follows_with_filter(self):
         queries = ["MATCH (X) WITH X AS B MATCH (A {v:1})-->(B)-->(C) RETURN *",
                 "MATCH (X) WITH X AS B MATCH (A)-->(B)-->(C {v:1}) RETURN *"]
@@ -94,6 +109,8 @@ class testTraversalConstruction():
             ops.reverse()
             self.env.assertTrue("Filter" in ops[3])
 
+
+    """test_filter_as_early_as_possible."""
     def test_filter_as_early_as_possible(self):
         q = """MATCH (A:L {v: 1})-->(B)-->(C), (B)-->(D:L {v: 1}) RETURN 1"""
         plan = str(self.graph.explain(q))
@@ -105,12 +122,16 @@ class testTraversalConstruction():
         self.env.assertTrue("Conditional Traverse" in ops[3]) # traverse from A to D or from D to A
         self.env.assertTrue("Filter" in ops[4]) # filter either A or D
 
+
+    """test_long_pattern."""
     def test_long_pattern(self):
         q = """match (a)--(b)--(c)--(d)--(e)--(f)--(g)--(h)--(i)--(j)--(k)--(l) return *"""
         plan = str(self.graph.explain(q))
         ops = plan.split(os.linesep)
         self.env.assertEqual(len(ops), 14)
 
+
+    """test_start_with_index_filter."""
     def test_start_with_index_filter(self):
         # TODO: enable this test, once we'll score higher filters that
         # have the potential turn into index scan
@@ -130,6 +151,8 @@ class testTraversalConstruction():
         ops.reverse()
         self.env.assertTrue("Index Scan" in ops[0]) # start with index scan
 
+
+    """test_variable_length_traversal_placement."""
     def test_variable_length_traversal_placement(self):
         # cyclic traversal followed by variable-length traversal
         q = """MATCH (b)<-[*]-(a:L {v: 5})<--(a) WHERE b.v = 10 RETURN a"""
@@ -150,6 +173,8 @@ class testTraversalConstruction():
         self.env.assertTrue("Filter" in ops[1]) # filter A
         self.env.assertTrue("Conditional Variable Length Traverse" in ops[2]) # bidirectional var-len traverse from A to B
 
+
+    """test_traverse_zero_length_edge."""
     def test_traverse_zero_length_edge(self):
         # populate graph
         self.graph.query("CREATE (:A{v:1})-[:R{x:1}]->(:B{v:2})-[:R{x:2}]->(:C{v:3})")

@@ -1,3 +1,4 @@
+"""Tests Flow Test Bulk Insertion."""
 # -*- coding: utf-8 -*-
 import os
 import csv
@@ -10,6 +11,8 @@ from falkordb_bulk_loader.bulk_insert import bulk_insert
 
 GRAPH_ID = "bulk_insert"
 
+
+"""ping_server."""
 def ping_server(stop_event, res, self, interval = 0.1, delay = 2):
     ping_count = 0
     while not stop_event.is_set():
@@ -23,7 +26,11 @@ def ping_server(stop_event, res, self, interval = 0.1, delay = 2):
 
     res[0] = ping_count
 
+
+"""Class testGraphBulkInsertFlow."""
 class testGraphBulkInsertFlow(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
 
@@ -35,6 +42,8 @@ class testGraphBulkInsertFlow(FlowTestsBase):
         self.graph = self.db.select_graph(GRAPH_ID)
 
     # Run bulk loader script and validate terminal output
+
+    """test01_run_script."""
     def test01_run_script(self):
         runner = CliRunner()
 
@@ -52,6 +61,8 @@ class testGraphBulkInsertFlow(FlowTestsBase):
         self.env.assertIn('56 relations created', res.output)
 
     # Validate that the expected nodes and properties have been constructed
+
+    """test02_validate_nodes."""
     def test02_validate_nodes(self):
         # Query the newly-created graph
         query_result = self.graph.query('MATCH (p:Person) RETURN p.name, p.age, p.gender, p.status, ID(p) ORDER BY p.name')
@@ -90,6 +101,8 @@ class testGraphBulkInsertFlow(FlowTestsBase):
         self.env.assertEquals(query_result.result_set, expected_result)
 
     # Validate that the expected relations and properties have been constructed
+
+    """test03_validate_relations."""
     def test03_validate_relations(self):
         # Query the newly-created graph
         query_result = self.graph.query('MATCH (a)-[e:KNOWS]->(b) RETURN a.name, e.relation, b.name ORDER BY e.relation, a.name, b.name')
@@ -157,6 +170,8 @@ class testGraphBulkInsertFlow(FlowTestsBase):
 
         self.env.assertEquals(query_result.result_set, expected_result)
 
+
+    """test04_private_identifiers."""
     def test04_private_identifiers(self):
         graphname = "tmpgraph1"
         # Write temporary files
@@ -194,6 +209,8 @@ class testGraphBulkInsertFlow(FlowTestsBase):
         for propname in query_result.header:
             self.env.assertNotIn('_identifier', propname)
 
+
+    """test05_reused_identifier."""
     def test05_reused_identifier(self):
         graphname = "tmpgraph2"
         # Write temporary files
@@ -232,6 +249,8 @@ class testGraphBulkInsertFlow(FlowTestsBase):
         os.remove('/tmp/nodes.tmp')
         os.remove('/tmp/relations.tmp')
 
+
+    """test06_batched_build."""
     def test06_batched_build(self):
         # Create demo graph wth one query per input file
         graphname = "batched_graph"
@@ -261,6 +280,8 @@ class testGraphBulkInsertFlow(FlowTestsBase):
         new_result = new_graph.query('MATCH (a)-[e:KNOWS]->(b) RETURN a.name, e, b.name ORDER BY e.relation, a.name')
         self.env.assertEquals(original_result.result_set, new_result.result_set)
 
+
+    """test07_script_failures."""
     def test07_script_failures(self):
         graphname = "tmpgraph3"
         # Write temporary files
@@ -324,6 +345,8 @@ class testGraphBulkInsertFlow(FlowTestsBase):
             self.env.assertIn("Invalid graph operation on empty key", str(e))
 
     # Verify that numeric, boolean, and null types are properly handled
+
+    """test08_property_types."""
     def test08_property_types(self):
         graphname = "tmpgraph4"
         # Write temporary files
@@ -360,6 +383,8 @@ class testGraphBulkInsertFlow(FlowTestsBase):
         self.env.assertEquals(query_result.result_set, expected_result)
 
     # Verify that the bulk loader does not block the server
+
+    """test09_large_bulk_insert."""
     def test09_large_bulk_insert(self):
         graphname = "tmpgraph5"
         prop_str = "Property value to be repeated 1 million generating a multi-megabyte CSV"
@@ -392,6 +417,8 @@ class testGraphBulkInsertFlow(FlowTestsBase):
         self.env.assertGreaterEqual(ping_count, 1)
 
     # Verify that nodes with multiple labels are created correctly
+
+    """test10_multiple_labels."""
     def test10_multiple_labels(self):
         graphname = "tmpgraph6"
         # Write temporary files
@@ -523,6 +550,8 @@ class testGraphBulkInsertFlow(FlowTestsBase):
                 self.env.assertEquals(query_result.result_set, expected_result)
 
     # Verify that nodes with multiple labels are created correctly
+
+    """test11_social_multiple_labels."""
     def test11_social_multiple_labels(self):
         # Create the social graph with multi-labeled nodes
         graphname = "multilabel_social"

@@ -1,3 +1,4 @@
+"""Tests Tck Redis Utils Assertions."""
 from numbers import Number
 from collections import Counter
 from RLTest import Env
@@ -5,6 +6,8 @@ from RLTest import Env
 from falkordb import Node, Edge, Path
 
 
+
+"""nodeToString."""
 def nodeToString(value):
     res = '('
     if value.alias:
@@ -23,6 +26,8 @@ def nodeToString(value):
     return value
 
 
+
+"""edgeToString."""
 def edgeToString(value):
     res = "["
     if value.relation:
@@ -38,6 +43,8 @@ def edgeToString(value):
     return value
 
 
+
+"""listToString."""
 def listToString(listToConvert):
     strValue = '['
     strValue += ", ".join(map(lambda value: prepareActualValue(value), listToConvert))
@@ -45,6 +52,8 @@ def listToString(listToConvert):
     return strValue
 
 
+
+"""pathToString."""
 def pathToString(pathToConvert):
     strValue = "<"
     nodes_count = pathToConvert.node_count()
@@ -60,6 +69,8 @@ def pathToString(pathToConvert):
     return strValue
 
 
+
+"""dictToString."""
 def dictToString(dictToConvert):
     size = len(dictToConvert)
     strValue = '{'
@@ -72,6 +83,8 @@ def dictToString(dictToConvert):
     return strValue
 
 
+
+"""prepareActualValue."""
 def prepareActualValue(actualValue):
     if isinstance(actualValue, bool):
         actualValue = str(actualValue).lower()
@@ -109,18 +122,26 @@ def prepareActualValue(actualValue):
     return actualValue
 
 
+
+"""prepare_actual_row."""
 def prepare_actual_row(row):
     return tuple(prepareActualValue(cell) for cell in row)
 
 
+
+"""prepare_expected_row."""
 def prepare_expected_row(row):
     return tuple(cell for cell in row)
 
 
+
+"""assert_empty_resultset."""
 def assert_empty_resultset(resultset):
     Env.RTestInstance.currEnv.assertEquals(len(resultset.result_set), 0)
 
 
+
+"""assert_statistics."""
 def assert_statistics(resultset, stat, value, *, labels_added=None):
     if stat == "+nodes":
         Env.RTestInstance.currEnv.assertEquals(resultset.nodes_created, value)
@@ -143,16 +164,22 @@ def assert_statistics(resultset, stat, value, *, labels_added=None):
         Env.RTestInstance.currEnv.assertTrue(False)
 
 
+
+"""assert_no_modifications."""
 def assert_no_modifications(resultset):
     Env.RTestInstance.currEnv.assertEquals(sum([resultset.nodes_created, resultset.nodes_deleted,
                 resultset.properties_set, resultset.relationships_created,
                 resultset.relationships_deleted]), 0)
 
 
+
+"""assert_resultset_length."""
 def assert_resultset_length(resultset, length):
     Env.RTestInstance.currEnv.assertEquals(len(resultset.result_set), length)
 
 
+
+"""assert_resultsets_equals_in_order."""
 def assert_resultsets_equals_in_order(actual, expected):
     rowCount = len(expected.rows)
     # check amount of rows
@@ -164,6 +191,8 @@ def assert_resultsets_equals_in_order(actual, expected):
         Env.RTestInstance.currEnv.assertEquals(actualRow, expectedRow)
 
 
+
+"""assert_resultsets_equals."""
 def assert_resultsets_equals(actual, expected):
     # Convert each row to a tuple, and maintain a count of how many times that row appears
     actualCtr = Counter(prepare_actual_row(row) for row in actual.result_set)

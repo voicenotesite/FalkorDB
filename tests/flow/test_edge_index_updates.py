@@ -1,3 +1,4 @@
+"""Tests Flow Test Edge Index Updates."""
 import random
 import string
 from common import *
@@ -12,13 +13,19 @@ node_ctr = 0
 edge_ctr = 0
 
 
+
+"""Class testEdgeIndexUpdatesFlow."""
 class testEdgeIndexUpdatesFlow():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
         self.build_indices()
 
+
+    """new_node."""
     def new_node(self):
         return Node(alias=f"n_{node_ctr}",
                     labels = labels[node_ctr % 2],
@@ -28,6 +35,8 @@ class testEdgeIndexUpdatesFlow():
                                   'intval': random.randint(1, 10000),
                                   'stringval': ''.join(random.choice(string.ascii_lowercase) for x in range(6))})
 
+
+    """new_edge."""
     def new_edge(self, from_node, to_node):
         return Edge(from_node, types[edge_ctr % 2], to_node,
                     properties={'unique': edge_ctr,
@@ -35,6 +44,8 @@ class testEdgeIndexUpdatesFlow():
                                   'doubleval': round(random.uniform(-1, 1), 2),
                                   'intval': random.randint(1, 10000),
                                   'stringval': ''.join(random.choice(string.ascii_lowercase) for x in range(6))})
+
+    """populate_graph."""
     def populate_graph(self):
         global node_ctr
         global edge_ctr
@@ -56,6 +67,8 @@ class testEdgeIndexUpdatesFlow():
         edges_str = [str(edge) for edge in edges]
         self.graph.query(f"CREATE {','.join(nodes_str + edges_str)}")
 
+
+    """build_indices."""
     def build_indices(self):
         for field in fields:
             self.graph.query("CREATE INDEX FOR ()-[r:type_a]-() ON (r.%s)" % (field))
@@ -63,12 +76,16 @@ class testEdgeIndexUpdatesFlow():
         wait_for_indices_to_sync(self.graph)
 
     # Validate that all properties are indexed
+
+    """validate_indexed."""
     def validate_indexed(self):
         for field in fields:
             resp = str(self.graph.explain("""MATCH ()-[a:type_a]->() WHERE a.%s > 0 RETURN a""" % (field)))
             self.env.assertIn('Edge By Index Scan', resp)
 
     # So long as 'unique' is not modified, label_a.unique will always be even and label_b.unique will always be odd
+
+    """validate_unique."""
     def validate_unique(self):
         result = self.graph.query("MATCH ()-[r:type_a]->() RETURN r.unique")
         # Remove the header
@@ -83,6 +100,8 @@ class testEdgeIndexUpdatesFlow():
             self.env.assertEquals(int(float(val[0])) % 2, 1)
 
     # The index scan ought to return identical results to a label scan over the same range of values.
+
+    """validate_doubleval."""
     def validate_doubleval(self):
         for type in types:
             resp = str(self.graph.explain("""MATCH ()-[a:%s]->() WHERE a.doubleval < 100 RETURN a.doubleval ORDER BY a.doubleval""" % (type)))
@@ -98,6 +117,8 @@ class testEdgeIndexUpdatesFlow():
                 self.env.assertEqual(float(pair[0]), float(pair[1]))
 
     # The intval property can be assessed similar to doubleval, but the result sets should be identical
+
+    """validate_intval."""
     def validate_intval(self):
         for type in types:
             resp = str(self.graph.explain("""MATCH ()-[a:%s]->() WHERE a.intval > 0 RETURN a.intval ORDER BY a.intval""" % (type)))
@@ -108,6 +129,8 @@ class testEdgeIndexUpdatesFlow():
             self.env.assertEqual(indexed_result.result_set, scan_result.result_set)
 
     # Validate a series of premises to ensure that the graph has not been modified unexpectedly
+
+    """validate_state."""
     def validate_state(self):
         self.validate_unique()
         self.validate_indexed()
@@ -115,6 +138,8 @@ class testEdgeIndexUpdatesFlow():
         self.validate_intval()
 
     # Modify a property, triggering updates to all edges in two indices
+
+    """test01_full_property_update."""
     def test01_full_property_update(self):
         result = self.graph.query("MATCH ()-[a]->() SET a.doubleval = a.doubleval + 1.1")
         self.env.assertEquals(result.properties_set, 1000)
@@ -122,12 +147,16 @@ class testEdgeIndexUpdatesFlow():
         self.validate_state()
 
     # Modify a property, triggering updates to a subset of edges in two indices
+
+    """test02_partial_property_update."""
     def test02_partial_property_update(self):
         self.graph.query("MATCH ()-[a]->() WHERE a.doubleval > 0 SET a.doubleval = a.doubleval + 1.1")
         # Verify that index scans still function and return correctly
         self.validate_state()
 
     #  Add 100 randomized edges and validate indices
+
+    """test03_edge_creation."""
     def test03_edge_creation(self):
         global node_ctr
         global edge_ctr
@@ -154,6 +183,8 @@ class testEdgeIndexUpdatesFlow():
         self.validate_state()
 
     # Delete every other edge in first 100 and validate indices
+
+    """test04_edge_deletion."""
     def test04_edge_deletion(self):
         global edge_ctr
         # Delete edges one at a time
@@ -168,6 +199,8 @@ class testEdgeIndexUpdatesFlow():
         self.env.assertGreater(result.relationships_deleted, 0)
         self.validate_state()
 
+
+    """test05_unindexed_property_update."""
     def test05_unindexed_property_update(self):
         # Add an unindexed property to all edges.
         self.graph.query("MATCH ()-[a]->() SET a.unindexed = 'unindexed'")
@@ -182,6 +215,8 @@ class testEdgeIndexUpdatesFlow():
         self.env.assertEquals(result.properties_set, 1)
 
     # Validate that after deleting an indexed property, that property can no longer be found in the index.
+
+    """test06_remove_indexed_prop."""
     def test06_remove_indexed_prop(self):
         # Create a new edge with a single indexed property
         query = """CREATE ()-[:NEW {v: 5}]->()"""

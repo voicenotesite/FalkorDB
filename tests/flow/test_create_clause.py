@@ -1,16 +1,25 @@
+"""Tests Flow Test Create Clause."""
 from common import *
 from index_utils import *
 
 GRAPH_ID = "create-clause"
 
+
+"""Class testCreateClause."""
 class testCreateClause():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.g = self.db.select_graph(GRAPH_ID)
 
+
+    """tearDown."""
     def tearDown(self):
         self.g.delete()
     
+
+    """test01_create_dependency."""
     def test01_create_dependency(self):
         # create clauses where one entity depends on another
         # e.g. CREATE (a)-[e:R {v:1}]->(b), (z {v:e.v+2})
@@ -51,6 +60,8 @@ class testCreateClause():
         except Exception as e:
             self.env.assertTrue("Attempted to access undefined attribute" in str(e))
 
+
+    """test02_edge_reuse."""
     def test02_edge_reuse(self):
         # bound edges can not be used in a CREATE clause
 

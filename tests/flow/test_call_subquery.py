@@ -1,3 +1,4 @@
+"""Tests Flow Test Call Subquery."""
 from common import *
 from collections import OrderedDict
 from index_utils import create_node_range_index
@@ -10,7 +11,11 @@ def _assert_subquery_contains_single(plan: ExecutionPlan, operation_name: str, e
     `operation_name`."""
     env.assertEquals(count_operation(plan.structured_plan, operation_name), 1)
 
+
+"""Class testCallSubqueryFlow."""
 class testCallSubqueryFlow():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
@@ -2132,6 +2137,8 @@ updating clause.")
         scan = locate_operation(plan.structured_plan, "Conditional Traverse")
         self.env.assertEquals(str(scan), "Conditional Traverse | (n:N)->(n:N)")
 
+
+    """test29_rewrite_call_subquery."""
     def test29_rewrite_call_subquery(self):
         self.graph.delete()
 
@@ -2149,6 +2156,8 @@ updating clause.")
                RETURN 0""")
         self.env.assertEquals(res.result_set, [[0]])
 
+
+    """test30_merge_after_call_subquery."""
     def test30_merge_after_call_subquery(self):
         self.graph.delete()
 
@@ -2163,6 +2172,8 @@ updating clause.")
             """)
         self.env.assertEquals(res.result_set, [[1]])
 
+
+    """test31_create_within_call."""
     def test31_create_within_call(self):
         # The query will:
         # 1. Create an entity within a CALL sub query
@@ -2180,6 +2191,8 @@ updating clause.")
         self.env.assertEquals(res.nodes_created, 1)
         self.env.assertEquals(len(res.result_set), 0)
 
+
+    """test32_variable_scope_propagation."""
     def test32_variable_scope_propagation(self):
         q = """WITH 1 AS a, 2 AS b
                CALL {
@@ -2249,6 +2262,8 @@ updating clause.")
         res = self.graph.query(q).result_set
         self.env.assertEquals(res[0][0], [1, 2, 3]) # lst
 
+
+    """test33_nested_call."""
     def test33_nested_call(self):
         q = """UNWIND range(1, 3) AS i
                CALL {
@@ -2297,6 +2312,8 @@ updating clause.")
         self.env.assertEquals(res[1][0], 2)   # x
         self.env.assertEquals(res[1][1], 2)   # a
 
+
+    """test34_path_graph_pattern_scope."""
     def test34_path_graph_pattern_scope(self):
         q = "CREATE (:N)-[:R]->(:M), (:N)-[:R]->(:N)-[:R]->(:M)"
         self.graph.query(q).result_set
@@ -2336,6 +2353,8 @@ updating clause.")
         res = self.graph.query(q).result_set
         self.env.assertEquals(len(res), 2)
 
+
+    """test_35_recursive."""
     def test_35_recursive(self):
         q = """WITH 2 AS a
                CALL {
@@ -2367,6 +2386,8 @@ updating clause.")
         self.env.assertEquals(res[0][0], 15) # total
 
 
+
+    """test_36_call_write_interplay."""
     def test_36_call_write_interplay(self):
         q = """CREATE (:N {v: 1})
                WITH *
@@ -2394,6 +2415,8 @@ updating clause.")
         res = self.graph.query(q).result_set
         self.env.assertEquals(res[0][0], 1) # v
 
+
+    """test_37_call_inside_optional."""
     def test_37_call_inside_optional(self):
         q = """OPTIONAL MATCH (n:N)
                CALL {
@@ -2419,6 +2442,8 @@ updating clause.")
         res = self.graph.query(q).result_set
         self.env.assertEquals(res[0][0], 0) # cnt
 
+
+    """test_38_call_aggregation_distinct."""
     def test_38_call_aggregation_distinct(self):
         q = """UNWIND ['a', 'b', 'a', 'c'] AS name
                CALL {
@@ -2457,6 +2482,8 @@ updating clause.")
         res = self.graph.query(q).result_set
         self.env.assertEquals(res[0][0], [1,3,5]) # odds
 
+
+    """test_39_call_returning_complex_structures."""
     def test_39_call_returning_complex_structures(self):
         q = """WITH 2 AS x
                CALL {
@@ -2489,6 +2516,8 @@ updating clause.")
                                           {"num": 2, "sq": 4},
                                           {"num": 3, "sq": 9}]) # data
 
+
+    """test_40_call_with_yield_like_semantics."""
     def test_40_call_with_yield_like_semantics(self):
         q = """CALL {
                    RETURN 1 AS val, 2 AS other
@@ -2507,6 +2536,8 @@ updating clause.")
         r = res[0][0]
         self.env.assertEquals(res[0][1], r > 0.5) # gt_half
 
+
+    """test_41_deep_nesting_multiple_union."""
     def test_41_deep_nesting_multiple_union(self):
         q = """CALL {
                    RETURN 1 AS x
@@ -2546,6 +2577,8 @@ updating clause.")
         self.env.assertEquals(res[4][0], 5) # i
         self.env.assertEquals(res[5][0], 6) # i
 
+
+    """test_42_with_where_propagation."""
     def test_42_with_where_propagation(self):
         q = """WITH 1 AS a, 2 AS b
                CALL {
@@ -2572,6 +2605,8 @@ updating clause.")
         res = self.graph.query(q).result_set
         self.env.assertEquals(res[0][0], 9) # count
 
+
+    """test_43_call_foreach."""
     def test_43_call_foreach(self):
         q = """CALL {
                    UNWIND range(1,3) AS n
@@ -2583,6 +2618,8 @@ updating clause.")
         res = self.graph.query(q).result_set
         self.env.assertEquals(res[0][0], 3) # created
 
+
+    """test_44_subpath_manipulation."""
     def test_44_subpath_manipulation(self):
         q = """MATCH p = (a)-[:R*1..3]->(b)
                CALL {
@@ -2595,6 +2632,8 @@ updating clause.")
         res = self.graph.query(q).result_set
         self.env.assertEquals(res[0][0], ["R", "R", "R", "R", "R"]) # rels
 
+
+    """test_45_pattern_comprehension_list_expressions."""
     def test_45_pattern_comprehension_list_expressions(self):
         q = """CALL {
                    UNWIND range(1, 4) AS i
@@ -2618,6 +2657,8 @@ updating clause.")
         self.env.assertEquals(res[0][0], [2]) # evens
 
 
+
+    """test_46_reduce."""
     def test_46_reduce(self):
         q = """WITH 'foo' AS s
                CALL {
@@ -2638,6 +2679,8 @@ updating clause.")
         res = self.graph.query(q).result_set
         self.env.assertEquals(res[0][0], 6) # total
 
+
+    """test_47_type_boundries."""
     def test_47_type_boundries(self):
         # Divide-by-zero inside subquery
         q = """UNWIND [0, 1, 2] AS x
@@ -2708,6 +2751,8 @@ updating clause.")
             pass
 
 
+
+    """test_48_limit_skip_order."""
     def test_48_limit_skip_order(self):
         q = """UNWIND range(1,10) AS i
                CALL {
@@ -2754,6 +2799,8 @@ updating clause.")
         self.env.assertEquals(res[2][0], 3) # a
         self.env.assertEquals(res[2][1], 3) # val
 
+
+    """test_49_multiple_calls."""
     def test_49_multiple_calls(self):
         q = """WITH 1 AS a, 2 AS b
                CALL {
@@ -2789,6 +2836,8 @@ updating clause.")
         for row in res:
             self.env.assertEquals(row[0] + 1, row[1])
 
+
+    """test_50_Independent_call_chains."""
     def test_50_Independent_call_chains(self):
         q = """CALL {
                    CALL {
@@ -2803,6 +2852,8 @@ updating clause.")
         res = self.graph.query(q).result_set
         self.env.assertEquals(res[0][0], 3) # sum
 
+
+    """test_51_union_limit_aggregation_interplay."""
     def test_51_union_limit_aggregation_interplay(self):
         q = """CALL {
                    RETURN 1 AS n
@@ -2840,6 +2891,8 @@ updating clause.")
         res = self.graph.query(q).result_set
         self.env.assertEquals(res[0][0], [1,2,3,4,5,6,7,8,9,10])
 
+
+    """test_52_create_delete."""
     def test_52_create_delete(self):
         pass
         # q = """CREATE (:Temp {v: 1}), (:Temp {v: 2})
@@ -2868,6 +2921,8 @@ updating clause.")
         #self.env.assertEquals(res.nodes_created, 1)
         #self.env.assertEquals(res.nodes_deleted, 1)
 
+
+    """test_53_nested_union."""
     def test_53_nested_union(self):
         q = """CALL {
                    RETURN 1 AS x

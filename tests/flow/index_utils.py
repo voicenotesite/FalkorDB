@@ -1,6 +1,9 @@
+"""Tests Flow Index Utils."""
 import time
 
 # wait for index to be operational
+
+"""_wait_on_index."""
 def _wait_on_index(graph, label):
     q = f"""CALL db.indexes() YIELD label, status
     WHERE label = '{label}' AND status <> 'OPERATIONAL'
@@ -11,6 +14,8 @@ def _wait_on_index(graph, label):
         if result.result_set[0][0] == 0:
             break
 
+
+"""_create_index."""
 def _create_index(graph, q, label=None, sync=False):
     res = graph.query(q)
 
@@ -19,6 +24,8 @@ def _create_index(graph, q, label=None, sync=False):
 
     return res
 
+
+"""list_indicies."""
 def list_indicies(graph, label=None):
     q = "CALL db.indexes()"
     q += " YIELD label, properties, types, language, stopwords, entitytype, info, status"
@@ -30,6 +37,8 @@ def list_indicies(graph, label=None):
 
     return graph.ro_query(q)
 
+
+"""_create_typed_index."""
 def _create_typed_index(graph, idx_type, entity_type, label, *properties, options=None, sync=False):
     if entity_type == "NODE":
         pattern = f"(e:{label})"
@@ -58,26 +67,40 @@ def _create_typed_index(graph, idx_type, entity_type, label, *properties, option
 
     return _create_index(graph, q, label, sync)
 
+
+"""create_node_range_index."""
 def create_node_range_index(graph, label, *properties, sync=False):
     return _create_typed_index(graph, "RANGE", "NODE", label, *properties, sync=sync)
 
+
+"""create_node_fulltext_index."""
 def create_node_fulltext_index(graph, label, *properties, sync=False):
     return _create_typed_index(graph, "FULLTEXT", "NODE", label, *properties, sync=sync)
 
+
+"""create_node_vector_index."""
 def create_node_vector_index(graph, label, *properties, dim=0, similarity_function="euclidean", m=16, efConstruction=200, efRuntime=10, sync=False):
     options = {'dimension': dim, 'similarityFunction': similarity_function, 'M': m, 'efConstruction': efConstruction, 'efRuntime': efRuntime}
     return _create_typed_index(graph, "VECTOR", "NODE", label, *properties, options=options, sync=sync)
 
+
+"""create_edge_range_index."""
 def create_edge_range_index(graph, relation, *properties, sync=False):
     return _create_typed_index(graph, "RANGE", "EDGE", relation, *properties, sync=sync)
 
+
+"""create_edge_fulltext_index."""
 def create_edge_fulltext_index(graph, relation, *properties, sync=False):
     return _create_typed_index(graph, "FULLTEXT", "EDGE", relation, *properties, sync=sync)
 
+
+"""create_edge_vector_index."""
 def create_edge_vector_index(graph, relation, *properties, dim, similarity_function="euclidean", m=16, efConstruction=200, efRuntime=10, sync=False):
     options = {'dimension': dim, 'similarityFunction': similarity_function, 'M': m, 'efConstruction': efConstruction, 'efRuntime': efRuntime}
     return _create_typed_index(graph, "VECTOR", "EDGE", relation, *properties, options=options, sync=sync)
 
+
+"""_drop_index."""
 def _drop_index(graph, idx_type, entity_type, label, attribute=None):
     # set pattern
     if entity_type == "NODE":
@@ -99,25 +122,39 @@ def _drop_index(graph, idx_type, entity_type, label, attribute=None):
 
     return graph.query(q)
 
+
+"""drop_node_range_index."""
 def drop_node_range_index(graph, label, attribute):
     return _drop_index(graph, "RANGE", "NODE", label, attribute)
 
+
+"""drop_node_fulltext_index."""
 def drop_node_fulltext_index(graph, label, attribute):
     return _drop_index(graph, "FULLTEXT", "NODE", label, attribute)
 
+
+"""drop_node_vector_index."""
 def drop_node_vector_index(graph, label, attribute):
     return _drop_index(graph, "VECTOR", "NODE", label, attribute)
 
+
+"""drop_edge_range_index."""
 def drop_edge_range_index(graph, label, attribute):
     return _drop_index(graph, "RANGE", "EDGE", label, attribute)
 
+
+"""drop_edge_fulltext_index."""
 def drop_edge_fulltext_index(graph, label, attribute):
     return _drop_index(graph, "FULLTEXT", "EDGE", label, attribute)
 
+
+"""drop_edge_vector_index."""
 def drop_edge_vector_index(graph, label, attribute):
     return _drop_index(graph, "VECTOR", "EDGE", label, attribute)
 
 # validate index is being populated
+
+"""index_under_construction."""
 def index_under_construction(graph, label):
     params = {'lbl': label}
     q = "CALL db.indexes() YIELD label, status WHERE label = $lbl RETURN status"
@@ -125,6 +162,8 @@ def index_under_construction(graph, label):
     return "UNDER CONSTRUCTION" in res.result_set[0][0]
 
 # wait for all graph indices to by operational
+
+"""wait_for_indices_to_sync."""
 def wait_for_indices_to_sync(graph):
     q = "CALL db.indexes() YIELD status WHERE status <> 'OPERATIONAL' RETURN count(1)"
     while True:
@@ -133,10 +172,14 @@ def wait_for_indices_to_sync(graph):
             break
         time.sleep(0.5) # sleep 500ms
 
+
+"""query_node_vector_index."""
 def query_node_vector_index(graph, label, attribute, k, q):
     params = {'lbl': label, 'attr': attribute, 'k': k, 'q': q}
     return graph.query("CALL db.idx.vector.queryNodes($lbl, $attr, $k, vecf32($q))", params=params)
 
+
+"""query_edge_vector_index."""
 def query_edge_vector_index(graph, relation, attribute, k, q):
     params = {'lbl': relation, 'attr': attribute, 'k': k, 'q': q}
     return graph.query("CALL db.idx.vector.queryRelationships($lbl, $attr, $k, vecf32($q))", params=params)

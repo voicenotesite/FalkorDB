@@ -1,3 +1,4 @@
+"""Tests Tck Bolt Utils Graphs."""
 import os
 import sys
 from RLTest import Env
@@ -11,10 +12,14 @@ r = None
 bolt_con = None
 driver = None
 
+
+"""redis."""
 def redis():
     return Env.RTestInstance.currEnv
 
 
+
+"""_brand_new_redis."""
 def _brand_new_redis():
     global r
     global driver
@@ -29,6 +34,8 @@ def _brand_new_redis():
     return driver
 
 
+
+"""empty_graph."""
 def empty_graph():
     global bolt_con
 
@@ -40,10 +47,14 @@ def empty_graph():
         session.run("MATCH (n) DETACH DELETE n").consume()
 
 
+
+"""any_graph."""
 def any_graph():
     return empty_graph()
 
 
+
+"""binary_tree_graph1."""
 def binary_tree_graph1():
     global bolt_con
 
@@ -81,6 +92,8 @@ def binary_tree_graph1():
                         ")
 
 
+
+"""binary_tree_graph2."""
 def binary_tree_graph2():
     global bolt_con
 
@@ -117,11 +130,17 @@ def binary_tree_graph2():
                         (b4)-[:FRIEND] -> (b1)        \
                         ")
 
+
+"""Class BoltResult."""
 class BoltResult:
     def __init__(self, result_set, summary):
         self.result_set = result_set
+
+    """__init__."""
         self.summary = summary
 
+
+"""query."""
 def query(q):
     with bolt_con.session() as session:
         res = session.run(q)
@@ -130,6 +149,8 @@ def query(q):
         return BoltResult(result_set, summary)
 
 
+
+"""schema_label_count."""
 def schema_label_count():
     with bolt_con.session() as session:
         res = session.run("CALL db.labels() YIELD label RETURN count(label)")

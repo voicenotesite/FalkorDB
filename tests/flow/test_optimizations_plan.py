@@ -1,14 +1,21 @@
+"""Tests Flow Test Optimizations Plan."""
 from common import *
 
 people = ["Roi", "Alon", "Ailon", "Boaz"]
 GRAPH_ID = "optimizations_plan"
 
+
+"""Class testOptimizationsPlan."""
 class testOptimizationsPlan(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         nodes = {}
         # Create entities
@@ -31,6 +38,8 @@ class testOptimizationsPlan(FlowTestsBase):
         query = """MATCH (a)-[:know]->(b) CREATE (a)-[:know]->(b)"""
         self.graph.query(query)
 
+
+    """test01_typeless_edge_count."""
     def test01_typeless_edge_count(self):
         query = """MATCH ()-[r]->() RETURN COUNT(r)"""
         resultset = self.graph.query(query).result_set
@@ -43,6 +52,8 @@ class testOptimizationsPlan(FlowTestsBase):
         expected = [[36]]
         self.env.assertEqual(resultset, expected)
 
+
+    """test02_typed_edge_count."""
     def test02_typed_edge_count(self):
         query = """MATCH ()-[r:know]->() RETURN COUNT(r)"""
         resultset = self.graph.query(query).result_set
@@ -55,6 +66,8 @@ class testOptimizationsPlan(FlowTestsBase):
         expected = [[24]]
         self.env.assertEqual(resultset, expected)
 
+
+    """test03_unknown_typed_edge_count."""
     def test03_unknown_typed_edge_count(self):
         query = """MATCH ()-[r:unknown]->() RETURN COUNT(r)"""
         resultset = self.graph.query(query).result_set
@@ -67,6 +80,8 @@ class testOptimizationsPlan(FlowTestsBase):
         expected = [[0]]
         self.env.assertEqual(resultset, expected)
 
+
+    """test04_typeless_edge_count_with_alias."""
     def test04_typeless_edge_count_with_alias(self):
         query = """MATCH ()-[r]->() RETURN COUNT(r) as c"""
         resultset = self.graph.query(query).result_set
@@ -79,6 +94,8 @@ class testOptimizationsPlan(FlowTestsBase):
         expected = [[36]]
         self.env.assertEqual(resultset, expected)
 
+
+    """test05_typed_edge_count_with_alias."""
     def test05_typed_edge_count_with_alias(self):
         query = """MATCH ()-[r:know]->() RETURN COUNT(r) as c"""
         resultset = self.graph.query(query).result_set
@@ -91,6 +108,8 @@ class testOptimizationsPlan(FlowTestsBase):
         expected = [[24]]
         self.env.assertEqual(resultset, expected)
 
+
+    """test06_multiple_typed_edge_count_with_alias."""
     def test06_multiple_typed_edge_count_with_alias(self):
         query = """MATCH ()-[r:know | :works_with]->() RETURN COUNT(r) as c"""
         resultset = self.graph.query(query).result_set
@@ -103,6 +122,8 @@ class testOptimizationsPlan(FlowTestsBase):
         expected = [[36]]
         self.env.assertEqual(resultset, expected)
 
+
+    """test07_count_unreferenced_edge."""
     def test07_count_unreferenced_edge(self):
         query = """MATCH ()-[:know]->(b) RETURN COUNT(b)"""
         # This count in this query cannot be reduced, as the traversal op doesn't store
@@ -117,6 +138,8 @@ class testOptimizationsPlan(FlowTestsBase):
         expected = [[12]]
         self.env.assertEqual(resultset, expected)
 
+
+    """test08_non_labeled_node_count."""
     def test08_non_labeled_node_count(self):
         query = """MATCH (n) RETURN COUNT(n)"""
         resultset = self.graph.query(query).result_set
@@ -129,6 +152,8 @@ class testOptimizationsPlan(FlowTestsBase):
         expected = [[4]]
         self.env.assertEqual(resultset, expected)
 
+
+    """test09_non_labeled_node_count_with_alias."""
     def test09_non_labeled_node_count_with_alias(self):
         query = """MATCH (n) RETURN COUNT(n) as c"""
         resultset = self.graph.query(query).result_set
@@ -141,6 +166,8 @@ class testOptimizationsPlan(FlowTestsBase):
         expected = [[4]]
         self.env.assertEqual(resultset, expected)
 
+
+    """test10_labled_node_count."""
     def test10_labled_node_count(self):
         query = """MATCH (n:person) RETURN COUNT(n)"""
         resultset = self.graph.query(query).result_set
@@ -153,6 +180,8 @@ class testOptimizationsPlan(FlowTestsBase):
         expected = [[4]]
         self.env.assertEqual(resultset, expected)
 
+
+    """test11_value_hash_join."""
     def test11_value_hash_join(self):
         # Issue a query that joins two streams on a node property.
         query = """MATCH (p1:person)-[:know]->({name: 'Roi'}), (p2)-[]->(:person {name: 'Alon'}) WHERE p1.name = p2.name RETURN p2.name ORDER BY p2.name"""
@@ -181,6 +210,8 @@ class testOptimizationsPlan(FlowTestsBase):
         resultset = self.graph.query(query).result_set
         self.env.assertEqual(resultset, expected) # same results expected
 
+
+    """test12_multiple_stream_value_hash_join."""
     def test12_multiple_stream_value_hash_join(self):
         # Issue a query that joins three streams.
         query = """MATCH (p1:person)-[:know]->({name: 'Roi'}), (p2)-[]->(:person {name: 'Alon'}), (p3)
@@ -224,6 +255,8 @@ class testOptimizationsPlan(FlowTestsBase):
         resultset = self.graph.query(query).result_set
         self.env.assertEqual(resultset, expected)
 
+
+    """test13_duplicate_filter_placement."""
     def test13_duplicate_filter_placement(self):
         # Issue a query that joins three streams and contains a redundant filter.
         query = """MATCH (p0), (p1), (p2)
@@ -237,6 +270,8 @@ class testOptimizationsPlan(FlowTestsBase):
         expected = [['Ailon'], ['Alon'], ['Boaz'], ['Roi']]
         self.env.assertEqual(resultset, expected)
 
+
+    """test14_distinct_aggregations."""
     def test14_distinct_aggregations(self):
         # Verify that the Distinct operation is removed from the aggregating query.
         query = """MATCH (src:person)-[:know]->(dest) RETURN DISTINCT src.name, COUNT(dest) ORDER BY src.name"""
@@ -262,6 +297,8 @@ class testOptimizationsPlan(FlowTestsBase):
         # This query should emit the same result.
         self.env.assertEqual(resultset, expected)
 
+
+    """test15_test_splitting_cartesian_product."""
     def test15_test_splitting_cartesian_product(self):
         query = """MATCH (p1), (p2), (p3) WHERE p1.name <> p2.name AND p2.name <> p3.name RETURN DISTINCT p2.name ORDER BY p2.name"""
         executionPlan = str(self.graph.explain(query))
@@ -273,6 +310,8 @@ class testOptimizationsPlan(FlowTestsBase):
         resultset = self.graph.query(query).result_set
         self.env.assertEqual(resultset, expected)
     
+
+    """test16_test_splitting_cartesian_product_with_multiple_filters."""
     def test16_test_splitting_cartesian_product_with_multiple_filters(self):
         query = """MATCH (p1), (p2), (p3) WHERE p1.name <> p2.name AND ID(p1) <> ID(p2) RETURN DISTINCT p2.name ORDER BY p2.name"""
         executionPlan = str(self.graph.explain(query))
@@ -284,6 +323,8 @@ class testOptimizationsPlan(FlowTestsBase):
         resultset = self.graph.query(query).result_set
         self.env.assertEqual(resultset, expected)
 
+
+    """test17_test_multiple_branch_filter_cp_optimization."""
     def test17_test_multiple_branch_filter_cp_optimization(self):
         query = """MATCH (p1), (p2), (p3), (p4) WHERE p1.val + p2.val = p3.val AND p3.val > 0 RETURN DISTINCT p3.name ORDER BY p3.name"""
         executionPlan = str(self.graph.explain(query))
@@ -294,6 +335,8 @@ class testOptimizationsPlan(FlowTestsBase):
         resultset = self.graph.query(query).result_set
         self.env.assertEqual(resultset, expected)
 
+
+    """test18_test_semi_apply_and_cp_optimize."""
     def test18_test_semi_apply_and_cp_optimize(self):
         self.graph.query ("CREATE ({val:0}), ({val:1})-[:R]->({val:2})-[:R]->({val:3})")
         # The next query generates the execution plan:
@@ -318,11 +361,15 @@ class testOptimizationsPlan(FlowTestsBase):
         expected = [[2]]
         self.env.assertEqual(resultset, expected)
     
+
+    """test19_test_filter_compaction_remove_true_filter."""
     def test19_test_filter_compaction_remove_true_filter(self):
         query = "MATCH (n) WHERE 1 = 1 RETURN n"
         executionPlan = str(self.graph.explain(query))
         self.env.assertNotIn("Filter", executionPlan)
 
+
+    """test20_test_filter_compaction_not_removing_false_filter."""
     def test20_test_filter_compaction_not_removing_false_filter(self):
         query = "MATCH (n) WHERE 1 > 1 RETURN n"
         executionPlan = str(self.graph.explain(query))
@@ -332,6 +379,8 @@ class testOptimizationsPlan(FlowTestsBase):
         self.env.assertEqual(resultset, expected)
 
     # ExpandInto should be applied where possible on projected graph entities.
+
+    """test21_expand_into_projected_endpoints."""
     def test21_expand_into_projected_endpoints(self):
         query = """MATCH (a)-[]->(b) WITH a, b MATCH (a)-[e]->(b) RETURN a.val, b.val ORDER BY a.val, b.val LIMIT 3"""
         executionPlan = str(self.graph.explain(query))
@@ -343,6 +392,8 @@ class testOptimizationsPlan(FlowTestsBase):
         self.env.assertEqual(resultset, expected)
 
     # Variables bound in one scope should not be used to introduce ExpandInto ops in later scopes.
+
+    """test22_no_expand_into_across_scopes."""
     def test22_no_expand_into_across_scopes(self):
         query = """MATCH (reused_1)-[]->(reused_2) WITH COUNT(reused_2) as edge_count MATCH (reused_1)-[]->(reused_2) RETURN edge_count, reused_1.val, reused_2.val ORDER BY reused_1.val, reused_2.val LIMIT 3"""
         executionPlan = str(self.graph.explain(query))
@@ -357,6 +408,8 @@ class testOptimizationsPlan(FlowTestsBase):
     # conditional traverse accumulate a batch of records before processing
     # knowladge about limit can benifit such operation as they can reduce
     # their batch size to match the current limit.
+
+    """test23_limit_propagation."""
     def test23_limit_propagation(self):
         graph_id = "limit-propagation"
         graph = self.db.select_graph(graph_id)
@@ -412,12 +465,16 @@ class testOptimizationsPlan(FlowTestsBase):
         #self.env.assertNotIn("Conditional Traverse | (a)->(b) | Records produced: 130", profile)
 
     # "WHERE true" predicates should not build filter ops.
+
+    """test24_compact_true_predicates."""
     def test24_compact_true_predicates(self):
         query = """MATCH (a) WHERE true RETURN a"""
         executionPlan = str(self.graph.explain(query))
         self.env.assertNotIn("Filter", executionPlan)
 
     # Cartesian product filter placement should not recurse into earlier scopes.
+
+    """test25_optimize_cartesian_product_scoping."""
     def test25_optimize_cartesian_product_scoping(self):
         query = """MATCH (a {name: 'Ailon'})-[]->(b {name: 'Roi'}) WITH 'const' AS c MATCH (a), (b) WHERE a.val = 3 OR b.val = 3 RETURN a.val, b.val ORDER BY a.val, b.val LIMIT 3"""
         resultset = self.graph.query(query).result_set
@@ -427,6 +484,8 @@ class testOptimizationsPlan(FlowTestsBase):
         self.env.assertEqual(resultset, expected)
 
     # Constant filters should not break Cartesian Product placement.
+
+    """test26_optimize_cartesian_product_constant_filters."""
     def test26_optimize_cartesian_product_constant_filters(self):
         query = """MATCH (a) WHERE 2 > rand() MATCH (a), (b) RETURN a.val, b.val ORDER BY a.val, b.val DESC LIMIT 3"""
         resultset = self.graph.query(query).result_set
@@ -436,6 +495,8 @@ class testOptimizationsPlan(FlowTestsBase):
         self.env.assertEqual(resultset, expected)
 
     # Filters on single Cartesian Product branches should be placed properly.
+
+    """test27_optimize_cartesian_product_complex_filter_trees."""
     def test27_optimize_cartesian_product_complex_filter_trees(self):
         query = """MATCH (a), (b), (c) WHERE a.val = 0 OR 'lit' > 3 AND b.val <> b.fake RETURN a.val, b.val ORDER BY a.val, b.val DESC LIMIT 3"""
         resultset = self.graph.query(query).result_set
@@ -445,6 +506,8 @@ class testOptimizationsPlan(FlowTestsBase):
         self.env.assertEqual(resultset, expected)
 
     # Labels' order should be replaced properly.
+
+    """test28_optimize_label_scan_switch_labels."""
     def test28_optimize_label_scan_switch_labels(self):
         # Create three nodes with label N, two with label M, one of them in common.
         self.graph.query("CREATE (:N), (:N), (:N:M), (:M)")
@@ -466,6 +529,8 @@ class testOptimizationsPlan(FlowTestsBase):
     # illustrates this scenario by traversing from a non-existing label 
     # (populating our execution-plan cache) which afterwards is being 
     # created. once created we want to make sure the correct label ID is used.
+
+    """test29_optimize_label_scan_cached_label_id."""
     def test29_optimize_label_scan_cached_label_id(self):
         self.graph.delete()
 
@@ -494,6 +559,8 @@ class testOptimizationsPlan(FlowTestsBase):
 
     # mandatory match labels should not be replaced with optional ones in
     # optimize-label-scan
+
+    """test30_optimize_mandatory_labels_order_only."""
     def test30_optimize_mandatory_labels_order_only(self):
         # clean db
         self.graph.delete()
@@ -555,6 +622,8 @@ class testOptimizationsPlan(FlowTestsBase):
         self.env.assertIn("Node By Label Scan | (n:N)", plan)
         self.env.assertNotIn("Conditional Traverse | (n:M)->(n:M)", plan)
 
+
+    """test32_remove_redundant_filters."""
     def test32_remove_redundant_filters(self):
         # test that filter reduction is a run-time optimization
         # we can't remove redundant filters e.g. WHERE 1 = 1

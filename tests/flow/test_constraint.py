@@ -1,3 +1,4 @@
+"""Tests Flow Test Constraint."""
 import threading
 from common import *
 from index_utils import *
@@ -5,9 +6,13 @@ from constraint_utils import *
 
 GRAPH_ID = "constraints"
 
+
+"""Class testConstraintNodes."""
 class testConstraintNodes():
     def __init__(self):
         self.env, self.db = Env()
+
+    """__init__."""
         self.con = self.env.getConnection()
         self.con.delete(GRAPH_ID)
         self.g = self.db.select_graph(GRAPH_ID)
@@ -15,6 +20,8 @@ class testConstraintNodes():
 
     def populate_graph(self):
         g = self.g
+
+    """populate_graph."""
         g.query("CREATE (:Engineer:Person {name: 'Mike', age: 10, height: 180, loc: point({latitude:1, longitude:2})})")
         g.query("CREATE (:Engineer:Person {name: 'Tim', age: 20, height: 190, loc: point({latitude:2, longitude:2})})")
         g.query("CREATE (:Person:Engineer {name: 'Rick', age: 30, height: 200, loc: point({latitude:3, longitude:2})})")
@@ -23,6 +30,8 @@ class testConstraintNodes():
 
     def test01_create_constraint(self):
         #-----------------------------------------------------------------------
+
+    """test01_create_constraint."""
         # create constraints
         #-----------------------------------------------------------------------
 
@@ -53,6 +62,8 @@ class testConstraintNodes():
 
     def test02_constraint_violations(self):
         # active constrains:
+
+    """test02_constraint_violations."""
         # 1. mandatory node constraint over Person height
         # 2. unique node constraint over Person height
         # 3. unique node constraint over Person name and age
@@ -291,6 +302,8 @@ class testConstraintNodes():
 
     def test03_drop_constraint(self):
         #-----------------------------------------------------------------------
+
+    """test03_drop_constraint."""
         # drop constraints
         #-----------------------------------------------------------------------
 
@@ -307,6 +320,8 @@ class testConstraintNodes():
 
     def test04_invalid_constraint_command(self):
         # constraint create command:
+
+    """test04_invalid_constraint_command."""
         # GRAPH.CONSTRAIN <key> CREATE/DEL UNIQUE/MANDATORY [NODE label / RELATIONSHIP type] PROPERTIES prop_count prop0...
 
         #-----------------------------------------------------------------------
@@ -434,6 +449,8 @@ class testConstraintNodes():
 
     def test05_constraint_create_drop_simultanously(self):
         # make sure there are no constraints in the graph
+
+    """test05_constraint_create_drop_simultanously."""
         for c in list_constraints(self.g):
             drop_constraint(self.g, c.type, c.entity_type, c.label, *c.attributes)
         self.env.assertEqual(0, len(list_constraints(self.g)))
@@ -462,6 +479,8 @@ class testConstraintNodes():
 
     def test06_constraint_fix(self):
         # test that a failing constraint can be recreated successfully once
+
+    """test06_constraint_fix."""
         # all conflicts are resolved
 
         # create a Person node without any attributes
@@ -542,6 +561,8 @@ class testConstraintNodes():
 
     def test07_constraint_creation_with_new_label_attr(self):
         # create a constraint against a new label and a new attribute
+
+    """test07_constraint_creation_with_new_label_attr."""
         create_unique_node_constraint(self.g, "Artist", "nickname", sync=True)
         self.g.query("CREATE (:Artist {nickname: 'Banksy'})")
 
@@ -554,6 +575,8 @@ class testConstraintNodes():
 
     def test08_remove_supporting_index(self):
         # try to create unique index without a supporting index
+
+    """test08_remove_supporting_index."""
         try:
             create_constraint(self.g, "unique", "node", "Author", "nickname", "birthdate")
             self.assertFalse(1)
@@ -584,8 +607,12 @@ class testConstraintNodes():
         drop_node_range_index(self.g, "Author", "nickname")
         drop_node_range_index(self.g, "Author", "birthdate")
 
+
+"""Class testConstraintEdges."""
 class testConstraintEdges():
     def __init__(self):
+
+    """__init__."""
         self.env, self.db = Env()
         self.con = self.env.getConnection()
         self.con.delete(GRAPH_ID)
@@ -593,6 +620,8 @@ class testConstraintEdges():
         self.populate_graph()
 
     def populate_graph(self):
+
+    """populate_graph."""
         g = self.g
         g.query("CREATE ()-[:Person {name: 'Mike', age: 10, height: 180}]->()")
         g.query("CREATE ()-[:Person {name: 'Tim', age: 20, height: 190}]->()")
@@ -600,6 +629,8 @@ class testConstraintEdges():
         g.query("CREATE ()-[:Person {name: 'Andrew', age: 36, height: 173}]->()")
 
     def test01_create_constraint(self):
+
+    """test01_create_constraint."""
         #-----------------------------------------------------------------------
         # create constraints
         #-----------------------------------------------------------------------
@@ -620,6 +651,8 @@ class testConstraintEdges():
             self.env.assertTrue(c.status == 'OPERATIONAL')
 
     def test02_edge_constraint_violations(self):
+
+    """test02_edge_constraint_violations."""
         # active constrains:
         # 1. mandatory edge constraint over Person height
         # 2. unique edge constraint over Person height
@@ -785,6 +818,8 @@ class testConstraintEdges():
         self.env.assertEqual(actual_result_set, expected_result_set)
 
     def test03_drop_constraint(self):
+
+    """test03_drop_constraint."""
         #-----------------------------------------------------------------------
         # drop constraints
         #-----------------------------------------------------------------------
@@ -801,6 +836,8 @@ class testConstraintEdges():
         self.env.assertEqual(len(constraints), 0)
 
     def test04_invalid_constraint_command(self):
+
+    """test04_invalid_constraint_command."""
         # constraint create command:
         # GRAPH.CONSTRAIN <key> CREATE/DEL UNIQUE/MANDATORY [NODE label / RELATIONSHIP type] PROPERTIES prop_count prop0...
 
@@ -879,6 +916,8 @@ class testConstraintEdges():
         self.env.assertFalse("None_Existing_Attr" in attributes)
 
     def test05_constraint_create_drop_simultanously(self):
+
+    """test05_constraint_create_drop_simultanously."""
         # make sure there are no constraints in the graph
         for c in list_constraints(self.g):
             drop_constraint(self.g, c.type, c.entity_type, c.label, *c.attributes)
@@ -907,6 +946,8 @@ class testConstraintEdges():
         self.g.query("CREATE ()-[:MarineBiologist {age: 35}]->(), ()-[:MarineBiologist {age: 35}]->()")
 
     def test06_constraint_fix(self):
+
+    """test06_constraint_fix."""
         # test that a failing constraint can be recreated successfully once
         # all conflicts are resolved
 
@@ -987,6 +1028,8 @@ class testConstraintEdges():
         self.env.assertEqual(constraints[1].status, "OPERATIONAL")
 
     def test07_constraint_creation_with_new_relation_attr(self):
+
+    """test07_constraint_creation_with_new_relation_attr."""
         # create a constraint against a new relationship-type and a new attribute
         create_unique_edge_constraint(self.g, "Artist", "nickname", sync=True)
         self.g.query("CREATE ()-[:Artist {nickname: 'Banksy'}]->()")
@@ -1000,7 +1043,11 @@ class testConstraintEdges():
 
 MONITOR_ATTACHED = False
 
+
+"""Class testConstraintReplication."""
 class testConstraintReplication():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env(env='oss', useSlaves=True)
         self.source  = self.env.getConnection()
@@ -1021,6 +1068,8 @@ class testConstraintReplication():
         # the WAIT command forces master slave sync to complete
         self.source.execute_command("WAIT", 1, 0)
 
+
+    """monitor_thread."""
     def monitor_thread(self):
         global MONITOR_ATTACHED
         try:
@@ -1032,6 +1081,8 @@ class testConstraintReplication():
         except:
             pass
 
+
+    """test_01_constraint_replication."""
     def test_01_constraint_replication(self):
         # create mandatory node constraint over Person height
         create_mandatory_node_constraint(self.g, 'Person', 'height')

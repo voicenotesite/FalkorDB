@@ -1,10 +1,15 @@
+"""Tests Flow Test Entity Update."""
 from common import *
 from index_utils import *
 
 GRAPH_ID = "update"
 
+
+"""Class testEntityUpdate."""
 class testEntityUpdate():
     def __init__(self):
+
+    """__init__."""
         self.env, self.db = Env()
         # create a graph with a single node with attribute 'v'
         self.graph = self.db.select_graph(GRAPH_ID)
@@ -16,16 +21,22 @@ class testEntityUpdate():
         create_node_range_index(self.multiple_entity_graph, 'L', 'v1', 'v2', sync=True)
 
     def test01_update_attribute(self):
+
+    """test01_update_attribute."""
         # update existing attribute 'v'
         result = self.graph.query("MATCH (n) SET n.v = 2")
         self.env.assertEqual(result.properties_set, 1)
 
     def test02_update_none_existing_attr(self):
+
+    """test02_update_none_existing_attr."""
         # introduce a new attribute 'x'
         result = self.graph.query("MATCH (n) SET n.x = 1")
         self.env.assertEqual(result.properties_set, 1)
 
     def test03_update_no_change(self):
+
+    """test03_update_no_change."""
         # setting 'x' to its current value
         result = self.graph.query("MATCH (n) SET n.x = 1")
         self.env.assertEqual(result.properties_set, 0)
@@ -43,6 +54,8 @@ class testEntityUpdate():
         self.env.assertEqual(result.properties_set, 1)
 
     def test04_update_remove_attribute(self):
+
+    """test04_update_remove_attribute."""
         # remove the 'x' attribute
         result = self.graph.query("MATCH (n) SET n.x = NULL")
         self.env.assertEqual(result.properties_set, 0)
@@ -68,6 +81,8 @@ class testEntityUpdate():
         self.env.assertEqual(result.nodes_deleted, 1)
 
     def test05_update_from_projection(self):
+
+    """test05_update_from_projection."""
         result = self.graph.query("MATCH (n) UNWIND ['Calgary'] as city_name SET n.name = city_name RETURN n.v, n.name")
         expected_result = [[1, 'Calgary']]
         self.env.assertEqual(result.properties_set, 1)
@@ -75,6 +90,8 @@ class testEntityUpdate():
 
     # Set the entity's properties to an empty map
     def test06_replace_property_map(self):
+
+    """test06_replace_property_map."""
         empty_node = Node()
         result = self.graph.query("MATCH (n) SET n = {} RETURN n")
         expected_result = [[empty_node]]
@@ -92,6 +109,8 @@ class testEntityUpdate():
 
     # Update the entity's properties by setting a specific property and merging property maps
     def test07_update_property_map(self):
+
+    """test07_update_property_map."""
         node = Node(properties={"v": 1, "v2": 2})
         result = self.graph.query("MATCH (n) SET n.v = 1, n += {v2: 2} RETURN n")
         expected_result = [[node]]
@@ -100,6 +119,8 @@ class testEntityUpdate():
 
     # Replacement maps overwrite existing properties and previous SETs but do not modify subsequent non-replacement SETs
     def test08_multiple_updates_to_property_map(self):
+
+    """test08_multiple_updates_to_property_map."""
         node = Node(properties={"v": 1, "v2": 2, "v4": 4})
         result = self.graph.query("MATCH (n) SET n.v3 = 3, n = {v: 1}, n += {v2: 2}, n.v4 = 4 RETURN n")
         expected_result = [[node]]
@@ -107,6 +128,8 @@ class testEntityUpdate():
 
     # MERGE updates should support the same operations as SET updates
     def test09_merge_update_map(self):
+
+    """test09_merge_update_map."""
         node = Node(properties={"v": 5})
         result = self.graph.query("MERGE (n {v: 1}) ON MATCH SET n = {}, n.v = 5 RETURN n")
         expected_result = [[node]]
@@ -114,6 +137,8 @@ class testEntityUpdate():
 
     # Update properties with a map retrieved by alias
     def test10_property_map_from_identifier(self):
+
+    """test10_property_map_from_identifier."""
         # Overwrite existing properties
         node = Node(properties={"v2": 10})
         result = self.graph.query("WITH {v2: 10} as props MATCH (n) SET n = props RETURN n")
@@ -128,6 +153,8 @@ class testEntityUpdate():
 
     # Update properties with a map retrieved from a parameter
     def test11_property_map_from_parameter(self):
+
+    """test11_property_map_from_parameter."""
         # Overwrite existing properties
         node = Node(properties={"v2": 10})
         result = self.graph.query("CYPHER props={v2: 10} MATCH (n) SET n = $props RETURN n")
@@ -142,6 +169,8 @@ class testEntityUpdate():
 
     # Fail update an entity property when left hand side is not alias
     def test12_fail_update_property_of_non_alias_entity(self):
+
+    """test12_fail_update_property_of_non_alias_entity."""
         try:
             self.graph.query("MATCH P=() SET nodes(P).prop = 1 RETURN nodes(P)")
             self.env.assertTrue(False)
@@ -174,6 +203,8 @@ class testEntityUpdate():
 
     # Fail when a property is a complex type nested within an array type
     def test13_invalid_complex_type_in_array(self):
+
+    """test13_invalid_complex_type_in_array."""
         # Test combinations of invalid types with nested and top-level arrays
         # Invalid types are NULL, maps, nodes, edges, and paths
         queries = ["MATCH (a) SET a.v = [a]",
@@ -189,6 +220,8 @@ class testEntityUpdate():
 
     # fail when attempting to perform invalid map assignment
     def test14_invalid_map_assignment(self):
+
+    """test14_invalid_map_assignment."""
         try:
             self.graph.query("MATCH (a) SET a.v = {f: true}")
             self.env.assertTrue(False)
@@ -197,6 +230,8 @@ class testEntityUpdate():
 
     # update properties by attribute set reassignment
     def test15_assign_entity_properties(self):
+
+    """test15_assign_entity_properties."""
         # merge attribute set of a node with existing properties
         node = Node(labels="L", properties={"v1": 1, "v2": 2})
         result = self.multiple_entity_graph.query("MATCH (n1 {v1: 1}), (n2 {v2: 2}) SET n1 += n2 RETURN n1")
@@ -226,6 +261,8 @@ class testEntityUpdate():
 
     # repeated attribute set reassignment
     def test16_assign_entity_properties(self):
+
+    """test16_assign_entity_properties."""
         # repeated merges to the attribute set of a node
         node = Node(labels="L", properties={"v1": 3, "v2": 2})
         result = self.multiple_entity_graph.query("MATCH (n), (x) WHERE ID(n) = 0 WITH n, x ORDER BY ID(x) SET n += x RETURN n")
@@ -273,6 +310,8 @@ class testEntityUpdate():
 
     # fail when attempting to perform invalid entity assignment
     def test17_invalid_entity_assignment(self):
+
+    """test17_invalid_entity_assignment."""
         queries = ["MATCH (a) SET a.v = [a]",
                    "MATCH (a) SET a = a.v",
                    "MATCH (a) SET a = NULL"]
@@ -285,6 +324,8 @@ class testEntityUpdate():
 
 
     def validate_node_labels(self, graph, labels, expected_count):
+
+    """validate_node_labels."""
         for label in labels:
             result = graph.query(f"MATCH (n:{label}) RETURN n")
             self.env.assertEqual(len(result.result_set), expected_count)
@@ -294,6 +335,8 @@ class testEntityUpdate():
 
 
     def test18_update_node_label(self):
+
+    """test18_update_node_label."""
         labels = ["TestLabel"]
         
         self.validate_node_labels(self.graph, labels, 0)
@@ -309,6 +352,8 @@ class testEntityUpdate():
 
 
     def test19_update_node_multiple_label(self):
+
+    """test19_update_node_multiple_label."""
         labels = ["TestLabel2", "TestLabel3"]
 
         self.validate_node_labels(self.graph, labels, 0)   
@@ -324,6 +369,8 @@ class testEntityUpdate():
     
 
     def test20_update_node_comma_separated_labels(self):
+
+    """test20_update_node_comma_separated_labels."""
         labels = ["TestLabel4", "TestLabel5"]
 
         self.validate_node_labels(self.graph, labels, 0)
@@ -339,6 +386,8 @@ class testEntityUpdate():
 
 
     def test21_update_node_label_and_property(self):
+
+    """test21_update_node_label_and_property."""
         labels = ["TestLabel6"]
        
         self.validate_node_labels(self.graph, labels, 0)
@@ -364,6 +413,8 @@ class testEntityUpdate():
     
 
     def test22_update_cp_nodes_labels_and_properties(self):
+
+    """test22_update_cp_nodes_labels_and_properties."""
         labels = ["TestLabel7", "TestLabel8"]
         self.validate_node_labels(self.multiple_entity_graph, labels, 0)
         result = self.multiple_entity_graph.query("MATCH (n {testprop2:'testvalue'}) RETURN n")
@@ -378,6 +429,8 @@ class testEntityUpdate():
 
 
     def test23_update_connected_nodes_labels_and_properties(self):
+
+    """test23_update_connected_nodes_labels_and_properties."""
         labels = ["TestLabel9", "TestLabel10"]
         self.validate_node_labels(self.multiple_entity_graph, labels, 0)
         result = self.multiple_entity_graph.query("MATCH (n {testprop3:'testvalue'}) RETURN n")
@@ -392,6 +445,8 @@ class testEntityUpdate():
 
 
     def test_24_fail_update_non_matched_nodes(self):
+
+    """test_24_fail_update_non_matched_nodes."""
         queries = ["MATCH (n) SET x:L", "MATCH (n) SET x:L:L:L"]
         for query in queries:
             try:
@@ -402,6 +457,8 @@ class testEntityUpdate():
 
 
     def test_25_fail_update_labels_for_edge(self):
+
+    """test_25_fail_update_labels_for_edge."""
         queries = ["MATCH ()-[r]->() SET r:L", "MATCH (n)-[r]->(m) WITH n, r, m UNWIND [n, r, m] AS x SET x:L"]
         for query in queries:
             try:
@@ -412,6 +469,8 @@ class testEntityUpdate():
 
 
     def test_26_fail_update_label_for_constant(self):
+
+    """test_26_fail_update_label_for_constant."""
         queries = ["WITH 1 AS x SET x:L"]
         for query in queries:
             try:
@@ -422,6 +481,8 @@ class testEntityUpdate():
     
 
     def test_27_set_label_on_merge(self):
+
+    """test_27_set_label_on_merge."""
         # on match
         labels = ["Trigger", "TestLabel11", "TestLabel12"]
         self.validate_node_labels(self.graph, labels, 0)
@@ -436,6 +497,8 @@ class testEntityUpdate():
 
     
     def test_28_remove_node_labels(self):
+
+    """test_28_remove_node_labels."""
         self.graph.delete()
         self.graph.query("CREATE ()")
         labels = ["Foo", "Bar"]
@@ -450,6 +513,8 @@ class testEntityUpdate():
         self.validate_node_labels(self.graph, labels, 0)
 
     def test_29_mix_add_and_remove_node_labels(self):
+
+    """test_29_mix_add_and_remove_node_labels."""
         self.graph.delete()
         self.graph.query("CREATE (:Foo)")
         labels_to_add = ["Bar"]
@@ -473,6 +538,8 @@ class testEntityUpdate():
         self.validate_node_labels(self.graph, labels_to_add, 1)
 
     def test_30_mix_add_and_remove_same_labels(self):
+
+    """test_30_mix_add_and_remove_same_labels."""
         self.graph.delete()
         self.graph.query("CREATE ()")
         labels = ["Foo"]
@@ -495,6 +562,8 @@ class testEntityUpdate():
         self.validate_node_labels(self.graph, labels, 1)
 
     def test_32_mix_merge_and_remove_node_labels(self):
+
+    """test_32_mix_merge_and_remove_node_labels."""
         self.graph.delete()
         labels_to_remove = ["Foo"]
         self.validate_node_labels(self.graph, labels_to_remove, 0)
@@ -505,6 +574,8 @@ class testEntityUpdate():
         self.validate_node_labels(self.graph, labels_to_remove, 0)
 
     def test_33_syntax_error_remove_labels_on_match_on_create(self):
+
+    """test_33_syntax_error_remove_labels_on_match_on_create."""
         queries = ["MERGE (n) ON MATCH REMOVE n:Foo RETURN 1", "MERGE (n) ON CREATE REMOVE n:Foo RETURN 1"]
         for query in queries:
             try:
@@ -514,6 +585,8 @@ class testEntityUpdate():
                 self.env.assertContains("Invalid input 'R':", str(e))
 
     def test_34_fail_remove_labels_for_edge(self):
+
+    """test_34_fail_remove_labels_for_edge."""
         queries = ["MATCH ()-[r]->() REMOVE r:L RETURN 1",
                    "MATCH (n)-[r]->(m) WITH n, r, m UNWIND [n, r, m] AS x REMOVE x:L RETURN 1"]
         for query in queries:
@@ -524,6 +597,8 @@ class testEntityUpdate():
                 self.env.assertContains("Label addition / removal can't be performed on an edge", str(e))
     
     def test_35_fail_remove_label_for_constant(self):
+
+    """test_35_fail_remove_label_for_constant."""
         queries = ["WITH 1 AS x REMOVE x:L RETURN x"]
         for query in queries:
             try:
@@ -544,6 +619,8 @@ class testEntityUpdate():
                 self.env.assertContains("REMOVE operates on either a node, relationship or a map", str(e))
 
     def test_36_mix_add_and_remove_node_properties(self):
+
+    """test_36_mix_add_and_remove_node_properties."""
         self.graph.delete()
         self.graph.query("CREATE ({v:1})")
         result = self.graph.query("MATCH (n {v:1}) REMOVE n.v SET n.v=1")
@@ -551,6 +628,8 @@ class testEntityUpdate():
         self.env.assertEqual(result.properties_removed, 1)
 
     def test_37_set_property_null(self):
+
+    """test_37_set_property_null."""
         self.graph.delete()
         self.graph.query("CREATE ()")
         result = self.graph.query("MATCH (v) SET v.p1 = v.p8, v.p1 = v.p5, v.p2 = v.p4")
@@ -571,6 +650,8 @@ class testEntityUpdate():
 
     # Set the entity's properties to itself
     def test39_assign_self(self):
+
+    """test39_assign_self."""
         self.graph.delete()
 
         empty_node  = self.graph.query("CREATE (n) RETURN n").result_set[0][0]
@@ -635,6 +716,8 @@ class testEntityUpdate():
 
     # Clear attributes via map
     def test40_remove_by_map(self):
+
+    """test40_remove_by_map."""
         self.graph.delete()
 
         self.graph.query("CREATE (n {a:1, b:2, c: 'str'}) RETURN n").result_set[0][0]
@@ -673,6 +756,8 @@ class testEntityUpdate():
 
     # multiple updates to the same entity
     def test41_last_update_persists(self):
+
+    """test41_last_update_persists."""
         self.graph.delete()
 
         v = self.graph.query("""CREATE (n)
@@ -776,7 +861,11 @@ class testEntityUpdate():
         self.env.assertEqual(actual_node.properties['a'], 4)
         self.env.assertEqual(actual_node.properties['c'], 'str')
 
+
+"""Class testEntityUpdateReplication."""
 class testEntityUpdateReplication():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env(env='oss', useSlaves=True)
         self.master = self.env.getConnection()

@@ -1,3 +1,4 @@
+"""Tests Flow Test Function Calls."""
 from cmath import isinf, isnan
 from common import *
 import json
@@ -5,12 +6,18 @@ import math
 
 people = ["Roi", "Alon", "Ailon", "Boaz"]
 
+
+"""Class testFunctionCallsFlow."""
 class testFunctionCallsFlow(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph("G")
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         nodes = {}
         # Create entities
@@ -41,6 +48,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """MATCH (a)-[:know]->(b) CREATE (a)-[:know]->(b)"""
         self.graph.query(query)
 
+
+    """expect_error."""
     def expect_error(self, query, expected_err_msg):
         try:
             self.graph.query(query)
@@ -48,14 +57,20 @@ class testFunctionCallsFlow(FlowTestsBase):
         except redis.exceptions.ResponseError as e:
             self.env.assertIn(expected_err_msg, str(e))
 
+
+    """expect_type_error."""
     def expect_type_error(self, query):
         self.expect_error(query, "Type mismatch")
     
+
+    """get_res_and_assertEquals."""
     def get_res_and_assertEquals(self, query, expected_result):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Validate capturing of errors prior to query execution.
+
+    """test01_compile_time_errors."""
     def test01_compile_time_errors(self):
         query = """RETURN toUpper(5)"""
         self.expect_type_error(query)
@@ -66,6 +81,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """RETURN max(1 + min(2))"""
         self.expect_error(query, "Can't use aggregate functions inside of aggregate functions")
 
+
+    """test02_boolean_comparisons."""
     def test02_boolean_comparisons(self):
         query = """RETURN true = 5"""
         actual_result = self.graph.query(query)
@@ -97,6 +114,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         expected_result = [[True]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test03_boolean_errors."""
     def test03_boolean_errors(self):
         query = """RETURN 'str' < 5.5"""
         expected_result = [[None]]
@@ -108,6 +127,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """MATCH (a) RETURN a < 'anything' LIMIT 1"""
         self.get_res_and_assertEquals(query, expected_result)
 
+
+    """test04_entity_functions."""
     def test04_entity_functions(self):
         query = "RETURN ID(5)"
         self.expect_type_error(query)
@@ -132,10 +153,14 @@ class testFunctionCallsFlow(FlowTestsBase):
         expected_result = [[True]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test07_nonmap_errors."""
     def test07_nonmap_errors(self):
         query = """MATCH (a) WITH a.name AS scalar RETURN scalar.name"""
         self.expect_type_error(query)
 
+
+    """test08_apply_all_function."""
     def test08_apply_all_function(self):
         query = "MATCH () RETURN COUNT(*)"
         actual_result = self.graph.query(query)
@@ -153,6 +178,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         expected_result = [['0', 1], ["false", 1], [False, 1], [0, 1]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test09_static_aggregation."""
     def test09_static_aggregation(self):
         query = "RETURN count(*)"
         actual_result = self.graph.query(query)
@@ -179,6 +206,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         expected_result = [[[3]]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test10_modulo_inputs."""
     def test10_modulo_inputs(self):
         # Validate modulo with integer inputs.
         query = "RETURN 5 % 2"
@@ -387,6 +416,8 @@ class testFunctionCallsFlow(FlowTestsBase):
             self.env.assertContains("Division by zero", str(e))
 
     # Aggregate functions should handle null inputs appropriately.
+
+    """test11_null_aggregate_function_inputs."""
     def test11_null_aggregate_function_inputs(self):
         # SUM should sum all non-null inputs.
         query = """UNWIND [1, NULL, 3] AS a RETURN sum(a)"""
@@ -425,6 +456,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # Verify that nested functions that perform heap allocations return properly.
+
+    """test12_nested_heap_functions."""
     def test12_nested_heap_functions(self):
         query = """MATCH p = (n) WITH head(nodes(p)) AS node RETURN node.name ORDER BY node.name"""
         actual_result = self.graph.query(query)
@@ -435,6 +468,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # CASE...WHEN statements should properly handle NULL, false, and true evaluations.
+
+    """test13_case_when_inputs."""
     def test13_case_when_inputs(self):
         # Simple case form: single value evaluation.
         query = """UNWIND [NULL, true, false] AS v RETURN v, CASE v WHEN true THEN v END"""
@@ -469,6 +504,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     # CASE...WHEN statements should manage allocated values properly.
+
+    """test14_case_when_memory_management."""
     def test14_case_when_memory_management(self):
         # Simple case form: single value evaluation.
         query = """WITH 'A' AS a WITH CASE a WHEN 'A' THEN toString(a) END AS key RETURN toLower(key)"""
@@ -481,6 +518,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         expected_result = [['a']]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test15_aggregate_error_handling."""
     def test15_aggregate_error_handling(self):
         functions = ["avg",
                      "collect",
@@ -509,6 +548,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         self.expect_error(query, "must be a number in the range 0.0 to 1.0")
 
     # startNode and endNode calls should return the appropriate nodes.
+
+    """test16_edge_endpoints."""
     def test16_edge_endpoints(self):
         query = """MATCH (a)-[e]->(b) RETURN a.name, startNode(e).name, b.name, endNode(e).name"""
         actual_result = self.graph.query(query)
@@ -516,6 +557,8 @@ class testFunctionCallsFlow(FlowTestsBase):
             self.env.assertEquals(row[0], row[1])
             self.env.assertEquals(row[2], row[3])
 
+
+    """test17_to_json."""
     def test17_to_json(self):
         # Test JSON literal values in an array.
         query = """RETURN toJSON([1, 0.000000000000001, 'str', true, NULL])"""
@@ -569,6 +612,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         self.env.assertEquals(parsed, {"crs": "wgs-84", "latitude": 0.402313, "longitude": 167.697556, "height": None})
 
     # Memory should be freed properly when the key values are heap-allocated.
+
+    """test18_allocated_keys."""
     def test18_allocated_keys(self):
         query = """UNWIND ['str1', 'str1', 'str2', 'str1'] AS key UNWIND [1, 2, 3] as agg RETURN toUpper(key) AS key, collect(DISTINCT agg) ORDER BY key"""
         actual_result = self.graph.query(query)
@@ -576,6 +621,8 @@ class testFunctionCallsFlow(FlowTestsBase):
                            ['STR2', [1, 2, 3]]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test19_has_labels."""
     def test19_has_labels(self):
         # Test existing label
         query = """MATCH (n) WHERE n:person RETURN n.name"""
@@ -626,6 +673,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         except redis.ResponseError as e:
             self.env.assertContains("Type mismatch: expected String but was Integer", str(e))
 
+
+    """test20_keys."""
     def test20_keys(self):
         # Test retrieving keys of a nested map
         query = """RETURN keys({a: 5, b: 10})"""
@@ -660,6 +709,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """WITH 10 AS map RETURN keys(map)"""
         self.expect_type_error(query)
 
+
+    """test21_distinct_memory_management."""
     def test21_distinct_memory_management(self):
         # validate behavior of the DISTINCT function with allocated values
         query = """MATCH (a {val: 0}) RETURN collect(DISTINCT a { .name })"""
@@ -667,6 +718,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         expected_result = [[[{'name': 'Roi'}]]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test22_large_list_argument."""
     def test22_large_list_argument(self):
         # validate that large lists arguments are not allocated on stack
         large_list = str([1] * 1000000)
@@ -674,6 +727,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(len(actual_result.result_set[0][0]), 1000000)
     
+
+    """test23_toInteger."""
     def test23_toInteger(self):
         # expect calling toInteger to succeed
         query_to_expected_result = {
@@ -703,6 +758,8 @@ class testFunctionCallsFlow(FlowTestsBase):
             actual_result = self.graph.query(query)
             self.env.assertEquals(actual_result.result_set[0][0], None)
 
+
+    """test24_substring."""
     def test24_substring(self):
         query_to_expected_result = {
             """RETURN SUBSTRING('muchacho', 0, 4)""": [["much"]],
@@ -721,6 +778,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         self.expect_error("""RETURN SUBSTRING("muchacho", -3, 3)""",
             "start must be a non-negative integer")
 
+
+    """test25_left."""
     def test25_left(self):
         query_to_expected_result = {
             "RETURN LEFT('muchacho', 4)" : [['much']],
@@ -755,6 +814,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query in queries:
             self.expect_type_error(query)
 
+
+    """test26_right."""
     def test26_right(self):
         query_to_expected_result = {
             "RETURN RIGHT('muchacho', 4)" : [['acho']],
@@ -789,12 +850,16 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query in queries:
             self.expect_type_error(query)
 
+
+    """test27_string_concat."""
     def test27_string_concat(self):
         larg_double = 1.123456e300
         query = f"""RETURN '' + {larg_double} + {larg_double}"""
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set[0][0], "%f%f" % (larg_double, larg_double))
 
+
+    """test28_sqrt."""
     def test28_sqrt(self):
         query = """RETURN sqrt(0)"""
         actual_result = self.graph.query(query)
@@ -824,6 +889,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set[0][0], 50.4078943770715)
     
+
+    """test29_toBoolean."""
     def test29_toBoolean(self):
         # all other toBoolean cases (boolean, strings, null, errors) are covered in TCK
         # integers
@@ -837,6 +904,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set[0][0], True)
 
+
+    """test29_toBooleanOrNull."""
     def test29_toBooleanOrNull(self):
         # boolean
         query = """RETURN toBooleanOrNull(true)"""
@@ -893,6 +962,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set[0][0], None)
 
+
+    """test30_toFloatOrNull."""
     def test30_toFloatOrNull(self):
         # floats
         query = """RETURN toFloatOrNull(1.2)"""
@@ -946,6 +1017,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set[0][0], None)
 
+
+    """test31_toIntegerOrNull."""
     def test31_toIntegerOrNull(self):
         # integers
         query = """RETURN toIntegerOrNull(0)"""
@@ -1002,6 +1075,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set[0][0], None)
 
+
+    """test32_toStringOrNull."""
     def test32_toStringOrNull(self):
         # strings
         query = """RETURN toStringOrNull('1')"""
@@ -1061,6 +1136,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set[0][0], None)
     
+
+    """test33_toString."""
     def test33_toString(self):
         # strings
         query = """RETURN toString('1')"""
@@ -1118,6 +1195,8 @@ class testFunctionCallsFlow(FlowTestsBase):
                 # Expecting a type error.
                 self.env.assertIn("Type mismatch", str(e))
 
+
+    """test34_split."""
     def test34_split(self):
         query_to_expected_result = {
             "RETURN split(null, ',')": [[None]],
@@ -1136,6 +1215,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
 
+
+    """test35_min_max."""
     def test35_min_max(self):
         query = "UNWIND [[1], [2], [2], [1]] AS x RETURN max(x), min(x)"
         actual_result = self.graph.query(query)
@@ -1147,6 +1228,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         expected_result = [[2, [1]]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test36_log."""
     def test36_log(self):
 
         # log(0)
@@ -1197,6 +1280,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """RETURN log10(True)"""
         self.expect_type_error(query)
 
+
+    """test37_exp."""
     def test37_exp(self):
         # exp(0)
         query = """RETURN exp(0)"""
@@ -1227,6 +1312,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """RETURN exp(True)"""
         self.expect_type_error(query)
 
+
+    """test38_properties."""
     def test38_properties(self):
         # null input
         query = """RETURN properties(null)"""
@@ -1279,6 +1366,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """RETURN properties()"""
         self.expect_error(query, "Received 0 arguments")
 
+
+    """test39_sin."""
     def test39_sin(self):
         # sin(0)
         query = """RETURN sin(0)"""
@@ -1308,6 +1397,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """RETURN sin(2,3)"""
         self.expect_error(query, "Received 2 arguments to function 'sin', expected at most 1")
 
+
+    """test40_cos."""
     def test40_cos(self):
         # cos(0)
         query = """RETURN cos(0)"""
@@ -1337,6 +1428,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """RETURN cos(2,3)"""
         self.expect_error(query, "Received 2 arguments to function 'cos', expected at most 1")
 
+
+    """test41_tan."""
     def test41_tan(self):
         # tan(0)
         query = """RETURN tan(0)"""
@@ -1366,6 +1459,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """RETURN tan(2,3)"""
         self.expect_error(query, "Received 2 arguments to function 'tan', expected at most 1")
 
+
+    """test42_cot."""
     def test42_cot(self):
         # cot(0)
         query = """RETURN cot(0)"""
@@ -1395,6 +1490,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """RETURN cot(2,3)"""
         self.expect_error(query, "Received 2 arguments to function 'cot', expected at most 1")
 
+
+    """test43_asin."""
     def test43_asin(self):
         # asin(0)
         query = """RETURN asin(0)"""
@@ -1434,6 +1531,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """RETURN asin(2,3)"""
         self.expect_error(query, "Received 2 arguments to function 'asin', expected at most 1")
 
+
+    """test44_acos."""
     def test44_acos(self):
         # acos(0)
         query = """RETURN acos(0)"""
@@ -1473,6 +1572,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """RETURN acos(2,3)"""
         self.expect_error(query, "Received 2 arguments to function 'acos', expected at most 1")
     
+
+    """test45_atan."""
     def test45_atan(self):
         # atan(0)
         query = """RETURN atan(0)"""
@@ -1502,6 +1603,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """RETURN atan(2,3)"""
         self.expect_error(query, "Received 2 arguments to function 'atan', expected at most 1")
 
+
+    """test46_atan2."""
     def test46_atan2(self):
         # atan2(0,0)
         query = """RETURN atan2(0,0)"""
@@ -1541,6 +1644,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         self.expect_error(query, "Received 3 arguments to function 'atan2', expected at most 2")
 
 
+
+    """test47_degrees."""
     def test47_degrees(self):
         # degrees(0)
         query = """RETURN degrees(0)"""
@@ -1570,6 +1675,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """RETURN degrees(2,3)"""
         self.expect_error(query, "Received 2 arguments to function 'degrees', expected at most 1")   
 
+
+    """test48_radians."""
     def test48_radians(self):
         # radians(0)
         query = """RETURN radians(0)"""
@@ -1600,6 +1707,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         self.expect_error(query, "Received 2 arguments to function 'radians', expected at most 1")
 
 
+
+    """test49_pi."""
     def test49_pi(self):
         # pi()
         query = """RETURN pi()"""
@@ -1610,6 +1719,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """RETURN pi(null)"""
         self.expect_error(query, "Received 1 arguments to function 'pi', expected at most 0")
 
+
+    """test50_haversin."""
     def test50_haversin(self):
         # haversin(0)
         query = """RETURN haversin(0)"""
@@ -1639,6 +1750,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         query = """RETURN haversin(2,3)"""
         self.expect_error(query, "Received 2 arguments to function 'haversin', expected at most 1")           
 
+
+    """test51_isempty."""
     def test51_isempty(self):
         # null input, the expected result is null
         query = "RETURN isEmpty(null)"
@@ -1678,6 +1791,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query in queries:
             self.expect_type_error(query)
 
+
+    """test52_Expression."""
     def test52_Expression(self):
         query_to_expected_result = {
             "RETURN 'muchacho'": [['muchacho']],
@@ -1694,6 +1809,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
         
+
+    """test53_NullArithmetic."""
     def test53_NullArithmetic(self):
         query_to_expected_result = {
             "RETURN null + 1": [[None]],
@@ -1709,6 +1826,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test54_Abs."""
     def test54_Abs(self):
         query_to_expected_result = {
             "RETURN ABS(1)": [[1]],
@@ -1719,6 +1838,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test55_Aggregate."""
     def test55_Aggregate(self):
         query_to_expected_result = {
             "UNWIND [1, 1, 1] AS one RETURN SUM(one)": [[3]],
@@ -1727,6 +1848,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test56_Ciel."""
     def test56_Ciel(self):
         query_to_expected_result = {
             "RETURN CEIL(0.5)": [[1]],
@@ -1737,6 +1860,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test57_Floor."""
     def test57_Floor(self):
         query_to_expected_result = {
             "RETURN FLOOR(0.5)": [[0]], 
@@ -1747,6 +1872,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test58_Round."""
     def test58_Round(self):
         query_to_expected_result = {
             "RETURN ROUND(0)": [[0]], 
@@ -1758,6 +1885,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
 
+
+    """test59_Sign."""
     def test59_Sign(self):
         query_to_expected_result = {
             "RETURN SIGN(0)": [[0]], 
@@ -1768,6 +1897,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
 
+
+    """test60_Pow."""
     def test60_Pow(self):
         query_to_expected_result = {
             "RETURN pow(1,0)": [[1]], 
@@ -1796,6 +1927,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test61_Reverse."""
     def test61_Reverse(self):
         query_to_expected_result = {
             "RETURN REVERSE('muchacho')": [["ohcahcum"]], 
@@ -1807,6 +1940,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test62_LTrim."""
     def test62_LTrim(self):
         query_to_expected_result = {
             "RETURN lTrim('   muchacho')": [["muchacho"]], 
@@ -1818,6 +1953,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test63_RTrim."""
     def test63_RTrim(self):
         query_to_expected_result = {
             "RETURN rTrim('   muchacho')": [["   muchacho"]], 
@@ -1829,6 +1966,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test64_Trim."""
     def test64_Trim(self):
         query_to_expected_result = {
             "RETURN trim('   muchacho')": [["muchacho"]],
@@ -1840,6 +1979,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test65_ToLower."""
     def test65_ToLower(self):
         query_to_expected_result = {
             "RETURN toLower('MuChAcHo')": [['muchacho']],
@@ -1855,6 +1996,8 @@ class testFunctionCallsFlow(FlowTestsBase):
 
         self.expect_error('RETURN toLower(replace("�", "", "   "))', "Invalid UTF8 string")
     
+
+    """test66_ToUpper."""
     def test66_ToUpper(self):
         query_to_expected_result = {
             "RETURN toUpper('MuChAcHo')": [['MUCHACHO']],
@@ -1870,6 +2013,8 @@ class testFunctionCallsFlow(FlowTestsBase):
 
         self.expect_error('RETURN toUpper(replace("�", "", "   "))', "Invalid UTF8 string")
     
+
+    """test67_Exists."""
     def test67_Exists(self):
         query_to_expected_result = {
             "RETURN EXISTS(null)": [[0]],
@@ -1878,6 +2023,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test68_Case."""
     def test68_Case(self):
         query_to_expected_result = {
             "RETURN CASE 'brown' WHEN 'blue' THEN 1+0 WHEN 'brown' THEN 2-0 ELSE 3*1 END": [[2]],
@@ -1894,6 +2041,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test69_AND."""
     def test69_AND(self):
         scenarios = [
             ['TRUE', 'FALSE', False],
@@ -1913,6 +2062,8 @@ class testFunctionCallsFlow(FlowTestsBase):
             actual_result = self.graph.query(f"RETURN {lhs} AND {rhs}").result_set[0][0]
             self.env.assertEquals(actual_result, expected)
     
+
+    """test70_OR."""
     def test70_OR(self):
         scenarios = [
             ['TRUE', 'FALSE', True],
@@ -1932,6 +2083,8 @@ class testFunctionCallsFlow(FlowTestsBase):
             actual_result = self.graph.query(f"RETURN {lhs} OR {rhs}").result_set[0][0]
             self.env.assertEquals(actual_result, expected)
     
+
+    """test71_XOR."""
     def test71_XOR(self):
         scenarios = [
             ['TRUE', 'FALSE', True],
@@ -1951,6 +2104,8 @@ class testFunctionCallsFlow(FlowTestsBase):
             actual_result = self.graph.query(f"RETURN {lhs} XOR {rhs}").result_set[0][0]
             self.env.assertEquals(actual_result, expected)
 
+
+    """test72_NOT."""
     def test72_NOT(self):
         scenarios = [
             ['TRUE', False],
@@ -1963,6 +2118,8 @@ class testFunctionCallsFlow(FlowTestsBase):
             actual_result = self.graph.query(f"RETURN NOT {b}").result_set[0][0]
             self.env.assertEquals(actual_result, expected)
     
+
+    """test73_LT."""
     def test73_LT(self):
         scenarios = [
             ['1','1', False],
@@ -1982,6 +2139,8 @@ class testFunctionCallsFlow(FlowTestsBase):
             actual_result = self.graph.query(f"RETURN {lhs} < {rhs}").result_set[0][0]
             self.env.assertEquals(actual_result, expected)
     
+
+    """test74_LE."""
     def test74_LE(self):
         scenarios = [
             ['1','1', True],
@@ -2001,6 +2160,8 @@ class testFunctionCallsFlow(FlowTestsBase):
             actual_result = self.graph.query(f"RETURN {lhs} <= {rhs}").result_set[0][0]
             self.env.assertEquals(actual_result, expected)
 
+
+    """test75_EQ."""
     def test75_EQ(self):
         scenarios = [
             ['1','1', True],
@@ -2020,6 +2181,8 @@ class testFunctionCallsFlow(FlowTestsBase):
             actual_result = self.graph.query(f"RETURN {lhs} = {rhs}").result_set[0][0]
             self.env.assertEquals(actual_result, expected)
     
+
+    """test76_NE."""
     def test76_NE(self):
         scenarios = [
             ['1','1', False],
@@ -2039,6 +2202,8 @@ class testFunctionCallsFlow(FlowTestsBase):
             actual_result = self.graph.query(f"RETURN {lhs} <> {rhs}").result_set[0][0]
             self.env.assertEquals(actual_result, expected)
     
+
+    """test77_List."""
     def test77_List(self):
         arr = [1, 2.3, '4', True, False, None]
         query = "RETURN [1,2.3,'4',TRUE,FALSE, NULL]"
@@ -2048,6 +2213,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for i in range(len(arr)):
             self.env.assertEquals(actual_result[i], arr[i])
 
+
+    """test78_ListSlice."""
     def test78_ListSlice(self):
         arr = [0,1,2,3,4,5,6,7,8,9,10]
         query_to_expected_result = {
@@ -2061,6 +2228,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test79_Range."""
     def test79_Range(self):
         query_to_expected_result = {
             "RETURN range(0,10)": [[[i for i in range(11)]]],
@@ -2069,6 +2238,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test80_IN."""
     def test80_IN(self):
         query_to_expected_result = {
             "RETURN 3 IN [1,2,3]": [[True]],
@@ -2079,6 +2250,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
 
+
+    """test81_ISNULL."""
     def test81_ISNULL(self):
         arr = ["NULL", "1", "1.2", "TRUE", "FALSE", "'string'", "[1,2,3]"]
         for ind, s in enumerate(arr):
@@ -2089,6 +2262,8 @@ class testFunctionCallsFlow(FlowTestsBase):
             expected2 = [[False]] if ind!=0 else [[True]]
             self.get_res_and_assertEquals(query2, expected2)
     
+
+    """test82_Coalesce."""
     def test82_Coalesce(self):
         query_to_expected_result = {
             "RETURN coalesce(1)": [[1]],
@@ -2098,6 +2273,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
     
+
+    """test83_Replace."""
     def test83_Replace(self):
         query_to_expected_result = {
             "RETURN replace('abcabc', 'a', '00')": [["00bc00bc"]],
@@ -2113,6 +2290,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
 
+
+    """test84_RandomUUID."""
     def test84_RandomUUID(self):
         query = "RETURN randomUUID()"
         actual_result = self.graph.query(query).result_set[0][0]
@@ -2124,6 +2303,8 @@ class testFunctionCallsFlow(FlowTestsBase):
             assert(False)
         self.env.assertEquals(actual_result[23], '-')
 
+
+    """test85_division_inputs."""
     def test85_division_inputs(self):
         # Validate integer dividend division by 0
         # redis-cli output example:
@@ -2226,6 +2407,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         except redis.ResponseError as e:
             self.env.assertContains("Division by zero", str(e))
 
+
+    """test86_type_mismatch_message."""
     def test86_type_mismatch_message(self):
         # A list of queries and errors which are expected to occur with the
         # specified query.
@@ -2240,6 +2423,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, error in queries_with_errors.items():
             self.expect_error(query, error)
 
+
+    """test87_typeof."""
     def test87_typeof(self):
         query_to_expected_result = {
             "RETURN typeOf(NULL)" : [['Null']],
@@ -2254,6 +2439,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
 
+
+    """test88_in_out_degree."""
     def test88_in_out_degree(self):
         # clear graph
         self.graph.delete()
@@ -2430,6 +2617,8 @@ class testFunctionCallsFlow(FlowTestsBase):
                 self.env.assertIn("Received", str(e))
 
 
+
+    """test89_JOIN."""
     def test89_JOIN(self):
         # NULL input should return NULL
         expected_result = [None]
@@ -2522,6 +2711,8 @@ class testFunctionCallsFlow(FlowTestsBase):
             # expecting an empty string
             self.env.assertEquals(actual_result, "")
 
+
+    """test90_size."""
     def test90_size(self):
         query_to_expected_result = {
             "RETURN size(NULL)" : [[None]],
@@ -2531,6 +2722,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
 
+
+    """test91_MATCHREGEX."""
     def test91_MATCHREGEX(self):
         # NULL input should return empty list
         expected_result = [[]]
@@ -2633,6 +2826,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         #actual_result = self.graph.query(query)
         #self.env.assertEquals(actual_result.result_set[0], expected_result)
 
+
+    """test92_REPLACEREGEX."""
     def test92_REPLACEREGEX(self):
         # NULL input should return NULL
         expected_result = [None]
@@ -2752,6 +2947,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set[0], expected_result)
 
+
+    """test93_overflow."""
     def test93_overflow(self):
         # Test integer overflow caused by string to long conversion
         queries_with_errors = {
@@ -2778,6 +2975,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for query, expected_result in query_to_expected_result.items():
             self.get_res_and_assertEquals(query, expected_result)
 
+
+    """test94_vector."""
     def test94_vector(self):
         # Test invalid inputs
         err_msg = "vectorf32 expects an array of numbers"
@@ -2794,6 +2993,8 @@ class testFunctionCallsFlow(FlowTestsBase):
         for q in queries_with_errors:
             self.expect_error(q, err_msg)
 
+
+    """test95_prev."""
     def test95_prev(self):
         res = self.graph.query("UNWIND range(1, 5) AS x RETURN prev(x)")
         self.env.assertEquals(res.result_set, [[None], [1], [2], [3], [4]])

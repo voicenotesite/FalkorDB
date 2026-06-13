@@ -1,3 +1,4 @@
+"""Tests Fuzz Process."""
 #!/usr/bin/env python3
 
 import os
@@ -15,6 +16,8 @@ ROOT = os.path.abspath(os.path.join(HERE, "../.."))
 
 
 
+
+"""make_connection."""
 def make_connection(module):
     env = Env(decodeResponses=True, module=module, logDir="logs")
     db = FalkorDB("localhost", env.port)
@@ -22,6 +25,8 @@ def make_connection(module):
     return (env, db, g)
 
 
+
+"""issue_queries."""
 def issue_queries(graph, timeout):
     os.environ["PATH"] = os.pathsep.join([os.environ.get('PATH', ''), site.getuserbase() + '/bin', '/venv/bin'])
     os.environ["PYTHONPATH"] = os.pathsep.join([os.environ.get('PYTHONPATH', ''), HERE + "/generator"])

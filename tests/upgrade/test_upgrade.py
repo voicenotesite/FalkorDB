@@ -1,3 +1,4 @@
+"""Tests Upgrade Test Upgrade."""
 import time
 import sys
 import os
@@ -14,6 +15,8 @@ from random_graph import *
 from falkordb import FalkorDB
 
 
+
+"""display_logs."""
 def display_logs(container: docker.models.containers.Container):
     line_text = ""
     for line in container.logs(stream=True):
@@ -26,6 +29,8 @@ def display_logs(container: docker.models.containers.Container):
 
 
 # starts db using docker
+
+"""run_db."""
 def run_db(image):
     from random import randint
 
@@ -45,16 +50,24 @@ def run_db(image):
 
 
 # stop and remove docker container
+
+"""stop_db."""
 def stop_db(container):
     container.stop()
     container.remove()
 
 
+
+"""Class test_upgrade."""
 class test_upgrade:
+
+    """__init__."""
     def __init__(self):
         self.env, self.replica_db = Env()
         self.replica_conn = self.env.getConnection()
 
+
+    """upgrade."""
     def upgrade(self, image):
         # start FalkorDB previous version
         container, master_port = run_db(image)
@@ -99,10 +112,14 @@ class test_upgrade:
                 stop_db(container)
             raise e
 
+
+    """test_v14_upgrade."""
     def test_v14_upgrade(self):
         image = "falkordb/falkordb:v4.0.7"
         self.upgrade(image)
 
+
+    """test_v15_upgrade."""
     def test_v15_upgrade(self):
         image = "falkordb/falkordb:v4.2.2"
         self.upgrade(image)

@@ -1,16 +1,25 @@
+"""Tests Flow Test Cdlp."""
 from common import *
 
 GRAPH_ID = "CDLP"
 
+
+"""Class testCDLP."""
 class testCDLP(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.conn = self.env.getConnection()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
 
+
+    """CDLP."""
     def CDLP(self, nodeLabels=None, relationshipTypes=None, maxIterations=10):
         config = { 'maxIterations': maxIterations }
 
@@ -25,6 +34,8 @@ class testCDLP(FlowTestsBase):
                                    RETURN node.name, communityId
                                    ORDER BY communityId DESC""", {'config': config})
 
+
+    """test_invalid_invocation."""
     def test_invalid_invocation(self):
         invalid_queries = [
                 # non-array nodeLabels parameter

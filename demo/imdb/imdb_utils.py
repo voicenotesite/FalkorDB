@@ -1,3 +1,4 @@
+"""Demo Imdb Imdb Utils."""
 import csv
 import os
 from datetime import date
@@ -5,6 +6,8 @@ from falkordb import Graph, Node, Edge
 
 graph_name = "imdb"
 
+
+"""populate_graph."""
 def populate_graph(db, graph):
     # check if graph already exists
     if graph.name in db.list_graphs():

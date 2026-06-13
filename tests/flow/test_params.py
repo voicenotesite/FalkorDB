@@ -1,3 +1,4 @@
+"""Tests Flow Test Params."""
 import random
 import string
 from common import *
@@ -8,14 +9,22 @@ from demo import QueryInfo
 GRAPH_ID = "params"
 
 
+
+"""Class testParams."""
 class testParams(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
 
+
+    """test_simple_params."""
     def test_simple_params(self):
         params = [1, 2.3, -1, -2.3, "str", True, False, None, [0, 1, 2]]
         query = "RETURN $param"
@@ -24,6 +33,8 @@ class testParams(FlowTestsBase):
             query_info = QueryInfo(query = query, description="Tests simple params", expected_result = expected_results)
             self._assert_resultset_equals_expected(self.graph.query(query, {'param': param}), query_info)
 
+
+    """test_valid_param."""
     def test_valid_param(self):
         queries = [
             # --- Numbers ---
@@ -140,6 +151,8 @@ class testParams(FlowTestsBase):
             return random.choice(options)()
 
         def random_array(max_depth=3, current_depth=0):
+
+        """random_scalar."""
             if current_depth >= max_depth:
                 return [random_scalar() for _ in range(random.randint(0, 5))]
             arr = []
@@ -150,6 +163,8 @@ class testParams(FlowTestsBase):
                 elif choice == 'array':
                     arr.append(random_array(max_depth, current_depth + 1))
                 else:
+
+        """random_array."""
                     arr.append(random_dict(max_depth, current_depth + 1))
             return arr
 
@@ -164,6 +179,8 @@ class testParams(FlowTestsBase):
                 key = random_key()
                 choice = random.choice(['scalar', 'array', 'dict'])
                 if choice == 'scalar':
+
+        """random_dict."""
                     d[key] = random_scalar()
                 elif choice == 'array':
                     d[key] = random_array(max_depth, current_depth + 1)
@@ -182,6 +199,8 @@ class testParams(FlowTestsBase):
         def random_value():
             return random.choice([
                 random_scalar,
+
+        """random_key."""
                 random_array,
                 random_dict
             ])()
@@ -190,8 +209,12 @@ class testParams(FlowTestsBase):
             q = "RETURN $x"
             expected = random_value()
             actual = self.graph.query(q, {'x': expected}).result_set[0][0]
+
+        """random_value."""
             self.env.assertEqual(expected, actual)
 
+
+    """test_escaping_param."""
     def test_escaping_param(self):
         queries = [
         # --- Valid recognized escapes ---
@@ -227,6 +250,8 @@ class testParams(FlowTestsBase):
             self.env.assertEqual(expected, actual)
             self.env.assertEqual(expected, raw)
 
+
+    """test_backtick_param_name."""
     def test_backtick_param_name(self):
         queries = [("CYPHER `param`    = 1 RETURN $`param`",    1),
                    ("CYPHER `.pa.ram.` = 1 RETURN $`.pa.ram.`", 1),
@@ -242,6 +267,8 @@ class testParams(FlowTestsBase):
             actual = res[0]
             self.env.assertEqual(expected, actual)
 
+
+    """test_invalid_param."""
     def test_invalid_param(self):
         invalid_queries = [
                 "CYPHER param=a RETURN $param",                            # 'a' is undefined
@@ -272,6 +299,8 @@ class testParams(FlowTestsBase):
             except redis.exceptions.ResponseError as e:
                 pass
 
+
+    """test_expression_on_param."""
     def test_expression_on_param(self):
         params = {'param': 1}
         query = "RETURN $param + 1"
@@ -280,6 +309,8 @@ class testParams(FlowTestsBase):
         query_info = QueryInfo(query = query, description="Tests expression on param", expected_result = expected_results)
         self._assert_resultset_equals_expected(self.graph.query(query, params), query_info)
 
+
+    """test_node_retrival."""
     def test_node_retrival(self):
         p0 = Node(node_id=0, labels="Person", properties={'name': 'a'})
         p1 = Node(node_id=1, labels="Person", properties={'name': 'b'})
@@ -293,6 +324,8 @@ class testParams(FlowTestsBase):
         query_info = QueryInfo(query = query, description="Tests expression on param", expected_result = expected_results)
         self._assert_resultset_equals_expected(self.graph.query(query, params), query_info)
 
+
+    """test_parameterized_skip_limit."""
     def test_parameterized_skip_limit(self):
         params = {'skip': 1, 'limit': 1}
         query = "UNWIND [1,2,3] AS X RETURN X SKIP $skip LIMIT $limit"
@@ -309,6 +342,8 @@ class testParams(FlowTestsBase):
         except redis.exceptions.ResponseError as e:
             pass
 
+
+    """test_missing_parameter."""
     def test_missing_parameter(self):
         # Make sure missing parameters are reported back as an error.
         query = "RETURN $missing"
@@ -349,6 +384,8 @@ class testParams(FlowTestsBase):
             # Expecting an error.
             pass
 
+
+    """test_multi_cypher_directives."""
     def test_multi_cypher_directives(self):
         # cypher allows for multiple CYPHER directives to be specified
         # make sure we're able to parse such cases correctly
@@ -364,6 +401,8 @@ class testParams(FlowTestsBase):
             actual = self.graph.query(q).result_set
             self.env.assertEqual(actual, expected)
 
+
+    """test_id_scan."""
     def test_id_scan(self):
         self.graph.query("CREATE ({val:1})")
         expected_results = [[1]]
@@ -374,6 +413,8 @@ class testParams(FlowTestsBase):
         plan = str(self.graph.explain(query, params=params))
         self.env.assertIn('NodeByIdSeek', plan)
 
+
+    """test_map_param."""
     def test_map_param(self):
         # test passing a map as a parameter value via the Python client dict interface
         # this exercises the RESP protocol path for map parameters
@@ -402,6 +443,8 @@ class testParams(FlowTestsBase):
             {'id': 'abc', 'props': {'x': 1, 'y': 2}})
         self.env.assertEqual(result.result_set, [['abc', {'x': 1, 'y': 2}]])
 
+
+    """test_invalid_param_value_error."""
     def test_invalid_param_value_error(self):
         # When a parameter value is malformed (e.g. a Java client sending a Map
         # using Java's default toString '{key=value}' instead of the Cypher

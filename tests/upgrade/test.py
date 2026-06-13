@@ -1,3 +1,4 @@
+"""Tests Upgrade Test."""
 import time
 import sys
 import os
@@ -14,6 +15,8 @@ from random_graph import *
 from falkordb import FalkorDB
 
 
+
+"""display_logs."""
 def display_logs(container: docker.models.containers.Container):
     line_text = ""
     for line in container.logs(stream=True):
@@ -27,6 +30,8 @@ def display_logs(container: docker.models.containers.Container):
 
 
 # starts db using docker
+
+"""run_db."""
 def run_db(image):
     from random import randint
 
@@ -52,6 +57,8 @@ def run_db(image):
 
 
 # stop and remove docker container
+
+"""stop_db."""
 def stop_db(container):
     container.stop()
     container.remove()

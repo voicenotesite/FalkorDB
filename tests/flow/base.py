@@ -1,15 +1,22 @@
+"""Tests Flow Base."""
 import os
 import warnings
 
 # The default warnings.warn prints itself, this function should override the default behavior
 # Output example: "UserWarning: Maximum runtime for query "My friends?" was: 0.378, but should be 0.2"
+
+"""_warning_formater."""
 def _warning_formater(message, category, filename, lineno, file=None, line=None):
     return '%s: %s\n' % (category.__name__, message)
 
 warnings.formatwarning = _warning_formater
 
+
+"""Class FlowTestsBase."""
 class FlowTestsBase(object):
 
+
+    """_assert_only_expected_results_are_in_actual_results."""
     def _assert_only_expected_results_are_in_actual_results(self,
                                                            actual_result,
                                                            query_info):
@@ -24,6 +31,8 @@ class FlowTestsBase(object):
         for res in query_info.expected_result:
             self.env.assertIn(res, actual_result_set)
 
+
+    """_assert_actual_results_contained_in_expected_results."""
     def _assert_actual_results_contained_in_expected_results(self,
                                                              actual_result,
                                                              query_info,
@@ -41,6 +50,8 @@ class FlowTestsBase(object):
         self.env.assertEqual(count, num_contained_results)
 
 
+
+    """_assert_resultset_and_expected_mutually_included."""
     def _assert_resultset_and_expected_mutually_included(self, actual_result, query_info):
         actual_result_set = []
         if actual_result.result_set is not None:
@@ -57,11 +68,15 @@ class FlowTestsBase(object):
         for res in actual_result_set:
             self.env.assertIn(res, query_info.expected_result)
 
+
+    """_assert_resultset_equals_expected."""
     def _assert_resultset_equals_expected(self, actual_result, query_info):
         actual_result_set = actual_result.result_set or []
         self.env.assertEqual(actual_result_set, query_info.expected_result)
 
     # function which run the query and expects an specific error message
+
+    """_assert_exception."""
     def _assert_exception(self, graph, query, expected_err_msg):
         try:
             graph.query(query)

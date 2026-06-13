@@ -1,3 +1,4 @@
+"""Demo Imdb Imdb Queries."""
 import sys
 import os
 
@@ -5,7 +6,11 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../..')
 from demo import QueryInfo
 
 
+
+"""Class IMDBQueries."""
 class IMDBQueries(object):
+
+    """__init__."""
     def __init__(self, actors=None, movies=None):
         nodesAvailable = (movies is not None and actors is not None)
         
@@ -399,5 +404,7 @@ class IMDBQueries(object):
             self.grand_budapest_hotel_cast_and_their_other_roles
         ]
 
+
+    """queries."""
     def queries(self):
         return self.queries_info

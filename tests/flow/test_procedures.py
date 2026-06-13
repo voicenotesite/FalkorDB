@@ -1,3 +1,4 @@
+"""Tests Flow Test Procedures."""
 from common import *
 from index_utils import create_node_fulltext_index, create_node_range_index
 
@@ -13,12 +14,18 @@ node5 = Node(alias="n5", labels="fruit", properties={"name": "Banana", "value": 
 # Tests built in procedures,
 # e.g. db.idx.fulltext.queryNodes
 # Test over all procedure behavior in addition to procedure specifics.
+
+"""Class testProcedures."""
 class testProcedures(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         if GRAPH_ID in self.db.list_graphs():
             return
@@ -30,10 +37,14 @@ class testProcedures(FlowTestsBase):
         create_node_fulltext_index(self.graph, "fruit", "name", sync=True)
 
     # Compares two nodes based on their properties.
+
+    """_compareNodes."""
     def _compareNodes(self, a, b):
         return a.properties == b.properties
 
     # Make sure given item is found within resultset.
+
+    """_inResultSet."""
     def _inResultSet(self, item, resultset):
         for i in range(len(resultset)):
             result = resultset[i][0]
@@ -42,6 +53,8 @@ class testProcedures(FlowTestsBase):
         return False
 
     # Issue query and validates resultset.
+
+    """queryAndValidate."""
     def queryAndValidate(self, query, expected_results, query_params={}):
         actual_resultset = self.graph.query(query, query_params).result_set
         self.env.assertEquals(len(actual_resultset), len(expected_results))
@@ -52,6 +65,8 @@ class testProcedures(FlowTestsBase):
 
     # Call procedure, omit yield, expecting all procedure outputs to
     # be included in result-set.
+
+    """test01_no_yield."""
     def test01_no_yield(self):
         actual_result = self.graph.call_procedure(
             "db.idx.fulltext.queryNodes", args=["fruit", "Orange1"]
@@ -64,6 +79,8 @@ class testProcedures(FlowTestsBase):
         assert data[0] is not None
 
     # Call procedure specify different outputs.
+
+    """test02_yield."""
     def test02_yield(self):
         actual_result = self.graph.call_procedure(
             "db.idx.fulltext.queryNodes", args=["fruit", "Orange1"], emit=["node"]
@@ -101,6 +118,8 @@ class testProcedures(FlowTestsBase):
             # Expecting an error.
             self.env.assertContains("Variable `node` already declared", str(e))
 
+
+    """test03_arguments."""
     def test03_arguments(self):
         # Omit arguments.
         # Expect an error when trying to omit arguments.
@@ -134,6 +153,8 @@ class testProcedures(FlowTestsBase):
             pass
 
     # Test procedure call while mixing a number of addition clauses.
+
+    """test04_mix_clauses."""
     def test04_mix_clauses(self):
         query_params = {"prefix": "Orange*"}
         # CALL + RETURN.
@@ -263,21 +284,29 @@ class testProcedures(FlowTestsBase):
         expected_results = [node4, node2, node3, node1, node4, node2, node3, node1]
         self.queryAndValidate(query, expected_results, query_params=query_params)
 
+
+    """test05_procedure_labels."""
     def test05_procedure_labels(self):
         actual_resultset = self.graph.call_procedure("db.labels").result_set
         expected_results = [["fruit"]]
         self.env.assertEquals(actual_resultset, expected_results)
 
+
+    """test06_procedure_relationshipTypes."""
     def test06_procedure_relationshipTypes(self):
         actual_resultset = self.graph.call_procedure("db.relationshipTypes").result_set
         expected_results = [["goWellWith"]]
         self.env.assertEquals(actual_resultset, expected_results)
 
+
+    """test07_procedure_propertyKeys."""
     def test07_procedure_propertyKeys(self):
         actual_resultset = self.graph.call_procedure("db.propertyKeys").result_set
         expected_results = [["name"], ["value"]]
         self.env.assertEquals(actual_resultset, expected_results)
 
+
+    """test08_procedure_fulltext_syntax_error."""
     def test08_procedure_fulltext_syntax_error(self):
         try:
             query = """CALL db.idx.fulltext.queryNodes('fruit', 'Orange || Apple') YIELD node RETURN node"""
@@ -287,6 +316,8 @@ class testProcedures(FlowTestsBase):
             # Expecting an error.
             pass
 
+
+    """test09_procedure_lookup."""
     def test09_procedure_lookup(self):
         try:
             self.graph.call_procedure("dB.LaBeLS")
@@ -312,6 +343,8 @@ class testProcedures(FlowTestsBase):
             self.env.assertFalse(1)
             pass
 
+
+    """test10_procedure_indexes."""
     def test10_procedure_indexes(self):
         # Verify that the full-text index is reported properly.
         actual_resultset = self.graph.query(
@@ -349,6 +382,8 @@ class testProcedures(FlowTestsBase):
         expected_results = [["fruit"]]
         self.env.assertEquals(actual_resultset, expected_results)
 
+
+    """test11_list_procedures."""
     def test11_list_procedures(self):
         # validates list of available procedures
         actual_resultset = self.graph.query(
@@ -382,6 +417,8 @@ class testProcedures(FlowTestsBase):
         ]
         self.env.assertEquals(actual_resultset, expected_result)
 
+
+    """test12_list_functions."""
     def test12_list_functions(self):
         # test the functions procedure call
         # CALL dbms.functions()

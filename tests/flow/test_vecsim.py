@@ -1,9 +1,14 @@
+"""Tests Flow Test Vecsim."""
 from common import *
 from index_utils import *
 
 GRAPH_ID = "vecsim"
 
+
+"""Class testVecsim."""
 class testVecsim():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
 
@@ -18,6 +23,8 @@ class testVecsim():
         self.populate()
         self.create_indicies()
 
+
+    """populate."""
     def populate(self):
         # introduce Person nodes
         n = 1000 # number of Person nodes
@@ -33,6 +40,8 @@ class testVecsim():
         
         self.graph.query(q)
 
+
+    """create_indicies."""
     def create_indicies(self):
         # index nodes
         # create vector index over Person:embeddings
@@ -47,6 +56,8 @@ class testVecsim():
         # wait for indices to be become operational
         wait_for_indices_to_sync(self.graph)
 
+
+    """test01_vector_distance."""
     def test01_vector_distance(self):
         # compute euclidean distance between two vectors
         qs = {"""RETURN vec.euclideanDistance(vecf32($a), vecf32($b)) AS dist""": 1.414,
@@ -96,6 +107,8 @@ class testVecsim():
                 except Exception as e:
                     self.env.assertContains("Type mismatch", str(e))
 
+
+    """test02_locate_similar_nodes."""
     def test02_locate_similar_nodes(self):
         k = 3
         x = 50
@@ -110,6 +123,8 @@ class testVecsim():
             self.env.assertLess(abs(embeddings[0] - x), k)
             self.env.assertLess(abs(embeddings[1] - y), k)
 
+
+    """test03_locate_similar_edges."""
     def test03_locate_similar_edges(self):
         k = 3
         x = -50
@@ -123,6 +138,8 @@ class testVecsim():
             self.env.assertLess(abs(embeddings[0] - x), k)
             self.env.assertLess(abs(embeddings[1] - y), k)
 
+
+    """test04_vecsim_result_order."""
     def test04_vecsim_result_order(self):
         # entities returned from vecsim should be sorted by distance
         # starting with the closest entity and increasing distance
@@ -157,6 +174,8 @@ class testVecsim():
             self.env.assertGreaterEqual(score, prev_score)
             prev_score = score
 
+
+    """test05_not_enough_results."""
     def test05_not_enough_results(self):
         # ask for more results than exist in the index
         # should return all results
@@ -172,6 +191,8 @@ class testVecsim():
         count = self.graph.ro_query(q, params={'k':k, 'q': [x, y]}).result_set[0][0]
         self.env.assertEqual(count, 1001)
 
+
+    """test06_validate_arguments."""
     def test06_validate_arguments(self):
         # validate arguments
         # first arugment must be a string
@@ -202,6 +223,8 @@ class testVecsim():
         except Exception as e:
             self.env.assertContains("Invalid arguments for procedure", str(e))
 
+
+    """test07_mismatch_vector_dim."""
     def test07_mismatch_vector_dim(self):
         # try to query a vector index using a query vector with mismatched dimension
 

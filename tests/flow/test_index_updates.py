@@ -1,3 +1,4 @@
+"""Tests Flow Test Index Updates."""
 import string
 import random
 from common import *
@@ -10,13 +11,19 @@ groups = ["Group A", "Group B", "Group C","Group D", "Group E"]
 node_ctr = 0
 
 
+
+"""Class testIndexUpdatesFlow."""
 class testIndexUpdatesFlow(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
         self.build_indices()
 
+
+    """new_node."""
     def new_node(self):
         return Node(labels = labels[node_ctr % 2],
                     properties = {'unique': node_ctr,
@@ -25,6 +32,8 @@ class testIndexUpdatesFlow(FlowTestsBase):
                                   'intval': random.randint(1, 10000),
                                   'stringval': ''.join(random.choice(string.ascii_lowercase) for x in range(6))})
 
+
+    """populate_graph."""
     def populate_graph(self):
         global node_ctr
         nodes = []
@@ -34,6 +43,8 @@ class testIndexUpdatesFlow(FlowTestsBase):
         nodes_str = [str(node) for node in nodes]
         self.graph.query(f"CREATE {','.join(nodes_str)}")
 
+
+    """build_indices."""
     def build_indices(self):
         for field in fields:
             self.graph.create_node_range_index('label_a', field)
@@ -41,12 +52,16 @@ class testIndexUpdatesFlow(FlowTestsBase):
         wait_for_indices_to_sync(self.graph)
 
     # Validate that all properties are indexed
+
+    """validate_indexed."""
     def validate_indexed(self):
         for field in fields:
             resp = str(self.graph.explain(f"MATCH (a:label_a) WHERE a.{field} > 0 RETURN a"))
             self.env.assertIn('Node By Index Scan', resp)
 
     # So long as 'unique' is not modified, label_a.unique will always be even and label_b.unique will always be odd
+
+    """validate_unique."""
     def validate_unique(self):
         result = self.graph.query("MATCH (a:label_a) RETURN a.unique")
         # Remove the header
@@ -61,6 +76,8 @@ class testIndexUpdatesFlow(FlowTestsBase):
             self.env.assertEquals(int(float(val[0])) % 2, 1)
 
     # The index scan ought to return identical results to a label scan over the same range of values.
+
+    """validate_doubleval."""
     def validate_doubleval(self):
         for label in labels:
             resp = str(self.graph.explain(f"MATCH (a:{label}) WHERE a.doubleval < 100 RETURN a.doubleval ORDER BY a.doubleval"))
@@ -76,6 +93,8 @@ class testIndexUpdatesFlow(FlowTestsBase):
                 self.env.assertEqual(float(pair[0]), float(pair[1]))
 
     # The intval property can be assessed similar to doubleval, but the result sets should be identical
+
+    """validate_intval."""
     def validate_intval(self):
         for label in labels:
             resp = str(self.graph.explain(f"MATCH (a:{label}) WHERE a.intval > 0 RETURN a.intval ORDER BY a.intval"))
@@ -86,6 +105,8 @@ class testIndexUpdatesFlow(FlowTestsBase):
             self.env.assertEqual(indexed_result.result_set, scan_result.result_set)
 
     # Validate a series of premises to ensure that the graph has not been modified unexpectedly
+
+    """validate_state."""
     def validate_state(self):
         self.validate_unique()
         self.validate_indexed()
@@ -93,6 +114,8 @@ class testIndexUpdatesFlow(FlowTestsBase):
         self.validate_intval()
 
     # Modify a property, triggering updates to all nodes in two indices
+
+    """test01_full_property_update."""
     def test01_full_property_update(self):
         result = self.graph.query("MATCH (a) SET a.doubleval = a.doubleval + 1.1")
         self.env.assertEquals(result.properties_set, 1000)
@@ -100,12 +123,16 @@ class testIndexUpdatesFlow(FlowTestsBase):
         self.validate_state()
 
     # Modify a property, triggering updates to a subset of nodes in two indices
+
+    """test02_partial_property_update."""
     def test02_partial_property_update(self):
         self.graph.query("MATCH (a) WHERE a.doubleval > 0 SET a.doubleval = a.doubleval + 1.1")
         # Verify that index scans still function and return correctly
         self.validate_state()
 
     #  Add 100 randomized nodes and validate indices
+
+    """test03_node_creation."""
     def test03_node_creation(self):
         global node_ctr
         nodes = []
@@ -117,6 +144,8 @@ class testIndexUpdatesFlow(FlowTestsBase):
         self.validate_state()
 
     # Delete every other node in first 100 and validate indices
+
+    """test04_node_deletion."""
     def test04_node_deletion(self):
         global node_ctr
         # Delete nodes one at a time
@@ -131,6 +160,8 @@ class testIndexUpdatesFlow(FlowTestsBase):
         self.env.assertGreater(result.nodes_deleted, 0)
         self.validate_state()
 
+
+    """test05_unindexed_property_update."""
     def test05_unindexed_property_update(self):
         # Add an unindexed property to all nodes.
         self.graph.query("MATCH (a) SET a.unindexed = 'unindexed'")
@@ -145,6 +176,8 @@ class testIndexUpdatesFlow(FlowTestsBase):
         self.env.assertEquals(result.properties_set, 1)
 
     # Validate that after deleting an indexed property, that property can no longer be found in the index.
+
+    """test06_remove_indexed_prop."""
     def test06_remove_indexed_prop(self):
         # Create a new node with a single indexed property
         query = """CREATE (:NEW {v: 5})"""
@@ -174,6 +207,8 @@ class testIndexUpdatesFlow(FlowTestsBase):
     # This is necessary because either one of the indexes may not track the
     # property being updated, but that does not guarantee that the other
     # index does not track the property.
+
+    """test07_update_property_only_on_fulltext_index."""
     def test07_update_property_only_on_fulltext_index(self):
         # Remove the exact-match index on a property
         drop_node_range_index(self.graph, 'label_a', 'group')

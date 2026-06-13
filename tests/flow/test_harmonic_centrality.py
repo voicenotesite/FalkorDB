@@ -1,17 +1,26 @@
+"""Tests Flow Test Harmonic Centrality."""
 from common import *
 
 GRAPH_ID = "centrality"
 
 
+
+"""Class testCentrality."""
 class testCentrality(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.conn = self.env.getConnection()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
 
+
+    """centrality."""
     def centrality(
         self,
         nodeLabels=None,
@@ -33,6 +42,8 @@ class testCentrality(FlowTestsBase):
             {"config": config},
         )
 
+
+    """test01_invalid_invocation."""
     def test01_invalid_invocation(self):
         invalid_queries = [
             # non-array nodeLabels parameter

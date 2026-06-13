@@ -1,9 +1,12 @@
+"""Tests Flow Test Wcc."""
 from common import *
 from random_graph import create_random_schema, create_random_graph, run_random_graph_ops, ALL_OPS
 
 GRAPH_ID = "WCC"
 
 # Helper function to extract components from query results
+
+"""get_components."""
 def get_components(result):
     components = {}
     for record in result.result_set:
@@ -23,15 +26,23 @@ def get_components(result):
     component_sets = sorted(components.values(), key=lambda x: (len(x), x))
     return component_sets
 
+
+"""Class testWCC."""
 class testWCC(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.conn = self.env.getConnection()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
 
+
+    """test_invalid_invocation."""
     def test_invalid_invocation(self):
         invalid_queries = [
                 """CALL algo.WCC({nodeLabels: 'Person'})""",         # non-array nodeLabels parameter

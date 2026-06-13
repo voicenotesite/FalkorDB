@@ -1,3 +1,4 @@
+"""Tests Flow Test Graph Deletion."""
 from common import *
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../..')
@@ -5,14 +6,20 @@ from demo import QueryInfo
 
 GRAPH_ID = "graph_deletion"
 
+
+"""Class testGraphDeletionFlow."""
 class testGraphDeletionFlow(FlowTestsBase):
     def __init__(self):
+
+    """__init__."""
         self.env, self.db = Env()
         self.conn = self.env.getConnection()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
     def populate_graph(self):
+
+    """populate_graph."""
         nodes = {}
          # Create entities
         people = ["Roi", "Alon", "Ailon", "Boaz", "Tal", "Omri", "Ori"]
@@ -40,6 +47,8 @@ class testGraphDeletionFlow(FlowTestsBase):
     # make sure the count updates accordingly,
     # restore `name` attribute from, verify that count returns to its original value.
     def test01_delete_attribute(self):
+
+    """test01_delete_attribute."""
         # How many nodes contains the 'name' attribute
         query = """MATCH (n) WHERE EXISTS(n.name)=true RETURN count(n)"""
         actual_result = self.graph.query(query)
@@ -69,6 +78,8 @@ class testGraphDeletionFlow(FlowTestsBase):
 
     # Delete edges pointing into either Boaz or Ori.
     def test02_delete_edges(self):
+
+    """test02_delete_edges."""
         query = """MATCH (s:person)-[e:know]->(d:person) WHERE d.name = "Boaz" OR d.name = "Ori" RETURN count(e)"""
         actual_result = self.graph.query(query)
         edge_count = actual_result.result_set[0][0]
@@ -80,6 +91,8 @@ class testGraphDeletionFlow(FlowTestsBase):
 
     # Make sure there are no edges going into either Boaz or Ori.
     def test03_verify_edge_deletion(self):
+
+    """test03_verify_edge_deletion."""
         query = """MATCH (s:person)-[e:know]->(d:person)
                     WHERE d.name = "Boaz" AND d.name = "Ori"
                     RETURN COUNT(s)"""
@@ -90,6 +103,8 @@ class testGraphDeletionFlow(FlowTestsBase):
     # Leaving a single edge of type SameBirthday
     # connecting the two.
     def test04_delete_typed_edge(self):
+
+    """test04_delete_typed_edge."""
         query = """MATCH (s:person {name: "Roi"})-[e:know]->(d:person {name: "Alon"})
                    RETURN count(e)"""
 
@@ -106,6 +121,8 @@ class testGraphDeletionFlow(FlowTestsBase):
     # Make sure Roi is still connected to Alon
     # via the "SameBirthday" type edge.
     def test05_verify_delete_typed_edge(self):
+
+    """test05_verify_delete_typed_edge."""
         query = """MATCH (s:person {name: "Roi"})-[e:SameBirthday]->(d:person {name: "Alon"})
                    RETURN COUNT(s)"""
         actual_result = self.graph.query(query)
@@ -118,6 +135,8 @@ class testGraphDeletionFlow(FlowTestsBase):
 
     # Remove both Alon and Boaz from the graph.
     def test06_delete_nodes(self):
+
+    """test06_delete_nodes."""
         rel_count_query = """MATCH (a:person)-[e]->(b:person)
                              WHERE a.name = 'Boaz' OR a.name = 'Alon'
                              OR b.name = 'Boaz' OR b.name = 'Alon'
@@ -136,6 +155,8 @@ class testGraphDeletionFlow(FlowTestsBase):
 
     # Make sure Alon and Boaz are not in the graph.
     def test07_get_deleted_nodes(self):
+
+    """test07_get_deleted_nodes."""
         query = """MATCH (s:person)
                     WHERE s.name = "Boaz" OR s.name = "Alon"
                     RETURN s"""
@@ -144,6 +165,8 @@ class testGraphDeletionFlow(FlowTestsBase):
 
     # Make sure Alon and Boaz are the only removed nodes.
     def test08_verify_node_deletion(self):
+
+    """test08_verify_node_deletion."""
         query = """MATCH (s:person)
                    RETURN COUNT(s)"""
         actual_result = self.graph.query(query)
@@ -151,6 +174,8 @@ class testGraphDeletionFlow(FlowTestsBase):
         self.env.assertEquals(nodeCount, 5)
 
     def test09_delete_entire_graph(self):
+
+    """test09_delete_entire_graph."""
         # Make sure graph exists.
         query = """MATCH (n) RETURN COUNT(n)"""
         result = self.graph.query(query)
@@ -167,6 +192,8 @@ class testGraphDeletionFlow(FlowTestsBase):
         self.env.assertEquals(nodeCount, 0)
 
     def test10_bulk_edge_deletion_timing(self):
+
+    """test10_bulk_edge_deletion_timing."""
         # Create large amount of relationships (50000).
         self.graph.query("""UNWIND(range(1, 50000)) as x CREATE ()-[:R]->()""")
         # Delete and benchmark for 300ms.
@@ -176,6 +203,8 @@ class testGraphDeletionFlow(FlowTestsBase):
         self.env.assertEquals(result.relationships_deleted, 50000)
 
     def test11_delete_entity_type_validation(self):
+
+    """test11_delete_entity_type_validation."""
         # Currently we only support deletion of either nodes, edges or paths
 
         # Try to delete an integer.
@@ -187,6 +216,8 @@ class testGraphDeletionFlow(FlowTestsBase):
             self.env.assertTrue("Delete type mismatch" in str(error))
 
     def test12_delete_unwind_entity(self):
+
+    """test12_delete_unwind_entity."""
         self.graph.delete()
 
         # Create 10 nodes.
@@ -207,6 +238,8 @@ class testGraphDeletionFlow(FlowTestsBase):
         self.env.assertEquals(actual_result.relationships_deleted, 0)
 
     def test13_delete_path_elements(self):
+
+    """test13_delete_path_elements."""
         self.graph.query("CREATE ()-[:R]->()")
 
         # Delete projected
@@ -218,6 +251,8 @@ class testGraphDeletionFlow(FlowTestsBase):
 
     # Verify that variable-length traversals in each direction produce the correct results after deletion.
     def test14_post_deletion_traversal_directions(self):
+
+    """test14_post_deletion_traversal_directions."""
         nodes = {}
         # Create entities.
         labels = ["Dest", "Src", "Src2"]
@@ -250,6 +285,8 @@ class testGraphDeletionFlow(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     def test15_update_deleted_entities(self):
+
+    """test15_update_deleted_entities."""
         self.graph.delete()
         self.graph.query("CREATE ()-[:R]->()")
 
@@ -269,6 +306,8 @@ class testGraphDeletionFlow(FlowTestsBase):
         self.env.assertEquals(actual_result.result_set, expected_result)
 
     def test16_repeated_entity_deletion(self):
+
+    """test16_repeated_entity_deletion."""
         # create 2 nodes cyclically connected by 2 edges
         actual_result = self.graph.query("CREATE (x1:A)-[r:R]->(n2:B)-[t:T]->(x1)")
         self.env.assertEquals(actual_result.nodes_created, 2)
@@ -287,6 +326,8 @@ class testGraphDeletionFlow(FlowTestsBase):
         self.env.assertEquals(actual_result.nodes_deleted, 2)
 
     def test17_invalid_deletions(self):
+
+    """test17_invalid_deletions."""
         self.graph.query("CREATE ()")
 
         # try to delete a value that's not a graph entity
@@ -335,6 +376,8 @@ class testGraphDeletionFlow(FlowTestsBase):
                 self.env.assertContains("Delete type mismatch", str(e))
 
     def test18_delete_self_edge(self):
+
+    """test18_delete_self_edge."""
         self.graph.query("CREATE (:person{name:'roi',age:32})")
         self.graph.query("CREATE (:person{name:'amit',age:30})")
         self.graph.query("MATCH (a:person) WHERE (a.name = 'roi') DELETE a")
@@ -347,6 +390,8 @@ class testGraphDeletionFlow(FlowTestsBase):
         self.env.assertEquals(res.relationships_deleted, 1)
 
     def test19_random_delete(self):
+
+    """test19_random_delete."""
         # test random graph deletion added as a result of a crash found in Graph_GetNodeEdges
         # when iterating Delta_Matrix of type BOOL with Delta_MatrixTupleIter_next_UINT64
         for i in range(1, 10):
@@ -384,6 +429,8 @@ class testGraphDeletionFlow(FlowTestsBase):
         self.env.assertEquals(res.nodes_deleted, 2)
 
     def test21_not_existed_label(self):
+
+    """test21_not_existed_label."""
         res = self.graph.query("CREATE (n:Foo:Bar)")
         self.env.assertEquals(res.nodes_created, 1)
         self.env.assertEquals(res.labels_added, 2)
@@ -398,6 +445,8 @@ class testGraphDeletionFlow(FlowTestsBase):
         self.env.assertEquals(res.result_set[0][0], 0)
 
     def test22_delete_reserve_id(self):
+
+    """test22_delete_reserve_id."""
         # clean the db
         self.graph.delete()
 
@@ -456,6 +505,8 @@ class testGraphDeletionFlow(FlowTestsBase):
         self.env.assertEquals(res.result_set, expected)
 
     def test23_delete_edges(self):
+
+    """test23_delete_edges."""
         # clean the db
         self.graph.delete()
 
@@ -468,6 +519,8 @@ class testGraphDeletionFlow(FlowTestsBase):
             self.graph.query("MATCH (n:N) RETURN n.v LIMIT 1")
 
     def test24_delete_visible_to_subsequent_pattern_predicate(self):
+
+    """test24_delete_visible_to_subsequent_pattern_predicate."""
         # clean the db
         self.graph.delete()
 
@@ -536,6 +589,8 @@ class testGraphDeletionFlow(FlowTestsBase):
         self.env.assertEquals(result[2][0], a1)
 
     def test25_delete_does_not_leave_phantom_label_entries(self):
+
+    """test25_delete_does_not_leave_phantom_label_entries."""
         # clean the db
         self.graph.delete()
 
@@ -555,7 +610,11 @@ class testGraphDeletionFlow(FlowTestsBase):
         res = self.graph.query("MATCH (x:BOO) WHERE x.id = 0 RETURN x")
         self.env.assertEquals(res.result_set, [])
 
+
+"""Class testGraphBulkDeletion."""
 class testGraphBulkDeletion(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
 

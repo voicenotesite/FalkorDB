@@ -1,18 +1,27 @@
+"""Tests Flow Test Order By."""
 from common import *
 
 GRAPH_ID = "order_by_test"
 
+
+"""Class testOrderBy."""
 class testOrderBy(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         self.graph.query("""CREATE (:Person {id: 622, name: 'Mo'}),
                                    (:Person {id: 819, name: 'Bing'}),
                                    (:Person {id: 819, name: 'Qiu'})""")
 
+
+    """test01_multiple_order_by."""
     def test01_multiple_order_by(self):
         # Query with multiple order by operation
         q = """MATCH (n:Person) RETURN n.id, n.name ORDER BY n.id DESC, n.name ASC"""

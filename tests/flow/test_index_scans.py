@@ -1,3 +1,4 @@
+"""Tests Flow Test Index Scans."""
 from common import *
 from index_utils import *
 
@@ -7,25 +8,37 @@ import social_utils
 GRAPH_ID = social_utils.graph_name
 
 
+
+"""Class testIndexScanFlow."""
 class testIndexScanFlow():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
 
+
+    """setUp."""
     def setUp(self):
         redis_con = self.env.getConnection()
         self.graph = self.db.select_graph(GRAPH_ID)
         social_utils.populate_graph(redis_con, self.graph)
         self.build_indices()
 
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
 
+
+    """build_indices."""
     def build_indices(self):
         self.graph.create_node_range_index('person', 'age')
         self.graph.create_node_range_index('country', 'name')
         wait_for_indices_to_sync(self.graph)
 
     # Validate that Cartesian products using index and label scans succeed
+
+    """test01_cartesian_product_mixed_scans."""
     def test01_cartesian_product_mixed_scans(self):
         query = "MATCH (p:person), (c:country) WHERE p.age > 0 RETURN p.age, c.name ORDER BY p.age, c.name"
         plan = str(self.graph.explain(query))
@@ -42,6 +55,8 @@ class testIndexScanFlow():
         self.env.assertEquals(indexed_result.result_set, unindexed_result.result_set)
 
     # Validate that Cartesian products using just index scans succeed
+
+    """test02_cartesian_product_index_scans_only."""
     def test02_cartesian_product_index_scans_only(self):
         query = "MATCH (p:person), (c:country) WHERE p.age > 0 AND c.name > '' RETURN p.age, c.name ORDER BY p.age, c.name"
         plan = str(self.graph.explain(query))
@@ -59,6 +74,8 @@ class testIndexScanFlow():
         self.env.assertEquals(indexed_result.result_set, unindexed_result.result_set)
 
     # Validate that the appropriate bounds are respected when a Cartesian product uses the same index in two streams
+
+    """test03_cartesian_product_reused_index."""
     def test03_cartesian_product_reused_index(self):
         create_node_range_index(self.graph, 'person', 'name', sync=True)
         query = "MATCH (a:person {name: 'Omri Traub'}), (b:person) WHERE b.age <= 30 RETURN a.name, b.name ORDER BY a.name, b.name"
@@ -75,6 +92,8 @@ class testIndexScanFlow():
         self.env.assertEquals(result.result_set, expected_result)
 
     # Validate index utilization when filtering on a numeric field with the `IN` keyword.
+
+    """test04_test_in_operator_numerics."""
     def test04_test_in_operator_numerics(self):
         # Validate the transformation of IN to multiple OR expressions.
         query = "MATCH (p:person) WHERE p.age IN [1,2,3] RETURN p"
@@ -151,6 +170,8 @@ class testIndexScanFlow():
         self.env.assertEquals(result.result_set, expected_result)
 
     # Validate index utilization when filtering on string fields with the `IN` keyword.
+
+    """test05_test_in_operator_string_props."""
     def test05_test_in_operator_string_props(self):
         # Build an index on the name property.
         create_node_range_index(self.graph, 'person', 'name', sync=True)
@@ -206,6 +227,8 @@ class testIndexScanFlow():
     # ',' is the default separator for tag indices
     # we've updated our separator to '\0' this test verifies issue 696:
     # https://github.com/RedisGraph/RedisGraph/issues/696
+
+    """test06_tag_separator."""
     def test06_tag_separator(self):
         # Create a single node with a long string property, introduce a comma as part of the string.
         query = """CREATE (:Node{value:"A ValuePartition is a pattern that describes a restricted set of classes from which a property can be associated. The parent class is used in restrictions, and the covering axiom means that only members of the subclasses may be used as values."})"""
@@ -221,6 +244,8 @@ class testIndexScanFlow():
         self.env.assertIn('Node By Index Scan', plan)
         self.env.assertEqual(len(result_set), 1)
 
+
+    """test07_index_scan_and_id."""
     def test07_index_scan_and_id(self):
         self.graph.delete()
         self.graph.query("UNWIND range(0, 9) AS i CREATE (a:person {age: i})")
@@ -241,6 +266,8 @@ class testIndexScanFlow():
         self.env.assertEquals(expected_result, query_result.result_set)
 
     # Validate placement of index scans and filter ops when not all filters can be replaced.
+
+    """test08_index_scan_multiple_filters."""
     def test08_index_scan_multiple_filters(self):
         query = "MATCH (p:person) WHERE p.age = 30 AND NOT EXISTS(p.fakeprop) RETURN p.name"
         plan = str(self.graph.explain(query))
@@ -252,6 +279,8 @@ class testIndexScanFlow():
         expected_result = ["Lucy Yanfital"]
         self.env.assertEquals(query_result.result_set[0], expected_result)
 
+
+    """test09_index_scan_with_params."""
     def test09_index_scan_with_params(self):
         query = "MATCH (p:person) WHERE p.age = $age RETURN p.name"
         params = {'age': 30}
@@ -261,6 +290,8 @@ class testIndexScanFlow():
         expected_result = ["Lucy Yanfital"]
         self.env.assertEquals(query_result.result_set[0], expected_result)
 
+
+    """test10_index_scan_with_param_array."""
     def test10_index_scan_with_param_array(self):
         query = "MATCH (p:person) WHERE p.age in $ages RETURN p.name"
         params = {'ages': [30]}
@@ -270,6 +301,8 @@ class testIndexScanFlow():
         expected_result = ["Lucy Yanfital"]
         self.env.assertEquals(query_result.result_set[0], expected_result)
 
+
+    """test11_single_index_multiple_scans."""
     def test11_single_index_multiple_scans(self):
         query = "MERGE (p1:person {age: 40}) MERGE (p2:person {age: 41})"
         plan = str(self.graph.explain(query))
@@ -280,12 +313,16 @@ class testIndexScanFlow():
         # Two new nodes should be created.
         self.env.assertEquals(query_result.nodes_created, 2)
 
+
+    """test12_remove_scans_before_index."""
     def test12_remove_scans_before_index(self):
         query = "MATCH (a:person {age: 32})-[]->(b) WHERE (b:person)-[]->(a) RETURN a"
         plan = str(self.graph.explain(query))
         # One index scan should be performed.
         self.env.assertEqual(plan.count("Node By Index Scan"), 1)
 
+
+    """test13_point_index_scan."""
     def test13_point_index_scan(self):
         # create index
         create_node_range_index(self.graph, 'restaurant', 'location', sync=True)
@@ -338,6 +375,8 @@ class testIndexScanFlow():
         plan = str(self.graph.explain(q))
         self.env.assertNotIn("Node By Index Scan", plan)
 
+
+    """test14_index_scan_utilize_array."""
     def test14_index_scan_utilize_array(self):
         # Querying indexed properties using IN a constant array should utilize indexes.
         query = "MATCH (a:person) WHERE a.age IN [34, 33] RETURN a.name ORDER BY a.name"
@@ -382,6 +421,8 @@ class testIndexScanFlow():
         self.graph.query(query)
 
     # Test fulltext result scoring
+
+    """test15_fulltext_result_scoring."""
     def test15_fulltext_result_scoring(self):
         g = Graph(self.env.getConnection(), 'fulltext_scoring')
 
@@ -401,6 +442,8 @@ class testIndexScanFlow():
         expected = [['hello world hello', 1.5], ['hello world hello world', 2]]
         self.env.assertEqual(expected, actual)
 
+
+    """test16_runtime_index_utilization."""
     def test16_runtime_index_utilization(self):
         # find all person nodes with age in the range 33-37
         # current age (x) should be resolved at runtime
@@ -523,6 +566,8 @@ class testIndexScanFlow():
         # better to use "Index Scan"
         q = """UNWIND range(33, 37) AS x MATCH (a:person {age:x}), (b:person {age:x}) RETURN a.name, b.name ORDER BY a.name, b.name"""
 
+
+    """test17_runtime_index_utilization_array_values."""
     def test17_runtime_index_utilization_array_values(self):
         # when constructing an index query at runtime it is possible to encounter
         # none indexable values e.g. Array, in which case the index will still be
@@ -567,6 +612,8 @@ class testIndexScanFlow():
         self.env.assertEquals(query_result.result_set, expected_result)
 
     # test for https://github.com/RedisGraph/RedisGraph/issues/1980
+
+    """test18_index_scan_inside_apply."""
     def test18_index_scan_inside_apply(self):
         create_node_range_index(self.graph, 'L1', 'id', sync=True)
         self.graph.query("UNWIND range(1, 5) AS v CREATE (:L1 {id: v})")
@@ -575,6 +622,8 @@ class testIndexScanFlow():
         expected_result = [[5], [5], [5], [5], [5]]
         self.env.assertEquals(result.result_set, expected_result)
 
+
+    """test19_index_scan_numeric_accuracy."""
     def test19_index_scan_numeric_accuracy(self):
         create_node_range_index(self.graph, 'L1', 'id', sync=True)
         create_node_range_index(self.graph, 'L2', 'id1', 'id2', sync=True)
@@ -651,6 +700,8 @@ class testIndexScanFlow():
         expected_result = [[990000000262240069, 990000000262240067]]
         self.env.assertEquals(result.result_set, expected_result)
 
+
+    """test20_index_scan_stopwords."""
     def test20_index_scan_stopwords(self):
         #-----------------------------------------------------------------------
         # create indices
@@ -683,6 +734,8 @@ class testIndexScanFlow():
         result = self.graph.query("CALL db.idx.fulltext.queryNodes('User', 'stop')")
         self.env.assertEquals(result.result_set, [])
     
+
+    """test21_invalid_distance_query."""
     def test21_invalid_distance_query(self):
         # create exact match index over User id
         create_node_range_index(self.graph, 'User', 'loc', sync=True)
@@ -697,6 +750,8 @@ class testIndexScanFlow():
         except redis.exceptions.ResponseError as e:
             self.env.assertIn("Received 1 arguments to function 'distance', expected at least 2", str(e))
 
+
+    """test_22_pickup_on_index_creation."""
     def test_22_pickup_on_index_creation(self):
         g = Graph(self.env.getConnection(), 'late_index_creation')
 
@@ -722,6 +777,8 @@ class testIndexScanFlow():
         # expecting an index scan operation
         self.env.assertIn('Node By Index Scan', plan)
 
+
+    """test_23_do_not_utilize_index_."""
     def test_23_do_not_utilize_index_(self):
         # create graph
         self.graph.query("RETURN 1")
@@ -744,6 +801,8 @@ class testIndexScanFlow():
         # expecting an no index scan operation
         self.env.assertNotIn('Node By Index Scan', plan)
 
+
+    """test_24_multitype_index."""
     def test_24_multitype_index(self):
         # create index with multiple types
         # 1. RANGE
@@ -772,6 +831,8 @@ class testIndexScanFlow():
         self.env.assertIn('Boaz Arad', names)
         self.env.assertIn('Valerie Abigail Arad', names)
 
+
+    """test_25_unescaped_string."""
     def test_25_unescaped_string(self):
         # make sure range index doesn't alter strings
 
@@ -787,6 +848,8 @@ class testIndexScanFlow():
         res = self.graph.query("MATCH (p:Page {url: $url}) RETURN p.url", params)
         self.env.assertEqual(url, res.result_set[0][0])
 
+
+    """test_26_index_scan_with_other_filters."""
     def test_26_index_scan_with_other_filters(self):
         # make sure index is utilized when the compared value is not a trivial
         # expression e.g. p.name = metadata.age
@@ -845,6 +908,8 @@ class testIndexScanFlow():
             plan = self.graph.explain(q)
             self.env.assertIn('Node By Index Scan', plan)
 
+
+    """test_27_multi_index_scan."""
     def test_27_multi_index_scan(self):
         # make sure multiple index scans are utilized
 
@@ -906,6 +971,8 @@ class testIndexScanFlow():
             plan = self.graph.explain(q)
             self.env.assertIn('Node By Index Scan', plan)
 
+
+    """test_28_array_index."""
     def test_28_array_index(self):
         # test array indexing
         # we only support index lookups of strings, numeric and booleans
@@ -990,6 +1057,8 @@ class testIndexScanFlow():
         res = self.graph.query(q, {'x':12345}).result_set
         self.env.assertEqual(len(res), 0)
 
+
+    """test_29_array_index."""
     def test_29_array_index(self):
         # test array indexing where the search entry is produced
         # via UNWIND
@@ -1048,6 +1117,8 @@ class testIndexScanFlow():
         res = self.graph.query(q).result_set
         self.env.assertEqual(len(res), 1)
 
+
+    """test_30_update_array_index."""
     def test_30_update_array_index(self):
         # test index update of array attributes
 
@@ -1096,6 +1167,8 @@ class testIndexScanFlow():
         res = self.graph.query(q, {'x': samples[0]}).result_set
         self.env.assertEqual(len(res), 0)
 
+
+    """test_31_remove_array_index."""
     def test_31_remove_array_index(self):
         # make sure removing an array attribute causes the entity
         # not to be found when searching for each removed array element
@@ -1138,6 +1211,8 @@ class testIndexScanFlow():
             res = self.graph.query(q, {'x':sample}).result_set
             self.env.assertEqual(len(res), 0)
 
+
+    """test_32_multiple_array_indexed_entities."""
     def test_32_multiple_array_indexed_entities(self):
         # test array index lookup in situations where there are multiple
         # entities which match the query
@@ -1165,6 +1240,8 @@ class testIndexScanFlow():
         res = self.graph.query(q).result_set
         self.env.assertEqual(res[0][0], 11)
 
+
+    """test_33_non_supported_array_entries."""
     def test_33_non_supported_array_entries(self):
         # make sure we can find entities which contains non supported
         # index array entries e.g. point and sub arrys
@@ -1206,6 +1283,8 @@ class testIndexScanFlow():
         res = self.graph.query(q).result_set
         self.env.assertEqual(len(res), 1)
 
+
+    """test_34_exact_match_array_value."""
     def test_34_exact_match_array_value(self):
         # make sure we can locate entities using exact match
 

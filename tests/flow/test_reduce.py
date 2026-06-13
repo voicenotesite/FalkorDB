@@ -1,3 +1,4 @@
+"""Tests Flow Test Reduce."""
 from common import *
 
 GRAPH_ID = "REDUCE"
@@ -14,12 +15,18 @@ GRAPH_ID = "REDUCE"
 # this test class verifies the correctnes reduce
 # in addition to its error handeling
 
+
+"""Class testReduce."""
 class testReduce():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.conn = self.env.getConnection()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """test_sum_reduction."""
     def test_sum_reduction(self):
         # sum = 0, for n in [1,2,3], sum += n
         q = "RETURN reduce(sum = 0, n in [1,2,3] | sum + n)"
@@ -41,6 +48,8 @@ class testReduce():
         actual = self.graph.query(q).result_set[0][0]
         self.env.assertEquals(actual, expected)
 
+
+    """test_overwrite_reduction."""
     def test_overwrite_reduction(self):
         # last = 0, for n in [1,2,3], last = n
         q = "RETURN reduce(last = 0, n in [1,2,3] | n)"
@@ -48,6 +57,8 @@ class testReduce():
         actual = self.graph.query(q).result_set[0][0]
         self.env.assertEquals(actual, expected)
 
+
+    """test_string_reduction."""
     def test_string_reduction(self):
         # msg = 'hello ' + 'world'
         q = "RETURN reduce(msg='hello ', c in ['w', 'o', 'r', 'l', 'd'] | msg+c)"
@@ -55,6 +66,8 @@ class testReduce():
         actual = self.graph.query(q).result_set[0][0]
         self.env.assertEquals(actual, expected)
 
+
+    """test_array_reduction."""
     def test_array_reduction(self):
         # arr = [1,2] + [2,3]
         q = "RETURN reduce(arr=[1,2], n in [2,3] | arr+n)"
@@ -62,6 +75,8 @@ class testReduce():
         actual = self.graph.query(q).result_set[0][0]
         self.env.assertEquals(actual, expected)
 
+
+    """test_variable_reduction."""
     def test_variable_reduction(self):
         # sum = 1 + 1 + 2 + 3 - 3
         q = """WITH 1 AS base, [1,2,3] AS arr, -1 AS bias
@@ -70,6 +85,8 @@ class testReduce():
         actual = self.graph.query(q).result_set[0][0]
         self.env.assertEquals(actual, expected)
 
+
+    """test_multiple_reductions."""
     def test_multiple_reductions(self):
         q = """UNWIND [[1,2,3], [4,5,6]] AS arr
                RETURN reduce(sum=1, n in arr | sum + n)"""
@@ -78,6 +95,8 @@ class testReduce():
         actual = self.graph.query(q).result_set
         self.env.assertEquals(actual, expected)
 
+
+    """test_missing_sections_reduction."""
     def test_missing_sections_reduction(self):
         # missing accumulator expression
         q = "RETURN reduce(sum=0, n in [1,2,3])"
@@ -102,6 +121,8 @@ class testReduce():
         except ResponseError as e:
             self.env.assertIn("Invalid input '|'", str(e))
 
+
+    """test_missing_variables_reduction."""
     def test_missing_variables_reduction(self):
         # `x` isn't defined
         q = "RETURN reduce(sum=x, n in [1,2,3] | sum+n)"
@@ -124,6 +145,8 @@ class testReduce():
         except ResponseError as e:
             self.env.assertIn("'x' not defined", str(e))
 
+
+    """test_nested_reduction."""
     def test_nested_reduction(self):
         # sum = 1 + 1
         # n in [1,2]
@@ -137,6 +160,8 @@ class testReduce():
         actual = self.graph.query(q).result_set[0][0]
         self.env.assertEquals(actual, expected)
 
+
+    """test_empty_reduction."""
     def test_empty_reduction(self):
         # 1 + nothing is 1
         q = "RETURN reduce(sum=1, n in [] | sum + n)"
@@ -144,6 +169,8 @@ class testReduce():
         actual = self.graph.query(q).result_set[0][0]
         self.env.assertEquals(actual, expected)
 
+
+    """test_type_missmatch_reduction."""
     def test_type_missmatch_reduction(self):
         # 'a' * 1 is an invalid operation
         q = "RETURN reduce(sum='a', n in [1,2,3] | sum * n)"
@@ -160,6 +187,8 @@ class testReduce():
         except ResponseError as e:
             self.env.assertIn("Type mismatch", str(e))
 
+
+    """test_null_reduction."""
     def test_null_reduction(self):
         q = "RETURN reduce(sum=NULL, n in [1,2,3] | sum+n)"
         actual = self.graph.query(q).result_set[0][0]
@@ -178,6 +207,8 @@ class testReduce():
         expected = None
         self.env.assertEquals(actual, expected)
 
+
+    """test_invalid_use."""
     def test_invalid_use(self):
         queries = [
             "return reduce(1,[1],$a)",
@@ -196,6 +227,8 @@ class testReduce():
                 self.env.assertContains(str(e), "Unknown function 'reduce'")
                 pass
     
+
+    """test_aggregate_in_reduce."""
     def test_aggregate_in_reduce(self):
         queries = [
             "RETURN reduce(x = 0, n in [1] | min(n))",

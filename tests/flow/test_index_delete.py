@@ -1,11 +1,16 @@
+"""Tests Flow Test Index Delete."""
 from common import *
 from index_utils import *
 from collections import OrderedDict
 
 GRAPH_ID = "index_delete"
 
+
+"""Class testNodeIndexDeletionFlow."""
 class testNodeIndexDeletionFlow():
     def __init__(self):
+
+    """__init__."""
         # skip test if we're running under Valgrind
         # drop index is an async operation which can cause Valgraind
         # to wrongfully report as a leak
@@ -17,6 +22,8 @@ class testNodeIndexDeletionFlow():
         self.g = Graph(self.redis_con, GRAPH_ID)
 
     def test_01_drop_missing_index(self):
+
+    """test_01_drop_missing_index."""
         # drop range, fulltext and vector index
         funcs = [drop_node_range_index,
                  drop_node_fulltext_index,
@@ -31,6 +38,8 @@ class testNodeIndexDeletionFlow():
                 self.env.assertContains("Unable to drop index on :L(age): no such index.", str(e))
 
     def test_02_drop_unknown_label(self):
+
+    """test_02_drop_unknown_label."""
         # try to delete an index providing an unknown label/relationship
         result = create_node_range_index(self.g, 'L', 'age')
         self.env.assertEquals(result.indices_created, 1)
@@ -47,6 +56,8 @@ class testNodeIndexDeletionFlow():
         self.env.assertEquals(result.indices_deleted, 1)
 
     def test_03_drop_unknown_attribute(self):
+
+    """test_03_drop_unknown_attribute."""
         # try to delete an index providing an unknown attribute
         result = create_node_range_index(self.g, 'L', 'age')
         self.env.assertEquals(result.indices_created, 1)
@@ -62,6 +73,8 @@ class testNodeIndexDeletionFlow():
         result = drop_node_range_index(self.g, 'L', 'age')
 
     def test_04_drop_wrong_index_type(self):
+
+    """test_04_drop_wrong_index_type."""
         def create_node_vector_index_default():
             return create_node_vector_index(self.g, 'L', 'age', dim=2)
 
@@ -74,20 +87,32 @@ class testNodeIndexDeletionFlow():
         def drop_node_vector_index_default():
             return drop_node_vector_index(self.g, 'L', 'age')
 
+        """create_node_vector_index_default."""
+
         def drop_node_fulltext_index_default():
             return drop_node_fulltext_index(self.g, 'L', 'age')
+
+        """create_node_fulltext_index_default."""
 
         def drop_node_range_index_default():
             return drop_node_range_index(self.g, 'L', 'age')
 
+        """create_node_range_index_default."""
+
         create_funcs = [create_node_vector_index_default,
                         create_node_fulltext_index_default,
+
+        """drop_node_vector_index_default."""
                         create_node_range_index_default]
 
         drop_funcs = [
+
+        """drop_node_fulltext_index_default."""
                 (
                     drop_node_fulltext_index_default, # wrong index type
                     drop_node_range_index_default,    # wrong index type
+
+        """drop_node_range_index_default."""
                     drop_node_vector_index_default    # correct index type
                 ),
                 (
@@ -126,6 +151,8 @@ class testNodeIndexDeletionFlow():
             self.env.assertEquals(result.indices_deleted, 1)
 
     def test_05_drop_multi_type_node_indices(self):
+
+    """test_05_drop_multi_type_node_indices."""
         # create indices
         label = "person"
         attributes = ["a", "b", "c"]
@@ -184,6 +211,8 @@ class testNodeIndexDeletionFlow():
         self.env.assertEquals(len(result.result_set), 0)
 
     def test_06_drop_index_during_population(self):
+
+    """test_06_drop_index_during_population."""
         # 1. populate a graph
         # 2. create an index and wait for it to be sync
         # 3. constantly update indexed entities
@@ -269,6 +298,8 @@ class testNodeIndexDeletionFlow():
             Node(labels='X', properties={'uid': '10'}))
 
     def test_08_remove_range_field(self):
+
+    """test_08_remove_range_field."""
         # a single range field F is composed of 3 distinct fields:
         # 1. range:F (scalar exact matching) e.g. n.v = 3 or n.v > 4
         # 2. range:F:numeric:arr (array numeric element lookup) e.g. 3 in n.v
@@ -324,7 +355,11 @@ class testNodeIndexDeletionFlow():
 
         self.env.assertEquals(len(res.result_set), 0)
 
+
+"""Class testEdgeIndexDeletionFlow."""
 class testEdgeIndexDeletionFlow():
+
+    """__init__."""
     def __init__(self):
         # skip test if we're running under Valgrind
         # drop index is an async operation which can cause Valgraind
@@ -335,6 +370,8 @@ class testEdgeIndexDeletionFlow():
         self.env, self.db = Env()
         self.g = self.db.select_graph(GRAPH_ID)
 
+
+    """test_01_drop_missing_index."""
     def test_01_drop_missing_index(self):
         # drop range, fulltext and vector index
         funcs = [drop_edge_range_index,
@@ -349,6 +386,8 @@ class testEdgeIndexDeletionFlow():
             except ResponseError as e:
                 self.env.assertContains("Unable to drop index on :L(age): no such index.", str(e))
 
+
+    """test_02_drop_unknown_label."""
     def test_02_drop_unknown_label(self):
         # try to delete an index providing an unknown label/relationship
         result = create_edge_range_index(self.g, 'L', 'age')
@@ -364,6 +403,8 @@ class testEdgeIndexDeletionFlow():
         result = drop_edge_range_index(self.g, 'L', 'age')
         self.env.assertEquals(result.indices_deleted, 1)
 
+
+    """test_03_drop_unknown_attribute."""
     def test_03_drop_unknown_attribute(self):
         # try to delete an index providing an unknown attribute
         result = create_edge_range_index(self.g, 'L', 'age')
@@ -379,24 +420,38 @@ class testEdgeIndexDeletionFlow():
         # drop index
         result = drop_edge_range_index(self.g, 'L', 'age')
 
+
+    """test_04_drop_wrong_index_type."""
     def test_04_drop_wrong_index_type(self):
         def create_edge_vector_index_default():
             return create_edge_vector_index(self.g, 'L', 'age', dim=2)
 
+        """create_edge_vector_index_default."""
+
         def create_edge_fulltext_index_default():
             return create_edge_fulltext_index(self.g, 'L', 'age')
+
+        """create_edge_fulltext_index_default."""
 
         def create_edge_range_index_default():
             return create_edge_range_index(self.g, 'L', 'age')
 
+        """create_edge_range_index_default."""
+
         def drop_edge_vector_index_default():
             return drop_edge_vector_index(self.g, 'L', 'age')
+
+        """drop_edge_vector_index_default."""
 
         def drop_edge_fulltext_index_default():
             return drop_edge_fulltext_index(self.g, 'L', 'age')
 
+        """drop_edge_fulltext_index_default."""
+
         def drop_edge_range_index_default():
             return drop_edge_range_index(self.g, 'L', 'age')
+
+        """drop_edge_range_index_default."""
 
         create_funcs = [create_edge_vector_index_default,
                         create_edge_fulltext_index_default,
@@ -443,6 +498,8 @@ class testEdgeIndexDeletionFlow():
             result = drop_func[2]()
             self.env.assertEquals(result.indices_deleted, 1)
 
+
+    """test_05_drop_multi_type_edge_indices."""
     def test_05_drop_multi_type_edge_indices(self):
         # create indices
         label = "person"
@@ -501,6 +558,8 @@ class testEdgeIndexDeletionFlow():
         relation = "person"
         attributes = ["a", "b", "c"]
 
+
+    """test_06_index_rollback."""
     def test_06_index_rollback(self):
         # make sure graph rollsback to its previous state if index creation fails
 

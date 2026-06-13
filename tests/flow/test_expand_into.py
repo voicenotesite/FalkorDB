@@ -1,3 +1,4 @@
+"""Tests Flow Test Expand Into."""
 from common import *
 
 GRAPH_ID = "G"
@@ -7,13 +8,19 @@ GRAPH_ID = "G"
 # (a)-[:R]->()-[:R]->(z) has both of it ends already resolved e.g.
 # MATCH (a), (z) WITH a,z MATCH (a)-[:R]->()-[:R]->(z) return z
 
+
+"""Class testExpandInto."""
 class testExpandInto():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
     # test expand into single hop no multi-edge
     # (:A)-[:R]->(:B)
+
+    """test01_single_hop_no_multi_edge."""
     def test01_single_hop_no_multi_edge(self):
         # create graph
         query = "CREATE (:A)-[:R {v:1}]->(:B)"
@@ -35,6 +42,8 @@ class testExpandInto():
 
     # test expand into single hop multi-edge
     # (:A)-[:R]->(:B), (:A)-[:R]->(:B)
+
+    """test02_single_hop_multi_edge."""
     def test02_single_hop_multi_edge(self):
         self.graph.delete()
 
@@ -60,6 +69,8 @@ class testExpandInto():
 
     # test expand into multiple hops with no multi-edge
     # (:A)-[:R]->()-[:R]->(:B)
+
+    """test03_multi_hop_no_multi_edge."""
     def test03_multi_hop_no_multi_edge(self):
         self.graph.delete()
 
@@ -78,6 +89,8 @@ class testExpandInto():
     # test expand into multiple hops with multi-edge
     # (a:A)-[:R]->(i)-[:R]->(b:B)
     # (a:A)-[:R]->(i)-[:R]->(b:B)
+
+    """test04_multi_hop_multi_edge."""
     def test04_multi_hop_multi_edge(self):
         self.graph.delete()
 
@@ -93,6 +106,8 @@ class testExpandInto():
         self.env.assertIn("Expand Into", plan)
         self.env.assertEquals(4, result.result_set[0][0])
 
+
+    """test05_no_hop_multi_label."""
     def test05_no_hop_multi_label(self):
         self.graph.delete()
 
@@ -115,6 +130,8 @@ class testExpandInto():
             self.env.assertIn("Expand Into", plan)
             self.env.assertEquals(1, result.result_set[0][0])
 
+
+    """test06_expand_into_reset_crash."""
     def test06_expand_into_reset_crash(self):
         # crash: https://github.com/FalkorDB/FalkorDB/issues/1231
 

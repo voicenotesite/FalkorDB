@@ -1,16 +1,25 @@
+"""Tests Flow Test Hashjoin."""
 from common import *
 
 GRAPH_ID = "hashjoin"
 
 
+
+"""Class testHashJoin."""
 class testHashJoin(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """tearDown."""
     def tearDown(self):
         self.graph.delete()
 
+
+    """test_multi_hashjoins."""
     def test_multi_hashjoins(self):
         # See issue https://github.com/RedisGraph/RedisGraph/issues/1124
         # Construct a 4 node graph, (v1),(v2),(v3),(v4)
@@ -29,6 +38,8 @@ class testHashJoin(FlowTestsBase):
 
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test_argument_injection."""
     def test_argument_injection(self):
         # make sure ValueHashJoin is taken into account
         # when searching for Argument operations for data injection

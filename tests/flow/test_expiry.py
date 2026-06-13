@@ -1,9 +1,14 @@
+"""Tests Flow Test Expiry."""
 from common import *
 import time
 
 GRAPH_ID = "expire"
 
+
+"""Class testExpiry."""
 class testExpiry():
+
+    """test01_expire_graph."""
     def test01_expire_graph(self):
         # create a redisgraph object
         env, db = Env()

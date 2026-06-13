@@ -1,13 +1,20 @@
+"""Tests Flow Test Access Del Entity."""
 from common import *
 
 
+
+"""Class testAccessDelNode."""
 class testAccessDelNode():
     def __init__(self):
+
+    """__init__."""
         GRAPH_ID = "access_del_node"
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
     def test01_return_deleted_attribute(self):
+
+    """test01_return_deleted_attribute."""
         # try to return an attribute of a deleted entity
 
         # create a node
@@ -21,6 +28,8 @@ class testAccessDelNode():
         self.env.assertEquals(res.result_set[0][0], 1)
     
     def test02_return_deleted_node(self):
+
+    """test02_return_deleted_node."""
         # try to return a deleted node
         # expecting node ID and attributes to be returned
 
@@ -37,6 +46,8 @@ class testAccessDelNode():
         self.env.assertEquals(deleted_node.labels, None)
 
     def test03_deleted_node_as_argument(self):
+
+    """test03_deleted_node_as_argument."""
         # try to invoke a function on a deleted node
 
         # create a node
@@ -63,6 +74,8 @@ class testAccessDelNode():
         self.env.assertEquals(res.result_set[0][0], properties)
 
     def test04_update_deleted_node(self):
+
+    """test04_update_deleted_node."""
         # try to update a deleted node
 
         q = "CREATE (:A {v:1})"
@@ -104,6 +117,8 @@ class testAccessDelNode():
         self.env.assertEquals(res.result_set[0][1], 1)
 
     def test05_update_deleted_node_lables(self):
+
+    """test05_update_deleted_node_lables."""
         # clear graph
         self.graph.delete()
 
@@ -131,6 +146,8 @@ class testAccessDelNode():
         self.env.assertEquals(res.nodes_deleted, 1)
 
     def test06_merge_using_deleted_node_attr(self):
+
+    """test06_merge_using_deleted_node_attr."""
         # try to merge a node based on a deleted node attribute
         
         q = "CREATE (:A {v:1})"
@@ -144,6 +161,8 @@ class testAccessDelNode():
         self.env.assertEquals(res.result_set[0][0], 3)
 
     def test07_dobule_node_delete(self):
+
+    """test07_dobule_node_delete."""
         # clear graph
         self.graph.delete()
 
@@ -159,6 +178,8 @@ class testAccessDelNode():
         self.env.assertEquals(res.nodes_deleted, 1)
 
     def test08_create_edge_to_deleted_node(self):
+
+    """test08_create_edge_to_deleted_node."""
         # try to create an edge to a deleted node
         # expecting an exception
 
@@ -187,6 +208,8 @@ class testAccessDelNode():
             self.env.assertEquals(str(e), "Failed to create relationship; endpoint was not found.")
 
     def test09_path_with_deleted_node(self):
+
+    """test09_path_with_deleted_node."""
         # test path with deleted node
         # create a 3 nodes path (a)->(b)->(c)
         a  = Node(alias="a", labels="A", properties = {'v':'a'})
@@ -213,12 +236,18 @@ class testAccessDelNode():
         self.env.assertEquals(nodes[2].properties['v'], 'c')
         self.env.assertIn('C', nodes[2].labels)
 
+
+"""Class testAccessDelEdge."""
 class testAccessDelEdge():
+
+    """__init__."""
     def __init__(self):
         GRAPH_ID = "access_del_edge"
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """test01_return_deleted_attribute."""
     def test01_return_deleted_attribute(self):
         # try to return an attribute of a deleted entity
 
@@ -233,6 +262,8 @@ class testAccessDelEdge():
         res = self.graph.query(q)
         self.env.assertEquals(res.result_set[0][0], 1)
     
+
+    """test02_return_deleted_edge."""
     def test02_return_deleted_edge(self):
         # try to return a deleted edge
 
@@ -250,6 +281,8 @@ class testAccessDelEdge():
         self.env.assertEquals(e.relation, deleted_edge.relation)
         self.env.assertEquals(e.properties, deleted_edge.properties)
 
+
+    """test03_deleted_edge_as_argument."""
     def test03_deleted_edge_as_argument(self):
         # try to invoke a function on a deleted edge
 
@@ -264,6 +297,8 @@ class testAccessDelEdge():
         res = self.graph.query(q)
         self.env.assertEquals(res.result_set[0][0], "R")
 
+
+    """test04_update_deleted_edge."""
     def test04_update_deleted_edge(self):
         # try to update a deleted edge
 
@@ -311,6 +346,8 @@ class testAccessDelEdge():
         # clear graph
         self.graph.delete()
 
+
+    """test05_merge_using_deleted_edge_attr."""
     def test05_merge_using_deleted_edge_attr(self):
         # try to merge an edge based on a deleted edge attribute
 
@@ -323,6 +360,8 @@ class testAccessDelEdge():
         res = self.graph.query(q)
         self.env.assertEquals(res.result_set[0][0], 3)
 
+
+    """test06_merge_using_deleted_edge_attr."""
     def test06_merge_using_deleted_edge_attr(self):
         # try to merge an edge based on a deleted edge attribute
         
@@ -337,6 +376,8 @@ class testAccessDelEdge():
         self.env.assertEquals(res.relationships_deleted, 1)
         self.env.assertEquals(res.relationships_created, 1)
 
+
+    """test07_dobule_edge_delete."""
     def test07_dobule_edge_delete(self):
         # clear graph
         self.graph.delete()
@@ -353,6 +394,8 @@ class testAccessDelEdge():
         res = self.graph.query(q)
         self.env.assertEquals(res.relationships_deleted, 1)
 
+
+    """test08_path_with_deleted_edge."""
     def test08_path_with_deleted_edge(self):
         # test path with deleted edge
         # create a 3 nodes path (a)->(b)->(c)

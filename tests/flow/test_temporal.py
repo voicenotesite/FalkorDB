@@ -1,18 +1,25 @@
+"""Tests Flow Test Temporal."""
 from common import *
 from datetime import datetime, date, time
 from dateutil.relativedelta import relativedelta
 
 GRAPH_ID = "temporal_test"
 
+
+"""Class testTemporalLocalTime."""
 class testTemporalLocalTime(FlowTestsBase):
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+    """__init__."""
+
     # test localtime construction from individual components
     def test_localtime_component_construction(self):
         test_cases = [
                 ({'hour': 12},                                                                                        '12:00:00'),
+
+    """test_localtime_component_construction."""
                 ({'hour': 12, 'minute': 31},                                                                          '12:31:00'),
                 ({'hour': 12, 'minute': 31, 'second': 14},                                                            '12:31:14'),
                 ({'hour': 12, 'minute': 31, 'second': 14, 'millisecond': 645},                                        '12:31:14'),
@@ -31,6 +38,8 @@ class testTemporalLocalTime(FlowTestsBase):
     def test_localtime_from_string(self):
         test_cases = [
                 ('21',           '21:00:00'),
+
+    """test_localtime_from_string."""
                 ('2140',         '21:40:00'),
                 ('21:40',        '21:40:00'),
                 ('214032',       '21:40:32'),
@@ -49,6 +58,8 @@ class testTemporalLocalTime(FlowTestsBase):
         q = """WITH localtime({hour: 12, minute: 31, second: 14, nanosecond: 645876123}) AS d
                RETURN d.hour, d.minute, d.second"""
 
+    """test_localtime_components."""
+
         res = self.graph.query(q).result_set
         actual_hour   = res[0][0]
         actual_minute = res[0][1]
@@ -62,6 +73,8 @@ class testTemporalLocalTime(FlowTestsBase):
         q = """WITH localtime({hour: 12, minute: 31, second: 14}) AS d
                RETURN toString(d) AS ts, localtime(toString(d)) = d AS b"""
 
+    """test_localtime_to_from_string."""
+
         res = self.graph.query(q).result_set
         ts = res[0][0]
         b  = res[0][1]
@@ -72,6 +85,8 @@ class testTemporalLocalTime(FlowTestsBase):
     def test_localtime_compare(self):
         q = """WITH localtime({hour: 10, minute: 35}) AS x,
                     localtime({hour: 12, minute: 31, second: 14}) AS d
+
+    """test_localtime_compare."""
                RETURN x > d, x < d, x >= d, x <= d, x = d"""
 
         res = self.graph.query(q).result_set
@@ -87,14 +102,20 @@ class testTemporalLocalTime(FlowTestsBase):
         self.env.assertTrue(le)
         self.env.assertFalse(e)
 
+
+"""Class testTemporalDate."""
 class testTemporalDate(FlowTestsBase):
     def __init__(self):
         self.env, self.db = Env()
+
+    """__init__."""
         self.graph = self.db.select_graph(GRAPH_ID)
 
     # test date construction from individual components
     def test_date_component_construction(self):
         test_cases = [
+
+    """test_date_component_construction."""
             ({'year': 1984},                                   '1984-01-01'),
             ({'year': 1984, 'month': 10},                      '1984-10-01'),
             ({'year': 1984, 'week': 10},                       '1984-03-05'),
@@ -114,6 +135,8 @@ class testTemporalDate(FlowTestsBase):
 
     def test_date_from_string(self):
         test_cases = [
+
+    """test_date_from_string."""
           ('2015',       '2015-01-01'),
           ('201507',     '2015-07-01'),
           ('2015202',    '2015-07-21'),
@@ -135,6 +158,8 @@ class testTemporalDate(FlowTestsBase):
 
     def test_date_components(self):
         q = """WITH date({year: 1984, month:10, day:21}) AS d
+
+    """test_date_components."""
                RETURN d.year, d.quarter, d.month, d.week, d.day, d.dayOfWeek,
                       d.dayOfQuarter, d.ordinalDay"""
 
@@ -160,6 +185,8 @@ class testTemporalDate(FlowTestsBase):
 
     def test_date_to_from_string(self):
         test_cases = [
+
+    """test_date_to_from_string."""
             ({'year': 1984},                                   '1984-01-01'),
             ({'year': 1984, 'month': 10},                      '1984-10-01'),
             ({'year': 1984, 'week': 10},                       '1984-03-05'),
@@ -184,6 +211,8 @@ class testTemporalDate(FlowTestsBase):
 
     def test_date_compare(self):
         q = """WITH date({year: 1980, month: 12, day: 24}) AS x,
+
+    """test_date_compare."""
                     date({year: 1984, month: 10, day: 11}) AS d
                RETURN x > d, x < d, x >= d, x <= d, x = d"""
 
@@ -217,12 +246,18 @@ class testTemporalDate(FlowTestsBase):
         self.env.assertTrue(le)
         self.env.assertTrue(e)
 
+
+"""Class testTemporalLocalDateTime."""
 class testTemporalLocalDateTime(FlowTestsBase):
     def __init__(self):
+
+    """__init__."""
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
     def test_localdatetime_component_construction(self):
+
+    """test_localdatetime_component_construction."""
         test_cases = [
             ({'year': 1984, 'month': 10, 'day': 11, 'hour': 12, 'minute': 31, 'second': 14, 'nanosecond': 789, 'millisecond': 123, 'microsecond': 456}, '1984-10-11 12:31:14'), # "1984-10-11 12:31:14"
             ({'year': 1984, 'month': 10, 'day': 11, 'hour': 12, 'minute': 31, 'second': 14, 'nanosecond': 645876123}, '1984-10-11 12:31:14'),
@@ -265,6 +300,8 @@ class testTemporalLocalDateTime(FlowTestsBase):
             self.env.assertEquals(actual, expected)
 
     def test_localdatetime_week_construction(self):
+
+    """test_localdatetime_week_construction."""
         test_cases = [
             ({'year': 1916, 'week': 1}, '1916-01-03 00:00:00'),
             ({'year': 1916, 'week': 52}, '1916-12-25 00:00:00'),
@@ -288,6 +325,8 @@ class testTemporalLocalDateTime(FlowTestsBase):
             self.env.assertEquals(actual, expected)
 
     def test_localdatetime_components(self):
+
+    """test_localdatetime_components."""
         q = """WITH localdatetime({year: 1984, month:10, day:21, hour:10, minute:31, second:46}) AS d
                RETURN d.year, d.quarter, d.month, d.week, d.day, d.dayOfWeek,
                       d.dayOfQuarter, d.ordinalDay, d.hour, d.minute, d.second"""
@@ -319,6 +358,8 @@ class testTemporalLocalDateTime(FlowTestsBase):
         self.env.assertEquals(second, 46)
 
     def test_localdatetime_from_string(self):
+
+    """test_localdatetime_from_string."""
         test_cases = [
                 ('2025',                datetime(year=2025, month=1, day=1)),
                 ('2025-02',             datetime(year=2025, month=2, day=1)),
@@ -340,6 +381,8 @@ class testTemporalLocalDateTime(FlowTestsBase):
             self.env.assertEquals(actual, expected)
 
     def test_localdatetime_to_from_string(self):
+
+    """test_localdatetime_to_from_string."""
         query = """WITH localdatetime({year: 1984, month: 10, day: 11, hour: 12, minute: 31, second: 14, nanosecond: 645876123}) AS d
                    RETURN d AS ts, localdatetime(toString(d)) = d AS b"""
 
@@ -352,6 +395,8 @@ class testTemporalLocalDateTime(FlowTestsBase):
         self.env.assertEquals(ts, expected)
 
     def test_localdatetime_compare(self):
+
+    """test_localdatetime_compare."""
         q = """WITH localdatetime({year: 1980, month: 12, day: 11, hour: 12, minute: 31, second: 14}) AS x,
                     localdatetime({year: 1984, month: 10, day: 11, hour: 12, minute: 31, second: 14, nanosecond: 645876123}) AS d
                RETURN x > d, x < d, x >= d, x <= d, x = d"""
@@ -386,11 +431,17 @@ class testTemporalLocalDateTime(FlowTestsBase):
         self.env.assertTrue(le)
         self.env.assertTrue(e)
 
+
+"""Class testTemporalDuration."""
 class testTemporalDuration(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """test_duration_component_construction."""
     def test_duration_component_construction(self):
         test_cases = [
                  ( {'years':   2},                                                                          relativedelta(years=2)),
@@ -430,6 +481,8 @@ class testTemporalDuration(FlowTestsBase):
             actual = result.result_set[0][0]
             self.env.assertEquals(actual, expected)
 
+
+    """test_duration_from_string."""
     def test_duration_from_string(self):
         test_cases = [
                 ('P1Y',            relativedelta(years=1,)),
@@ -450,6 +503,8 @@ class testTemporalDuration(FlowTestsBase):
         result = self.graph.query("RETURN toString(duration('P1M')) AS s")
         self.env.assertEquals(result.result_set[0], ["P1M"])
 
+
+    """test_month_end_duration_arithmetic."""
     def test_month_end_duration_arithmetic(self):
         result = self.graph.query(
             """
@@ -459,6 +514,8 @@ class testTemporalDuration(FlowTestsBase):
         )
         self.env.assertEquals(result.result_set[0], ["2024-03-02", "2024-03-02T00:00:00"])
 
+
+    """test_duration_components."""
     def test_duration_components(self):
         q = """WITH duration({years: 2, months:3, weeks:1, days:4, hours:5, minutes:22, seconds:7}) AS d
                RETURN d.years, d.months, d.weeks, d.days, d.hours, d.minutes, d.seconds"""
@@ -481,6 +538,8 @@ class testTemporalDuration(FlowTestsBase):
         self.env.assertEquals(minutes, 22)
         self.env.assertEquals(seconds, 7)
 
+
+    """test_duration_compare."""
     def test_duration_compare(self):
         q = """WITH duration({years: 1, months: 11, days: 11, hours: 12, minutes: 31, seconds: 14}) AS x,
                     duration({years: 1, months: 10, days: 11, hours: 12, minutes: 31, seconds: 14}) AS d
@@ -516,6 +575,8 @@ class testTemporalDuration(FlowTestsBase):
         self.env.assertTrue(le)
         self.env.assertTrue(e)
 
+
+    """test_duration_add."""
     def test_duration_add(self):
         #-----------------------------------------------------------------------
         # duration + duration

@@ -1,14 +1,21 @@
+"""Tests Flow Test Fulltext Query."""
 from common import *
 from index_utils import *
 
 GRAPH_ID = "query"
 
+
+"""Class testFulltextIndexQuery."""
 class testFulltextIndexQuery():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         self.graph.query("CALL db.idx.fulltext.createNodeIndex('L1', 'v')")
         self.graph.query("CALL db.idx.fulltext.createNodeIndex({label: 'L2', stopwords: ['redis', 'world'] }, 'v')")
@@ -37,6 +44,8 @@ class testFulltextIndexQuery():
         self.graph.query(f"CREATE {n0}, {n1}, {n2}, {n3}, {n4}, {n5}, {e0}, {e1}, {e2}")
 
     # test full-text query on nodes
+
+    """test01_fulltext_node_query."""
     def test01_fulltext_node_query(self):
         expected_result = self.graph.query("MATCH (n:L1) RETURN n")
         # fulltext query L1 for hello 
@@ -89,6 +98,8 @@ class testFulltextIndexQuery():
         self.env.assertEquals(result.result_set, [])
 
     # test full-text query on edges
+
+    """test02_fulltext_edge_query."""
     def test02_fulltext_edge_query(self):
         # full text query on a relationship E1 (not indexed)
         result = self.graph.query(
@@ -126,6 +137,8 @@ class testFulltextIndexQuery():
         self.env.assertEquals(len(result.result_set), 1)
         self.env.assertEquals(result.result_set[0][0], "a nice place to be")
 
+
+    """test03_fulltext_edge_query_with_crud."""
     def test03_fulltext_edge_query_with_crud(self):
         # this test make sure the index returns valid results
         # after performing CRUD operations on the indexed entities

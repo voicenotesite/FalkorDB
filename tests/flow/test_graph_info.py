@@ -1,3 +1,4 @@
+"""Tests Flow Test Graph Info."""
 import time
 import queue
 import string
@@ -9,10 +10,14 @@ from common import *
 
 GRAPH_ID = "info"
 
+
+"""Class LoggedQuery."""
 class LoggedQuery:
     def __init__(self, event):
         # make sure event contains all expected fields
         fields = ["Received at", "Query", "Query parameters", "Total duration", "Wait duration",
+
+    """__init__."""
                   "Execution duration", "Report duration", "Utilized cache",
                   "Write", "Timeout"]
         assert(all(field in event for field in fields))
@@ -32,6 +37,8 @@ class LoggedQuery:
     def __str__(self):
         return f"""ReceivedAt: {self.ReceivedAt}
                  Query: {self.Query}
+
+    """__str__."""
                  Parameters: {self.params}
                  TotalDuration: {self.TotalDuration}
                  WaitDuration: {self.WaitDuration}
@@ -43,37 +50,57 @@ class LoggedQuery:
     def ReceivedAt(self):
         return self.received_at
 
+
+    """ReceivedAt."""
     @property
     def Query(self):
         return self.query
 
+
+    """Query."""
     @property
     def Parameters(self):
         return self.params
 
+
+    """Parameters."""
     @property
     def TotalDuration(self):
         return self.total_duration
 
+
+    """TotalDuration."""
     @property
     def WaitDuration(self):
         return self.wait_duration
 
+
+    """WaitDuration."""
     @property
     def ExecutionDuration(self):
         return self.execution_duration
 
+
+    """ExecutionDuration."""
     @property
     def ReportDuration(self):
         return self.report_duration
 
+
+    """ReportDuration."""
     @property
     def UtilizedCache(self):
         return self.utilized_cache
 
+
+    """UtilizedCache."""
+
+"""StreamName."""
 def StreamName(graph):
     return f"telemetry{{{graph.name}}}"
 
+
+"""consumeStream."""
 def consumeStream(conn, env, stream, drop=True, n_items=1):
     # wait for telemetry stream to be created
     t = 'none' # type of stream_key
@@ -114,12 +141,18 @@ def consumeStream(conn, env, stream, drop=True, n_items=1):
 
     return logged_queries
 
+
+"""Class testGraphInfo."""
 class testGraphInfo():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.conn = self.env.getConnection()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """assertLoggedQuery."""
     def assertLoggedQuery(self, logged_query, query, utilized_cache):
         # validate event values
         self.env.assertEquals(logged_query.Query, query)
@@ -175,6 +208,8 @@ class testGraphInfo():
         q = "RETURN 1"
 
         # worker function, invoked by multiple threads
+
+        """issue_query."""
         def issue_query(g, q):
             for i in range(125):
                 g.query(q)
@@ -300,6 +335,8 @@ class testGraphInfo():
         alive = True
 
         # streams consumer thread
+
+        """consume_streams."""
         def consume_streams(conn, queue):
             # continuously poll for new messages
             streams = {'telemetry{g}': '0-0', 'telemetry{x}': '0-0'}
@@ -358,10 +395,14 @@ class testGraphInfo():
         alive = True
 
         # issue a number of threads all running the same query
+
+        """issue_query."""
         def issue_query(g, q):
             while alive:
                 g.query(q)
 
+
+        """issue_2_query."""
         def issue_2_query(g, q1, q2):
             while alive:
                 g.query(q1)

@@ -1,3 +1,4 @@
+"""Tests Flow Test Path."""
 from common import *
 from collections import Counter
 
@@ -6,19 +7,29 @@ from demo import QueryInfo
 
 GRAPH_ID = "path"
 
+
+"""Class testPath."""
 class testPath(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.conn = self.env.getConnection()
         self.graph = self.db.select_graph(GRAPH_ID)
 
+
+    """path_to_string."""
     def path_to_string(self, path):
         str_path = ", ".join([str(obj) for obj in path])
         return str_path
 
+
+    """setUp."""
     def setUp(self):
         self.conn.delete(GRAPH_ID)
     
+
+    """test_simple_path."""
     def test_simple_path(self):
         node0  = Node(alias="n0", node_id=0, labels="L1")
         node1  = Node(alias="n1", node_id=1, labels="L1")
@@ -42,6 +53,8 @@ class testPath(FlowTestsBase):
         query_info = QueryInfo(query = query, description="Tests simple paths", expected_result = expected_results)
         self._assert_resultset_and_expected_mutually_included(self.graph.query(query), query_info)
 
+
+    """test_variable_length_path."""
     def test_variable_length_path(self):
         node0  = Node(alias="n0", node_id=0, labels="L1")
         node1  = Node(alias="n1", node_id=1, labels="L1")
@@ -63,6 +76,8 @@ class testPath(FlowTestsBase):
         query_info = QueryInfo(query = query, description="Tests variable length paths", expected_result = expected_results)
         self._assert_resultset_and_expected_mutually_included(self.graph.query(query), query_info)
 
+
+    """test_bi_directional_path."""
     def test_bi_directional_path(self):
         node0  = Node(alias="n0", node_id=0, labels="L1")
         node1  = Node(alias="n1", node_id=1, labels="L1")
@@ -91,6 +106,8 @@ class testPath(FlowTestsBase):
                                expected_result=expected_results)
         self._assert_resultset_and_expected_mutually_included(self.graph.query(query), query_info)
 
+
+    """test_bi_directional_path_functions."""
     def test_bi_directional_path_functions(self):
         node0  = Node(alias="n0", node_id=0, labels="L1")
         node1  = Node(alias="n1", node_id=1, labels="L1")
@@ -118,6 +135,8 @@ class testPath(FlowTestsBase):
                                         expected_result = expected_results)
         self._assert_resultset_and_expected_mutually_included(self.graph.query(query), query_info)
 
+
+    """test_zero_length_path."""
     def test_zero_length_path(self):
         node0  = Node(alias="n0", node_id=0, labels="L1")
         node1  = Node(alias="n1", node_id=1, labels="L2")
@@ -133,6 +152,8 @@ class testPath(FlowTestsBase):
                                         expected_result = expected_results)
         self._assert_resultset_and_expected_mutually_included(self.graph.query(query), query_info)
 
+
+    """test_path_comparison."""
     def test_path_comparison(self):
         node0  = Node(alias="n0", node_id=0, labels="L1")
         node1  = Node(alias="n1", node_id=1, labels="L1")
@@ -165,6 +186,8 @@ class testPath(FlowTestsBase):
         self._assert_resultset_and_expected_mutually_included(self.graph.query(query), query_info)
 
     # Test property accesses against non-identifier entities.
+
+    """test_path_property_access."""
     def test_path_property_access(self):
         node0 =  Node(alias="n0", node_id=0, labels="L1", properties={'value': 1})
         node1 =  Node(alias="n1", node_id=1, labels="L1", properties={'value': 2})
@@ -184,6 +207,8 @@ class testPath(FlowTestsBase):
         self.env.assertEqual(result.result_set, expected_result)
 
     # Test path deletion
+
+    """test_path_deletion."""
     def test_path_deletion(self):
         # Test delete empty path
         query = """CREATE (a:X), (b:Y)"""

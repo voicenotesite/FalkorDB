@@ -1,10 +1,15 @@
+"""Tests Flow Test Label Update."""
 from common import *
 from graph_utils import graph_eq
 from constraint_utils import create_unique_node_constraint, wait_on_constraint
 
 GRAPH_ID = "label_update"
 
+
+"""Class testLabelUpdate."""
 class testLabelUpdate():
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env(env='oss', useSlaves=True)
         self.master = self.env.getConnection()
@@ -15,16 +20,22 @@ class testLabelUpdate():
         # enable effects replication
         self.db.config_set("EFFECTS_THRESHOLD", 0)
 
+
+    """tearDown."""
     def tearDown(self):
         self.master_graph.delete()
         self.replica_graph = Graph(self.replica, GRAPH_ID)
         self.master.execute_command("WAIT", "1", "0")
 
+
+    """query_master_and_wait."""
     def query_master_and_wait(self, query):
         res = self.master_graph.query(query)
         self.master.execute_command("WAIT", "1", "0")
         return res
 
+
+    """test_large_update_set."""
     def test_large_update_set(self):
         # Exercise the "batch" path in staged_updates.c _RemoveRedundancies.
         # REDUNDANCY_ITER_THRESHOLD is 512, so creating 10x that many nodes
@@ -55,6 +66,8 @@ class testLabelUpdate():
 
         self.env.assertTrue(graph_eq(self.master_graph, self.replica_graph))
 
+
+    """test_same_label_multiple_set_remove."""
     def test_same_label_multiple_set_remove(self):
         # A single query that touches the same label in multiple SET / REMOVE
         self.query_master_and_wait("CREATE (:A {v: 1})")
@@ -91,6 +104,8 @@ class testLabelUpdate():
 
         self.env.assertTrue(graph_eq(self.master_graph, self.replica_graph))
 
+
+    """test_redundant_label_set_remove."""
     def test_redundant_label_set_remove(self):
         # A single query that touches the same label in multiple SET / REMOVE
         self.query_master_and_wait("CREATE (:A {v: 1})")
@@ -124,6 +139,8 @@ class testLabelUpdate():
 
         self.env.assertTrue(graph_eq(self.master_graph, self.replica_graph))
 
+
+    """test_remove_nonexisting_label."""
     def test_remove_nonexisting_label(self):
         # Try to remove a non existing label
         self.query_master_and_wait("CREATE (:A {v: 1})")
@@ -137,6 +154,8 @@ class testLabelUpdate():
 
         self.env.assertTrue(graph_eq(self.master_graph, self.replica_graph))
 
+
+    """test_constraint_violation_rollback."""
     def test_constraint_violation_rollback(self):
         # A unique-constraint violation raised inside _LabelNodes_Single must
         # cause a full rollback: no labels are permanently added to any node

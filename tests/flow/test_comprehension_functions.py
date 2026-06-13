@@ -1,8 +1,11 @@
+"""Tests Flow Test Comprehension Functions."""
 from common import *
 from execution_plan_util import locate_operation
 
 GRAPH_ID = "list_comprehension"
 
+
+"""_check_pattern_comprehension_plan."""
 def _check_pattern_comprehension_plan(plan: ExecutionPlan):
     apply = locate_operation(plan.structured_plan, "Apply")
     return apply and                                          \
@@ -10,12 +13,18 @@ def _check_pattern_comprehension_plan(plan: ExecutionPlan):
         apply.children[1].name == "Aggregate" and             \
         locate_operation(apply.children[1], "Argument")
 
+
+"""Class testComprehensionFunctions."""
 class testComprehensionFunctions(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph(GRAPH_ID)
         self.populate_graph()
 
+
+    """populate_graph."""
     def populate_graph(self):
         # Construct a graph with the form:
         # (v1)-[e1]->(v2)-[e2]->(v3)
@@ -33,6 +42,8 @@ class testComprehensionFunctions(FlowTestsBase):
         self.graph.query(f"CREATE {', '.join(nodes_str)}, {e0}, {e1}")
 
     # Test list comprehension queries with scalar inputs and a single result row
+
+    """test01_list_comprehension_single_return."""
     def test01_list_comprehension_single_return(self):
         expected_result = [[[2, 6]]]
 
@@ -49,6 +60,8 @@ class testComprehensionFunctions(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test02_list_comprehension_no_filter_no_map."""
     def test02_list_comprehension_no_filter_no_map(self):
         expected_result = [[[1, 2, 3]]]
         query = """WITH [1,2,3] AS arr RETURN [elem IN arr]"""
@@ -58,18 +71,24 @@ class testComprehensionFunctions(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test03_list_comprehension_map_no_filter."""
     def test03_list_comprehension_map_no_filter(self):
         query = """WITH [1,2,3] AS arr RETURN [elem IN arr | elem * 2]"""
         actual_result = self.graph.query(query)
         expected_result = [[[2, 4, 6]]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test04_list_comprehension_filter_no_map."""
     def test04_list_comprehension_filter_no_map(self):
         query = """WITH [1,2,3] AS arr RETURN [elem IN arr WHERE elem % 2 = 1]"""
         actual_result = self.graph.query(query)
         expected_result = [[[1, 3]]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test05_list_comprehension_on_allocated_values."""
     def test05_list_comprehension_on_allocated_values(self):
         query = """WITH [toUpper('str1'), toUpper('str2'), toUpper('str3')] AS arr RETURN [elem IN arr]"""
         actual_result = self.graph.query(query)
@@ -86,6 +105,8 @@ class testComprehensionFunctions(FlowTestsBase):
         expected_result = [[['STR2low']]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test06_list_comprehension_on_graph_entities."""
     def test06_list_comprehension_on_graph_entities(self):
         query = """MATCH p=()-[*]->() WITH nodes(p) AS nodes RETURN [elem IN nodes]"""
         actual_result = self.graph.query(query)
@@ -112,6 +133,8 @@ class testComprehensionFunctions(FlowTestsBase):
                            [['v2a']]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test07_list_comprehension_in_where_predicate."""
     def test07_list_comprehension_in_where_predicate(self):
         # List comprehension with predicate in WHERE predicate on MATCH clause - evaluates to true
         query = """MATCH (n) WHERE n.val IN [x in ['v1', 'v3']] RETURN n.val ORDER BY n.val"""
@@ -144,6 +167,8 @@ class testComprehensionFunctions(FlowTestsBase):
         expected_result = [[1]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test08_list_comprehension_on_property_array."""
     def test08_list_comprehension_on_property_array(self):
         query = """MATCH (n)-[e]->() WITH n, e ORDER BY n.val RETURN [elem IN e.edge_val WHERE elem = n.val]"""
         actual_result = self.graph.query(query)
@@ -151,12 +176,16 @@ class testComprehensionFunctions(FlowTestsBase):
                            [['v2']]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test09_nested_list_comprehension."""
     def test09_nested_list_comprehension(self):
         query = """RETURN [elem IN [nested_val IN range(0, 6) WHERE nested_val % 2 = 0] WHERE elem * 2 >= 4 | elem * 2]"""
         actual_result = self.graph.query(query)
         expected_result = [[[4, 8, 12]]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test10_any_all_comprehension_acceptance."""
     def test10_any_all_comprehension_acceptance(self):
         # Reject ANY and ALL comprehensions that don't include a WHERE predicate.
         try:
@@ -173,6 +202,8 @@ class testComprehensionFunctions(FlowTestsBase):
             # Expecting a type error.
             self.env.assertIn("requires a WHERE predicate", str(e))
 
+
+    """test11_any_all_truth_table."""
     def test11_any_all_truth_table(self):
         # Test inputs and predicates where ANY and ALL are both false.
         query = """RETURN any(x IN [0,1] WHERE x = 2)"""
@@ -210,6 +241,8 @@ class testComprehensionFunctions(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set, [[None]])
 
+
+    """test12_any_all_on_property_arrays."""
     def test12_any_all_on_property_arrays(self):
         # The first array evaluates to ['v1', 'v2'] and the second evaluates to ['v2', 'v3']
         query = """MATCH ()-[e]->() WITH e ORDER BY e.edge_val RETURN ANY(elem IN e.edge_val WHERE elem = 'v2' OR elem = 'v3')"""
@@ -220,6 +253,8 @@ class testComprehensionFunctions(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set, [[False], [True]])
 
+
+    """test13_any_all_path_filtering."""
     def test13_any_all_path_filtering(self):
         # Use ANY and ALL to introspect on named variable-length paths.
         # All paths should be returned using both ANY and ALL filters.
@@ -243,6 +278,8 @@ class testComprehensionFunctions(FlowTestsBase):
         expected_result = [[0]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test14_simple_pattern_comprehension."""
     def test14_simple_pattern_comprehension(self):
         # Match all nodes and collect their destination's property in an array
         query = """MATCH (a) RETURN a.val AS v, [(a)-[]->(b) | b.val] ORDER BY v"""
@@ -279,6 +316,8 @@ class testComprehensionFunctions(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test15_variable_length_pattern_comprehension."""
     def test15_variable_length_pattern_comprehension(self):
         # Match all nodes and collect their destination's property over all hops in an array
         query = """MATCH (a) RETURN a.val AS v, [(a)-[*0..]->(b) | b.val] ORDER BY v"""
@@ -303,6 +342,8 @@ class testComprehensionFunctions(FlowTestsBase):
         actual_result = self.graph.query(query)
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test16_nested_pattern_comprehension."""
     def test16_nested_pattern_comprehension(self):
         # Perform pattern comprehension inside a function call
         query = """MATCH (a) RETURN a.val AS v, size([p=(a)-[*0..]->() | p]) ORDER BY v"""
@@ -314,6 +355,8 @@ class testComprehensionFunctions(FlowTestsBase):
                            ['v3', 1]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test16b_nested_pattern_comprehension_outer_scope."""
     def test16b_nested_pattern_comprehension_outer_scope(self):
         # Inner pattern comprehensions must be able to reference variables
         # introduced by the enclosing pattern comprehension (e.g. `p` below).
@@ -363,6 +406,8 @@ class testComprehensionFunctions(FlowTestsBase):
             self.graph.delete()
             self.populate_graph()
 
+
+    """test17_pattern_comprehension_in_aggregation."""
     def test17_pattern_comprehension_in_aggregation(self):
         # Perform pattern comprehension as an aggregation key
         query = """UNWIND range(1, 3) AS x MATCH (a) RETURN COUNT(a) AS v, [p=(a)-[]->(b) | b.val] AS w ORDER BY v, w"""
@@ -385,6 +430,8 @@ class testComprehensionFunctions(FlowTestsBase):
                            ['v3', [['v3'], ['v3'], ['v3']]]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test18_pattern_comprehension_with_filters."""
     def test18_pattern_comprehension_with_filters(self):
         # Match all nodes and collect their destination's property in an array
         query = """MATCH (a) RETURN a.val AS v, [(a)-[]->(b {val: 'v2'}) | b.val] ORDER BY v"""
@@ -411,6 +458,8 @@ class testComprehensionFunctions(FlowTestsBase):
                            ['v3', []]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test19_variable_redefinition."""
     def test19_variable_redefinition(self):
         # Use a list comprehension's variable in two different contexts
         # The shared variable is x
@@ -443,6 +492,8 @@ class testComprehensionFunctions(FlowTestsBase):
             [[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]] ]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test20_pattern_comprehension_in_switch_case."""
     def test20_pattern_comprehension_in_switch_case(self):
         query = "RETURN CASE WHEN [()-[]-() | 1] THEN [()-[]-() | 0] END AS v3"
         actual_result = self.graph.query(query)
@@ -501,6 +552,8 @@ class testComprehensionFunctions(FlowTestsBase):
         expected_result = [[[1, 1]], [[2]], [[3]], [[]]]
         self.env.assertEquals(actual_result.result_set, expected_result)
 
+
+    """test21_aggregation_in_pattern_comprehension."""
     def test21_aggregation_in_pattern_comprehension(self):
         # Aggregation functions are not allowed inside a pattern comprehension's
         # eval expression or predicate. Previously this caused a server crash
@@ -521,6 +574,8 @@ class testComprehensionFunctions(FlowTestsBase):
         except redis.exceptions.ResponseError as e:
             self.env.assertIn("Invalid use of aggregating function", str(e))
 
+
+    """test22_comprehension_predicate_after_with."""
     def test22_comprehension_predicate_after_with(self):
         # Validate that aliases referenced within comprehension predicate
         # (any/all/single/none) private-data are visible to the planner

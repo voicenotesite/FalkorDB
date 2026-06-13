@@ -1,3 +1,4 @@
+"""Tests Flow Test Effects."""
 import time
 import random
 import threading
@@ -8,24 +9,36 @@ from graph_utils import graph_eq
 GRAPH_ID = "effects"
 MONITOR_ATTACHED = False
 
+
+"""Class testEffects."""
 class testEffects():
     # enable effects replication
+
+    """effects_enable."""
     def effects_enable(self):
        self.db.config_set("EFFECTS_THRESHOLD", 0)
 
     # disable effects replication
+
+    """effects_disable."""
     def effects_disable(self):
         self.db.config_set("EFFECTS_THRESHOLD", 999999)
 
     # checks if effects replication is enabled
+
+    """effects_enabled."""
     def effects_enabled(self):
         threshold = self.db.config_get("EFFECTS_THRESHOLD")
         return (threshold == 0)
 
     # checks if effects replication is enabled
+
+    """effects_disabled."""
     def effects_disabled(self):
         return not self.effects_enabled()
 
+
+    """monitor_thread."""
     def monitor_thread(self):
         global MONITOR_ATTACHED
         try:
@@ -37,6 +50,8 @@ class testEffects():
         except:
             pass
 
+
+    """wait_for_command."""
     def wait_for_command(self, cmd, timeout=500):
         # wait for monitor to receive cmd
         found = False
@@ -53,22 +68,32 @@ class testEffects():
         if found is False:
             raise Exception(f"missing expected replicated command: {cmd}")
 
+
+    """wait_for_effect."""
     def wait_for_effect(self):
         self.wait_for_command('GRAPH.EFFECT')
 
+
+    """wait_for_query."""
     def wait_for_query(self):
         self.wait_for_command('GRAPH.QUERY')
 
+
+    """monitor_containt_effect."""
     def monitor_containt_effect(self):
         for item in self.monitor:
             if 'GRAPH.EFFECT' in item['command']:
                 return True
         return False
 
+
+    """clear_monitor."""
     def clear_monitor(self):
         self.monitor = []
 
     # query master and wait for replica
+
+    """query_master_and_wait."""
     def query_master_and_wait(self, q):
         res = self.master_graph.query(q)
 
@@ -78,9 +103,13 @@ class testEffects():
         return res
 
     # asserts that master and replica have the same view over the graph
+
+    """assert_graph_eq."""
     def assert_graph_eq(self):
         self.env.assertTrue(graph_eq(self.master_graph, self.replica_graph))
 
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env(env='oss', useSlaves=True)
         self.monitor = []
@@ -104,15 +133,21 @@ class testEffects():
         while MONITOR_ATTACHED is False:
             time.sleep(0.2)
 
+
+    """__del__."""
     def __del__(self):
         # all done, shutdown replica
         # stops monitor thread
         self.replica.shutdown()
     
+
+    """test01_effect_default_config."""
     def test01_effect_default_config(self):
         # make sure effects are enabled by default
         self.env.assertTrue(self.effects_enabled())
 
+
+    """test02_add_schema_effect."""
     def test02_add_schema_effect(self, expect_effect=True):
         # test the introduction of a schema by an effect
 
@@ -152,6 +187,8 @@ class testEffects():
 
         self.assert_graph_eq()
 
+
+    """test03_add_attribute_effect."""
     def test03_add_attribute_effect(self, expect_effect=True):
         # test the introduction of an attribute by an effect
 
@@ -197,6 +234,8 @@ class testEffects():
 
         self.assert_graph_eq()
 
+
+    """test04_create_node_effect."""
     def test04_create_node_effect(self, expect_effect=True):
         # test the introduction of a new node by an effect
 
@@ -245,6 +284,8 @@ class testEffects():
 
         self.assert_graph_eq()
 
+
+    """test05_create_edge_effect."""
     def test05_create_edge_effect(self, expect_effect=True):
         # tests the introduction of a new edge by an effect
 
@@ -284,6 +325,8 @@ class testEffects():
 
         self.assert_graph_eq()
 
+
+    """test06_update_node_effect."""
     def test06_update_node_effect(self, expect_effect=True):
         # test an entity attribute set update by an effect
 
@@ -445,6 +488,8 @@ class testEffects():
 
         self.assert_graph_eq()
 
+
+    """test07_update_edge_effect."""
     def test07_update_edge_effect(self, expect_effect=True):
 
         # no leftovers from previous test
@@ -606,6 +651,8 @@ class testEffects():
 
         self.assert_graph_eq()
 
+
+    """test08_set_labels_effect."""
     def test08_set_labels_effect(self, expect_effect=True):
         # test the addition of a new node label by an effect
 
@@ -635,6 +682,8 @@ class testEffects():
 
         self.assert_graph_eq()
 
+
+    """test09_remove_labels_effect."""
     def test09_remove_labels_effect(self, expect_effect=True):
         # test the removal of a node label by an effect
 
@@ -652,6 +701,8 @@ class testEffects():
 
         self.assert_graph_eq()
 
+
+    """test10_delete_edge_effect."""
     def test10_delete_edge_effect(self, expect_effect=True):
         # test the deletion of an edge by an effect
 
@@ -669,6 +720,8 @@ class testEffects():
 
         self.assert_graph_eq()
 
+
+    """test11_delete_node_effect."""
     def test11_delete_node_effect(self, expect_effect=True):
         # test the deletion of a node by an effect
 
@@ -687,6 +740,8 @@ class testEffects():
 
         self.assert_graph_eq()
 
+
+    """test12_merge_node."""
     def test12_merge_node(self, expect_effect=True):
         # test create and update of a node by an effect
 
@@ -723,6 +778,8 @@ class testEffects():
 
         self.assert_graph_eq()
 
+
+    """test13_merge_edge."""
     def test13_merge_edge(self, expect_effect=True):
         # test create and update of an edge by an effect
 
@@ -760,6 +817,8 @@ class testEffects():
 
         self.assert_graph_eq()
 
+
+    """test14_empty_vector."""
     def test14_empty_vector(self, expect_effect=True):
         # test creation of an empty vector
 
@@ -778,6 +837,8 @@ class testEffects():
 
         self.assert_graph_eq()
 
+
+    """test15_create_node_with_random_and_timestamp_effect."""
     def test15_create_node_with_random_and_timestamp_effect(self, expect_effect=True):
         q = "CREATE ({r:rand(), t:timestamp()})"
         res = self.query_master_and_wait(q)
@@ -791,6 +852,8 @@ class testEffects():
             self.wait_for_query()
             # graphs will likely differ.
 
+
+    """test16_rerun_disable_effects."""
     def test16_rerun_disable_effects(self):
         # test replication works when effects are disabled
 
@@ -828,6 +891,8 @@ class testEffects():
         # make sure no effects had been recieved
         self.env.assertFalse(self.monitor_containt_effect())
 
+
+    """test17_random_ops."""
     def test17_random_ops(self):
         # update graph key
         global GRAPH_ID

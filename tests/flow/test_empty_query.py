@@ -1,10 +1,17 @@
+"""Tests Flow Test Empty Query."""
 from common import *
 
+
+"""Class testEmptyQuery."""
 class testEmptyQuery(FlowTestsBase):
+
+    """__init__."""
     def __init__(self):
         self.env, self.db = Env()
         self.graph = self.db.select_graph('G')
 
+
+    """test01_empty_query."""
     def test01_empty_query(self):
         try:
             # execute empty query
@@ -12,6 +19,8 @@ class testEmptyQuery(FlowTestsBase):
         except ResponseError as e:
             self.env.assertIn("Error: empty query.", str(e))
 
+
+    """test02_whitespace_and_semicolon_queries."""
     def test02_whitespace_and_semicolon_queries(self):
         for query in [" ", ";"]:
             try:
